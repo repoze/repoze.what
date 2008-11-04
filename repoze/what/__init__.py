@@ -15,4 +15,10 @@
 #
 ##############################################################################
 
-"""Special namespace for tgext.authorization plugins."""
+"""
+Authorization framework for TurboGears 2 applications.
+
+"""
+
+# This is a package. Do NOT put anything here to keep the repoze.what
+# namespace clear for plugins at repoze.what.plugins

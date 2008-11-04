@@ -27,9 +27,9 @@ from setuptools import setup, find_packages
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.txt')).read()
 
-setup(name='tgext.authorization',
+setup(name='repoze.what',
       version=__version__,
-      description=('Authorization for TurboGears 2 applications'),
+      description=('Authorization for WSGI applications'),
       long_description=README,
       classifiers=[
         "Development Status :: 3 - Alpha",
@@ -40,12 +40,12 @@ setup(name='tgext.authorization',
         "Topic :: Internet :: WWW/HTTP :: WSGI",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
         ],
-      keywords='web application server wsgi tg2',
+      keywords='web application server wsgi',
       author="Chris McDonough, Florent Aide, Christopher Perkins, "
              "Gustavo Narea",
       author_email="repoze-dev@lists.repoze.org",
-      namespace_packages = ['tgext'],
-      url="http://www.turbogears.org",
+      namespace_packages = ['repoze'],
+      url="http://repoze.org",
       license="BSD-derived (http://www.repoze.org/LICENSE.txt)",
       packages=find_packages(),
       include_package_data=True,

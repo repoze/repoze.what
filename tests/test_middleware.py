@@ -16,7 +16,7 @@
 ##############################################################################
 
 """
-Tests for the tgext.authorization middleware.
+Tests for the repoze.what middleware.
 
 """
 
@@ -25,7 +25,7 @@ import unittest
 from zope.interface.verify import verifyClass
 from repoze.who.interfaces import IAuthenticator, IMetadataProvider
 
-from tgext.authorization.middleware import AuthorizationMetadata
+from repoze.what.middleware import AuthorizationMetadata
 
 
 #{ Fake adapters/plugins

@@ -21,7 +21,7 @@ import unittest
 
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from tgext.authorization.quickstart import SQLAuthenticatorPlugin, \
+from repoze.what.quickstart import SQLAuthenticatorPlugin, \
                                            find_plugin_translations
 
 from base import FakeGroupSourceAdapter, FakePermissionSourceAdapter, \
@@ -142,7 +142,7 @@ class TestSQLAuthenticatorPlugin(unittest.TestCase):
 
 class TestMakeWhoMiddleware(unittest.TestCase):
     def _getFUT(self):
-        from tgext.authorization.quickstart import setup_sql_auth
+        from repoze.what.quickstart import setup_sql_auth
         return setup_sql_auth
 
     def test_it(self):

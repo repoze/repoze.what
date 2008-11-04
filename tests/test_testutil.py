@@ -19,7 +19,7 @@
 
 import unittest
 
-from tgext.authorization.adapters.testutil import GroupsAdapterTester, \
+from repoze.what.adapters.testutil import GroupsAdapterTester, \
                                                   PermissionsAdapterTester
 
 from base import FakeGroupSourceAdapter, FakePermissionSourceAdapter

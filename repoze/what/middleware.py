@@ -87,7 +87,7 @@ def setup_auth(app, config, group_adapters, permission_adapters,
                authenticators, form_plugin=None, form_identifies=True,
                identifiers=None, challengers=[], mdproviders=[]):
     """
-    Setup repoze.who with tgext.authorization.
+    Setup repoze.who with repoze.what.
     
     @param app: The WSGI application object.
     @param config: The Pylons config object.

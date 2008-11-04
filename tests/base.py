@@ -39,8 +39,8 @@ from pylons.testutil import ControllerWrap, SetupCacheGlobal
 
 from beaker.middleware import CacheMiddleware
 
-from tgext.authorization.middleware import setup_auth
-from tgext.authorization.adapters import BaseSourceAdapter
+from repoze.what.middleware import setup_auth
+from repoze.what.adapters import BaseSourceAdapter
 from pylons import config
 
 data_dir = os.path.dirname(os.path.abspath(__file__))

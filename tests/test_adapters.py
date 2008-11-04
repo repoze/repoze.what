@@ -21,7 +21,7 @@ import unittest
 
 from zope.interface import implements
 
-from tgext.authorization.adapters import *
+from repoze.what.adapters import *
 
 from base import FakeGroupSourceAdapter
 

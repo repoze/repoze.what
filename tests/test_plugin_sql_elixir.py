@@ -19,11 +19,11 @@
 
 import unittest
 
-from tgext.authorization.quickstart import SQLAuthenticatorPlugin
-from tgext.authorization.plugins.sql import SqlGroupsAdapter, \
+from repoze.what.quickstart import SQLAuthenticatorPlugin
+from repoze.what.plugins.sql import SqlGroupsAdapter, \
                                             SqlPermissionsAdapter, \
                                             configure_sql_adapters
-from tgext.authorization.adapters.testutil import GroupsAdapterTester, \
+from repoze.what.adapters.testutil import GroupsAdapterTester, \
                                                   PermissionsAdapterTester
 
 import databasesetup_elixir

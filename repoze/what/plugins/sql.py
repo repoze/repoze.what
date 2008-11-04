@@ -16,12 +16,12 @@
 ##############################################################################
 
 """
-SQL plugin for tgext.authorization based on SQLAlchemy.
+SQL plugin for repoze.what based on SQLAlchemy.
 
 This is a core plugin that provides ``source adapters`` for groups and
 permissions stored in databases.
 
-Below is the "translation" of the terminology used by tgext.authorization into
+Below is the "translation" of the terminology used by repoze.what into
 databases' terminology:
  * source -> database
  * section -> parent row (in a one-to-many relationship)
@@ -65,7 +65,7 @@ field and table names involved:
 from sqlalchemy.exceptions import SQLAlchemyError
 from sqlalchemy.orm.exc import NoResultFound
 
-from tgext.authorization.adapters import BaseSourceAdapter, SourceError
+from repoze.what.adapters import BaseSourceAdapter, SourceError
 
 __all__ = ['SqlGroupsAdapter', 'SqlPermissionsAdapter',
            'configure_sql_adapters']

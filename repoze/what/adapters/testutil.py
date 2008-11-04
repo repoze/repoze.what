@@ -17,7 +17,7 @@
 
 """Utilities to test source adapters."""
 
-from tgext.authorization.adapters import SourceError, ExistingSectionError, \
+from repoze.what.adapters import SourceError, ExistingSectionError, \
                                          NonExistingSectionError, \
                                          ItemPresentError, ItemNotPresentError
 

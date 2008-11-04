@@ -23,7 +23,7 @@ Tests for the authorization mechanisms.
 import tg, pylons
 from tg.controllers import TGController
 from tg.decorators import expose
-from tgext.authorization import authorize
+from repoze.what import authorize
 from nose.tools import eq_
 
 from base import TestWSGIController, make_app, setup_session_dir, \

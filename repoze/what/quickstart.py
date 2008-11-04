@@ -21,8 +21,8 @@ from zope.interface import implements
 from repoze.who.interfaces import IAuthenticator
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from tgext.authorization.middleware import setup_auth
-from tgext.authorization.plugins.sql import configure_sql_adapters
+from repoze.what.middleware import setup_auth
+from repoze.what.plugins.sql import configure_sql_adapters
 
 class SQLAuthenticatorPlugin(object):
     implements(IAuthenticator)
@@ -100,7 +100,7 @@ def setup_sql_auth(app, config, user_class, group_class, permission_class,
                    identifiers=None, authenticators=[], challengers=[],
                    mdproviders=[], translations={}):
     """
-    A basic configuration of repoze.who and tgext.authorization with SQL-only
+    A basic configuration of repoze.who and repoze.what with SQL-only
     authentication/authorization.
     
     @param app: The WSGI application object.

@@ -15,4 +15,4 @@
 #
 ##############################################################################
 
-"""Test suite for tgext.authorization."""
+"""Test suite for repoze.what."""
