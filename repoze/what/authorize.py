@@ -365,7 +365,7 @@ def require(predicate, obj=None):
                 return fn(self, *args, **kwargs)
 
             # if we did not return, then return a 401 to the WSGI stack now
-            flash(errors)
+            flash(errors, status="status_warning")
             abort(401)
 
         fn._require = predicate
