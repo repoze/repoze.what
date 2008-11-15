@@ -3,6 +3,7 @@
 
 :Author: Gustavo Narea.
 :Version: |version|
+:Status: Official
 
 .. module:: repoze.what
     :synopsis: Authorization framework for WSGI applications
@@ -28,6 +29,11 @@
     from one back-end to another, and even use this framework to migrate the 
     data.
 
+:mod:`repoze.what` uses a common authorization pattern based on
+the ``users`` (authenticated or anonymous) of your web application, the 
+``groups`` they belong to and the ``permissions`` granted to such groups. But
+you can extend it to check for other conditions (such as checking that the
+user comes from a given country, based on her IP address, for example).
 
 Terminology
 -----------
@@ -61,10 +67,15 @@ only in a database, :mod:`repoze.what` uses a generic terminology:
         :term:`group source`, the items are the Ids of the users that belong to
         the group represented in the parent section.
 
-In your WSGI applications you may use any amount of group and permission sources.
+
+The authentication framework (:mod:`repoze.who`) only deals with the 
+:term:`source` (or sources) that handle your users' credentials, while the 
+authorization framework (:mod:`repoze.what`) deals with both the 
+source(s) that handle your groups and those that handle your permissions.
 
 Sample sources
 ~~~~~~~~~~~~~~
+
 Below are the contents of a mock ``.htgroups`` file that defines the groups of
 an application. In other words, such a file is a :term:`group source` of
 type ``htgroups``::
