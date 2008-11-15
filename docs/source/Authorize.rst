@@ -1,29 +1,32 @@
-Implementing authorization with :mod:`repoze.what.authorize`
-====================================================================
+Restricting access with :mod:`repoze.what.authorize`
+====================================================
+
+:Status: Official
+
 .. module:: repoze.what.authorize
-    :synopsis: Authorization in TG2 controllers and action controllers.
+    :synopsis: Authorization in application's controllers and action controllers.
 .. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
 .. moduleauthor:: Florent Aide <florent.aide@gmail.com>
 .. moduleauthor:: Agendaless Consulting and Contributors
 
-:Status: Official
+.. topic:: Overview
 
-This document explains how to implement authorization in your TG2 action
-controllers.
+    This document explains how to implement authorization in the action 
+    controllers of your WSGI application. The code snippets shown here have 
+    been tested with TurboGears 2, but should also work with Pylons and other 
+    frameworks (`write to us <http://lists.repoze.org/listinfo/repoze-dev>`_ 
+    if you know of a framework in which they don't work).
 
-.. contents:: Table of Contents
-    :depth: 3
 
-
-Overview
---------
-
-You are ready to use authorization in your TurboGears controllers once you
+You are ready to use authorization in your controllers once you
 have setup the required middleware, either through the quickstart or in a
 custom way.
 
 All you need to implement it is defined in the 
 :mod:`repoze.what.authorize` module.
+
+.. contents:: Table of Contents
+    :depth: 3
 
 
 Action-level authorization
@@ -41,7 +44,6 @@ the "manage" group, you may use a code like this::
     
     class MyController(BaseController):
         # ...
-        @expose('yourproject.templates.about')
         @authorize.require(authorize.has_permission('manage'))
         # authorize.has_permission() is a predicate checker function; read on!
         def manage_permission_only(self, **kw):
@@ -56,7 +58,6 @@ users, you make use something like this::
     
     class MyController(BaseController):
         # ...
-        @expose('yourproject.templates.leave_comment')
         @authorize.require(authorize.not_anonymous())
         def leave_comment(self, **kw):
             return dict()
@@ -69,53 +70,31 @@ them!).
 
 Controller-level authorization
 ------------------------------
-If you want that all the actions from a given controller meet a common
-authorization criteria, then you may define the ``require`` attribute of
-your controller class::
 
-    class Admin(SecureController):
-        require = authorize.has_permission('manage')
+The TurboGears 2 framework allows to define controller-wide predicates, although
+:mod:`repoze.what` `will eventually ship with a function that will work in any
+framework <http://bugs.repoze.org/issue45>`_.
+
+In the mean time, the work-around is to define the same `require`
+decorator with the same parameters in every action controller of the controller
+in question, as shown in the following code snippet::
+
+    class MySecureController(MyFrameworkBaseController):
+        # ...
         
-        @expose('yourproject.templates.index')
-        def index(self):
-            flash(_("Secure Controller here"))
-            return dict(page='index')
-        
-        @expose('yourproject.templates.index')
-        def some_where(self):
-            """This are is protected too.
-            
-            Only those with "manage" permissions may access.
-            
-            """
+        @authorize.require(authorize.not_anonymous())
+        def leave_comment(self, **kw):
             return dict()
-
-Where your ``SecureController`` class may look like this::
-
-    class SecureController(BaseController):
-        """SecureController implementation for the repoze.what extension.
         
-        it will permit to protect whole controllers with a single predicate
-        placed at the controller level.
-        The only thing you need to have is a 'require' attribute which must
-        be a callable. This callable will only be authorized to return True
-        if the user is allowed and False otherwise. This may change to convey info
-        when securecontroller is fully debugged...
-        """
-    
-        def check_security(self):
-            errors = []
-            environ = request.environ
-            identity = environ.get('repoze.who.identity')
-            if not hasattr(self, "require") or \
-                self.require is None or \
-                self.require.eval_with_object(identity, errors):
-                return True
-            # if we did not return this is an error :)
-            return False
-
-If you enabled authentication/authorization in your project when it was created,
-then this class is already defined in ``{yourproject}.lib.base``.
+        @authorize.require(authorize.not_anonymous())
+        def send_trackback(self, **kw):
+            return dict()
+        
+        @authorize.require(authorize.not_anonymous())
+        def see_staff(self, **kw):
+            return dict()
+        
+        # ...
 
 
 Predicates
@@ -146,7 +125,7 @@ These are the predicate checkers that are included with
     
     Example::
     
-        @expose('yourproject.templates.blog.leave_comment')
+        # ...
         @authorize.require(authorize.not_anonymous())
         def leave_comment(self, **kw):
             return dict()
@@ -160,7 +139,7 @@ These are the predicate checkers that are included with
     
     Example::
     
-        @expose('yourproject.templates.release_kernel_version')
+        # ...
         @authorize.require(authorize.is_user('linus'))
         def release_kernel_version(self, **kw):
             flash('Hello Linus!')
@@ -175,7 +154,7 @@ These are the predicate checkers that are included with
     
     Example::
     
-        @expose('yourproject.templates.basket')
+        # ...
         @authorize.require(authorize.in_group('customers'))
         def customers_only(self, **kw):
             flash('Hello dear customer!')
@@ -191,7 +170,7 @@ These are the predicate checkers that are included with
     
     Example::
     
-        @expose('yourproject.templates.edit_javascript')
+        # ...
         @authorize.require(authorize.in_all_groups('developers', 'designers'))
         def edit_javascript(self, **kw):
             return dict()
@@ -205,7 +184,7 @@ These are the predicate checkers that are included with
     
     Example::
     
-        @expose('yourproject.templates.hire_person')
+        # ...
         @authorize.require(authorize.in_any_group('directors', 'hr'))
         def hire_person(self, person_name):
             flash('%s is hired!' % person_name)
@@ -220,7 +199,7 @@ These are the predicate checkers that are included with
     
     Example::
     
-        @expose('yourproject.templates.hire_person')
+        # ...
         @authorize.require(authorize.has_permission('hire'))
         def hire_person(self, person_name):
             flash('%s is hired!' % person_name)
@@ -240,7 +219,7 @@ These are the predicate checkers that are included with
     
     Example::
     
-        @expose('yourproject.templates.edit_users')
+        # ...
         @authorize.require(authorize.has_all_permissions('view-users', 'edit-users'))
         def edit_user(self, user_name, new_username):
             flash('%s is now %s!' % (user_name, new_username))
@@ -257,7 +236,7 @@ These are the predicate checkers that are included with
     
     Example::
     
-        @expose('yourproject.templates.edit_users')
+        # ...
         @authorize.require(authorize.has_any_permission('manage-users', 'edit-users'))
         def edit_user(self, user_name, new_username):
             flash('%s is now %s!' % (user_name, new_username))
@@ -300,7 +279,6 @@ as in this example::
     # ...
     class SummerVacations(BaseController):
         # ...
-        @expose('spain_travels.templates.start_vacations')
         @authorize.require(is_month(7))
         def start_vacations():
             flash('Have fun!')
@@ -327,7 +305,6 @@ predicate checkers with the functions below:
         # ...
         from yourproject.lib.auth import is_month
         # ...
-        @expose('yourproject.templates.allow_vacations')
         @authorize.require(authorize.All(
                                          is_month(7),
                                          authorize.in_group('hr')))
@@ -344,7 +321,7 @@ predicate checkers with the functions below:
     
     Example::
     
-        @expose('yourproject.templates.release_gnu_linux')
+        # ...
         @authorize.require(authorize.Any(
                                          authorize.is_user('rms'),
                                          authorize.is_user('linus')))
@@ -357,7 +334,6 @@ But you can also nest compound predicates::
     # ...
     from yourproject.lib.auth import is_month
     # ...
-    @expose('yourproject.templates.release_ubuntu')
     @authorize.require(authorize.All(
                                      Any(is_month(4), is_month(10)),
                                      authorize.has_permission('release')
