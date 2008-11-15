@@ -13,5 +13,7 @@ Overview
 Available plugins
 -----------------
 
-The SQL plugin
-~~~~~~~~~~~~~~
+.. toctree::
+    :maxdepth: 2
+
+    SQL

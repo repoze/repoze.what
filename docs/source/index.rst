@@ -1,39 +1,32 @@
-:mod:`repoze.what` -- Authorization for TurboGears 2 applications
-=========================================================================
+:mod:`repoze.what` -- Authorization for WSGI applications
+=========================================================
+
+:Author: Gustavo Narea.
+:Version: |version|
+
 .. module:: repoze.what
-    :synopsis: Authorization framework for TG2
+    :synopsis: Authorization framework for WSGI applications
 .. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
 .. moduleauthor:: Florent Aide <florent.aide@gmail.com>
 .. moduleauthor:: Agendaless Consulting and Contributors
 
-:Status: Official
+.. topic:: Overview
 
-
-This document introduces :mod:`repoze.what` and also explains how to
-get started. For more information about :mod:`repoze.what`, you may
-want to check the `advanced topics`_.
-
-.. contents:: Table of Contents
-    :depth: 2
-
-
-Overview
---------
-
-:mod:`repoze.what` is an `authorization framework` for TurboGears 2,
-based on `repoze.who` (which deals with `authentication`).
-
-On one hand, it enables an authorization system based on the groups to which
-the `authenticated or anonymous` user belongs and the permissions granted to
-such groups by loading these groups and permissions into the request on the way
-in to TurboGears. It also provides some decorators that check permissions for
-you, which have the same API as the TurboGears 1 identity module.
-
-And on the other hand, it enables you to manage your groups and permissions
-from the application itself or another TurboGears extension, under a backend
-independent API. Among other things, this means that it will be easy for you
-to switch from one backend to other, and even use this framework to migrate the
-data.
+    :mod:`repoze.what` is an `authorization framework` for WSGI applications,
+    based on :mod:`repoze.who` (which deals with `authentication`).
+    
+    On one hand, it enables an authorization system based on the groups to which
+    the `authenticated or anonymous` user belongs and the permissions granted to
+    such groups by loading these groups and permissions into the request on the 
+    way in to the downstream WSGI application. It also provides some decorators 
+    that check permissions for you, whose API is compatible with the `TurboGears 
+    <http://turbogears.org/>`_ 1.x *identity* module.
+    
+    And on the other hand, it enables you to manage your groups and permissions
+    from the application itself or another program, under a backend-independent 
+    API. Among other things, this means that it will be easy for you to switch 
+    from one back-end to another, and even use this framework to migrate the 
+    data.
 
 
 Terminology
@@ -68,13 +61,12 @@ only in a database, :mod:`repoze.what` uses a generic terminology:
         :term:`group source`, the items are the Ids of the users that belong to
         the group represented in the parent section.
 
-In your TurboGears 2 applications you may use any amount of group and
-permission sources.
+In your WSGI applications you may use any amount of group and permission sources.
 
 Sample sources
 ~~~~~~~~~~~~~~
 Below are the contents of a mock ``.htgroups`` file that defines the groups of
-a TG2 application. In other words, such a file is a :term:`group source` of
+an application. In other words, such a file is a :term:`group source` of
 type ``htgroups``::
 
     developers: rms, linus, guido
@@ -86,7 +78,7 @@ It has three sections and five items: "developers" (made up of the items "rms",
 "users (made up of the items "gustavo" and "maribel").
 
 And below are the contents of a mock ``.ini`` file that defines the permissions
-of the groups in a TG2 application. In other words, such a file is a
+of the groups in an application. In other words, such a file is a
 :term:`permission source` of type ``Ini``::
 
     [manage-site]
@@ -115,9 +107,9 @@ database is both the group and permission source:
 Setting up authentication and authorization
 -------------------------------------------
 
-To enable authorization in your TurboGears project, you need to add some
+To enable authorization in your Web application, you need to add some
 WSGI middleware to your application, which is automatically done for you if
-you are using the quickstart (:mod:`repoze.what.quickstart`).
+you are using the quickstart (:mod:`repoze.what.plugins.quickstart`).
 
 When you enable authorization with :mod:`repoze.what`, authentication
 with :mod:`repoze.who` is automatically enabled.
@@ -197,8 +189,7 @@ Advanced topics
     :maxdepth: 2
 
     Authorize
-    Quickstart
-    Plugins
+    Plugins/index
     ManagingSources
     WritingSourceAdapters
     InnerWorkings

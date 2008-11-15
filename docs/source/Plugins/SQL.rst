@@ -1,11 +1,19 @@
-:mod:`repoze.what.quickstart` -- Auth quickstart
+*********************************
+The :mod:`repoze.what` SQL plugin
+*********************************
+
+@TODO
+
+
+:mod:`repoze.what.plugins.quickstart` -- Auth quickstart
 ========================================================
-.. module:: repoze.what.quickstart
+
+:Status: Official
+
+.. module:: repoze.what.plugins.quickstart
 .. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
 .. moduleauthor:: Florent Aide <florent.aide@gmail.com>
 .. moduleauthor:: Agendaless Consulting and Contributors
-
-:Status: Official
 
 This document describes the :mod:`repoze.what`'s quickstart, from a
 basic introduction to all the available functionality it provides.
@@ -34,7 +42,7 @@ this module defines a :mod:`repoze.who` authenticator (which deals with your
 users' login using your users' table) and a function that TG2 uses to setup
 :mod:`repoze.who` with :mod:`repoze.what` support.
 
-Only TurboGears is supposed to deal with :mod:`repoze.what.quickstart`
+Only TurboGears is supposed to deal with :mod:`repoze.what.plugins.quickstart`
 directly, except with a function you may need to customize some things in 
 :mod:`repoze.who`:
 
@@ -396,3 +404,4 @@ disable it by removing (or commenting) the following line from
 
 Then you may also want to delete those settings like ``base_config.sa_auth.*``,
 because they'll be ignored.
+
