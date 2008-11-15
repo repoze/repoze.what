@@ -24,7 +24,6 @@ from xmlrpclib import loads, dumps
 import webob
 import beaker
 import pylons
-from sqlalchemy.orm import sessionmaker
 from paste.registry import Registry, RegistryManager
 from paste.fixture import TestApp
 from paste.wsgiwrappers import WSGIRequest, WSGIResponse
@@ -69,7 +68,7 @@ class FakeAuthenticator(object):
         u'guido': u'pythonic',
         u'rasmus': u'php'
         }
-    
+
     def authenticate(self, environ, identity):
         login = identity['login']
         pass_ = identity['password']
@@ -79,7 +78,7 @@ class FakeAuthenticator(object):
 
 class FakeGroupSourceAdapter(BaseSourceAdapter):
     """Mock group source adapter"""
-    
+
     def __init__(self):
         super(FakeGroupSourceAdapter, self).__init__()
         self.fake_sections = {
@@ -89,45 +88,45 @@ class FakeGroupSourceAdapter(BaseSourceAdapter):
             u'python': set(),
             u'php': set()
             }
-    
+
     def _get_all_sections(self):
         return self.fake_sections
-    
+
     def _get_section_items(self, section):
         return self.fake_sections[section]
-    
+
     def _find_sections(self, identity):
         username = identity['repoze.who.userid']
         return set([n for (n, g) in self.fake_sections.items()
                     if username in g])
-    
+
     def _include_items(self, section, items):
         self.fake_sections[section] |= items
-        
+
     def _exclude_items(self, section, items):
         for item in items:
             self.fake_sections[section].remove(item)
-    
+
     def _item_is_included(self, section, item):
         return item in self.fake_sections[section]
-    
+
     def _create_section(self, section):
         self.fake_sections[section] = set()
-    
+
     def _edit_section(self, section, new_section):
         self.fake_sections[new_section] = self.fake_sections[section]
         del self.fake_sections[section]
-    
+
     def _delete_section(self, section):
         del self.fake_sections[section]
-        
+
     def _section_exists(self, section):
         return self.fake_sections.has_key(section)
 
 
 class FakePermissionSourceAdapter(FakeGroupSourceAdapter):
     """Mock permissions source adapter"""
-    
+
     def __init__(self):
         super(FakePermissionSourceAdapter, self).__init__()
         self.fake_sections = {
@@ -135,7 +134,7 @@ class FakePermissionSourceAdapter(FakeGroupSourceAdapter):
             u'edit-site': set([u'admins', u'developers']),
             u'commit': set([u'developers'])
             }
-    
+
     def _find_sections(self, group_name):
         return set([n for (n, p) in self.fake_sections.items()
                     if group_name in p])
@@ -152,11 +151,11 @@ def make_app(controller_klass=None, environ=None):
         controller_klass = TGController
 
     app = ControllerWrap(controller_klass)
-    app = SetupCacheGlobal(app, environ, setup_cache=True, setup_session=True)    
+    app = SetupCacheGlobal(app, environ, setup_cache=True, setup_session=True)
     app = RegistryManager(app)
     app = beaker.middleware.SessionMiddleware(app, {}, data_dir=session_dir)
     app = CacheMiddleware(app, {}, data_dir=os.path.join(data_dir, 'cache'))
-    
+
     # Setting up the source adapters:
     groups_adapters = {'my_groups': FakeGroupSourceAdapter()}
     permissions_adapters = {'my_permissions': FakePermissionSourceAdapter()}
@@ -196,7 +195,7 @@ def create_request(path, environ=None):
     return req
 
 class TestWSGIController(TestCase):
-    
+
     def setUp(self):
         tmpl_context._push_object(ContextObj())
         # Without the line below, it will fail because TG2 will try to use the
@@ -205,7 +204,7 @@ class TestWSGIController(TestCase):
 
     def tearDown(self):
         tmpl_context._pop_object()
-        
+
     def get_response(self, **kargs):
         url = kargs.pop('_url', '/')
         self.environ['pylons.routes_dict'].update(kargs)
