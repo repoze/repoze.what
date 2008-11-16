@@ -2,27 +2,191 @@
 The :mod:`repoze.what` SQL plugin
 *********************************
 
-@TODO
+:Author: Gustavo Narea.
+:Status: Official
+:Version: 1.0
+
+.. module:: repoze.what.plugins.sql
+    :synopsis: SQL support for repoze.what
+.. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
+.. moduleauthor:: Florent Aide <florent.aide@gmail.com>
+.. moduleauthor:: Agendaless Consulting and Contributors
+
+.. topic:: Overview
+
+    This document describes the components provided by the :mod:`repoze.what`
+    SQL plugin, including the `quickstart` module, whose aim is to help 
+    developers to get an authentication and authorization system quickly.
+
+The SQL plugin makes :mod:`repoze.what` support :term:`sources` defined in
+SQLAlchemy-managed databases by providing one :term:`group adapter`, one 
+:term:`permission adapter` and one utility to configure both in one go
+(optionally, when the :term:`group source` and the :term:`permission source` 
+have a relationship). They are all defined in the :mod:`repoze.what.plugins.sql` 
+module.
+
+This plugin also defines :mod:`repoze.what.plugins.quickstart`.
+
+To install it, you may run::
+
+    easy_install repoze.what.plugins.sql
+
+
+.. contents:: Table of Contents
+    :depth: 2
+
+
+.. class:: SqlGroupsAdapter(group_class, user_class, session)
+    
+    Create an SQL groups source adapter.
+    
+    :param group_class: The class that manages the groups.
+    :param user_class: The class that manages the users.
+    :param session: The SQLALchemy session to be used.
+    
+    To use this adapter, you must also define your users in a SQLAlchemy-managed
+    table with the relevant one-to-many relationship defined with 
+    ``group_class``.
+    
+    On the other hand, unless stated otherwise, it will also assume the 
+    following naming conventions in both classes; to replace any of those
+    default values, you should use the ``translations`` dictionary of the
+    relevant class accordingly:
+    
+    * In `group_class`, the attribute that contains the group name is 
+      ``group_name`` (e.g., ``Group.group_name``).
+    * In `group_class`, the attribute that contains the members of such a group
+      is ``users`` (e.g., ``Group.users``).
+    * In `user_class`, the attribute that contains the user's name is
+      ``user_name`` (e.g., ``User.user_name``).
+    * In `user_class`, the attribute that contains the groups to which a user
+      belongs is ``groups`` (e.g., ``User.groups``).
+    
+    Example #1, without special naming conventions::
+    
+        # ...
+        from repoze.what.plugins.sql import SqlGroupsAdapter
+        from my_model import User, Group, DBSession
+        
+        groups = SqlGroupsAdapter(Group, User, DBSession)
+        
+        # ...
+    
+    Example #2, with special naming conventions::
+    
+        # ...
+        from repoze.what.plugins.sql import SqlGroupsAdapter
+        from my_model import Member, Team, DBSession
+        
+        groups = SqlGroupsAdapter(Team, Member, DBSession)
+        
+        # Replacing the default attributes, if necessary:
+        
+        # We have "Team.team_name" instead of "Team.group_name":
+        groups.translations['section_name'] = 'team_name'
+        # We have "Team.members" instead of "Team.users":
+        groups.translations['items'] = 'members'
+        # We have "Member.username" instead of "Member.user_name":
+        groups.translations['item_name'] = 'username'
+        # We have "Member.teams" instead of "Member.groups":
+        groups.translations['sections'] = 'teams'
+        
+        # ...
+
+
+.. class:: SqlPermissionsAdapter(permission_class, group_class, session)
+    
+    Create an SQL permissions source adapter.
+    
+    :param permission_class: The class that manages the permissions.
+    :param group_class: The class that manages the groups.
+    :param session: The SQLALchemy session to be used.
+    
+    To use this adapter, you must also define your groups in a 
+    SQLAlchemy-managed table with the relevant one-to-many relationship 
+    defined with ``permission_class``.
+    
+    On the other hand, unless stated otherwise, it will also assume the 
+    following naming conventions in both classes; to replace any of those
+    default values, you should use the ``translations`` dictionary of the
+    relevant class accordingly:
+    
+    * In `permission_class`, the attribute that contains the permission name is 
+      ``permission_name`` (e.g., ``Permission.permission_name``).
+    * In `permission_class`, the attribute that contains the groups that are 
+      granted such a permission is ``groups`` (e.g., ``Permission.groups``).
+    * In `group_class`, the attribute that contains the group name is
+      ``group_name`` (e.g., ``Group.group_name``).
+    * In `group_class`, the attribute that contains the permissions granted to
+      that group is ``permissions`` (e.g., ``Group.permissions``).
+    
+    Example #1, without special naming conventions::
+    
+        # ...
+        from repoze.what.plugins.sql import SqlPermissionsAdapter
+        from my_model import Group, Permission, DBSession
+        
+        groups = SqlPermissionsAdapter(Permission, Group, DBSession)
+        
+        # ...
+    
+    Example #2, with special naming conventions::
+    
+        # ...
+        from repoze.what.plugins.sql import SqlPermissionsAdapter
+        from my_model import Team, Permission, DBSession
+        
+        permissions = SqlPermissionsAdapter(Permission, Team, DBSession)
+        
+        # Replacing the default attributes, if necessary:
+        
+        # We have "Permission.perm_name" instead of "Permission.permission_name":
+        permissions.translations['section_name'] = 'perm_name'
+        # We have "Permission.teams" instead of "Permission.groups":
+        permissions.translations['items'] = 'teams'
+        # We have "Team.team_name" instead of "Team.group_name":
+        permissions.translations['item_name'] = 'team_name'
+        # We have "Team.perms" instead of "Team.permissions":
+        permissions.translations['sections'] = 'perms'
+        
+        # ...
+
+
+.. class:: configure_sql_adapters(user_class, group_class, permission_class, session[, group_translations={}, permission_translations={}])
+    
+    Configure and return group and permission adapters that share the same model.
+    
+    :param user_class: The class that manages the users.
+    :param group_class: The class that manages the groups.
+    :param user_class: The class that manages the permissions.
+    :param session: The SQLALchemy session to be used.
+    :param group_translations: The dictionary of translations for the group.
+    :param permission_translations: The dictionary of translations for the permissions.
+    :return: The ``group`` and ``permission`` adapters, configured.
+    :rtype: dict 
+    
+    Example::
+    
+        # ...
+        from repoze.what.plugins.sql import configure_sql_adapters
+        from my_model import User, Group, Permission, DBSession
+        
+        adapters = configure_sql_adapters(User, Group, Permission, DBSession)
+        group_adapter = adapters['group']
+        permission_adapter = adapters['permission']
+        
+        # ...
 
 
 :mod:`repoze.what.plugins.quickstart` -- Auth quickstart
 ========================================================
 
-:Status: Official
-
 .. module:: repoze.what.plugins.quickstart
+    :synopsis: Ready-to-use authorization (powered by a database)
 .. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
 .. moduleauthor:: Florent Aide <florent.aide@gmail.com>
 .. moduleauthor:: Agendaless Consulting and Contributors
 
-This document describes the :mod:`repoze.what`'s quickstart, from a
-basic introduction to all the available functionality it provides.
-
-.. contents:: Table of Contents
-    :depth: 2
-
-Overview
---------
 
 TG2 applications may take advantage of a rather simple, and usual, 
 authentication and authorization setup, in which the users' data, the groups
