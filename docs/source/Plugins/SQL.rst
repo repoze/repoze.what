@@ -14,22 +14,18 @@ The :mod:`repoze.what` SQL plugin
 
 .. topic:: Overview
 
-    This document describes the components provided by the :mod:`repoze.what`
-    SQL plugin, including the `quickstart` module, whose aim is to help 
-    developers to get an authentication and authorization system quickly.
-
-The SQL plugin makes :mod:`repoze.what` support :term:`sources` defined in
-SQLAlchemy-managed databases by providing one :term:`group adapter`, one 
-:term:`permission adapter` and one utility to configure both in one go
-(optionally, when the :term:`group source` and the :term:`permission source` 
-have a relationship). They are all defined in the :mod:`repoze.what.plugins.sql` 
-module.
-
-This plugin also defines :mod:`repoze.what.plugins.quickstart`.
-
-To install it, you may run::
-
-    easy_install repoze.what.plugins.sql
+    The SQL plugin makes :mod:`repoze.what` support :term:`sources` defined in
+    `SQLAlchemy <http://www.sqlalchemy.org/>`_-managed databases by providing 
+    one :term:`group adapter`, one :term:`permission adapter` and one utility 
+    to configure both in one go (optionally, when the :term:`group source` and 
+    the :term:`permission source` have a relationship). They are all defined in 
+    the :mod:`repoze.what.plugins.sql` module.
+    
+    This plugin also defines :mod:`repoze.what.plugins.quickstart`.
+    
+    To install it, you may run::
+    
+        easy_install repoze.what.plugins.sql
 
 
 .. contents:: Table of Contents
@@ -45,8 +41,8 @@ To install it, you may run::
     :param session: The SQLALchemy session to be used.
     
     To use this adapter, you must also define your users in a SQLAlchemy-managed
-    table with the relevant one-to-many relationship defined with 
-    ``group_class``.
+    table with the relevant one-to-many (or many-to-many) relationship defined 
+    with ``group_class``.
     
     On the other hand, unless stated otherwise, it will also assume the 
     following naming conventions in both classes; to replace any of those
@@ -103,8 +99,8 @@ To install it, you may run::
     :param session: The SQLALchemy session to be used.
     
     To use this adapter, you must also define your groups in a 
-    SQLAlchemy-managed table with the relevant one-to-many relationship 
-    defined with ``permission_class``.
+    SQLAlchemy-managed table with the relevant one-to-many (or many-to-many)
+    relationship defined with ``permission_class``.
     
     On the other hand, unless stated otherwise, it will also assume the 
     following naming conventions in both classes; to replace any of those
@@ -152,7 +148,7 @@ To install it, you may run::
         # ...
 
 
-.. class:: configure_sql_adapters(user_class, group_class, permission_class, session[, group_translations={}, permission_translations={}])
+.. function:: configure_sql_adapters(user_class, group_class, permission_class, session[, group_translations={}, permission_translations={}])
     
     Configure and return group and permission adapters that share the same model.
     
@@ -165,6 +161,11 @@ To install it, you may run::
     :return: The ``group`` and ``permission`` adapters, configured.
     :rtype: dict 
     
+    For this function to work, ``user_class`` and ``group_class`` must have the
+    relevant one-to-many (or many-to-many) relationship; likewise, ``group_class`` 
+    and ``permission_class`` must have the relevant one-to-many (or many-to-many)
+    relationship.
+    
     Example::
     
         # ...
@@ -172,8 +173,8 @@ To install it, you may run::
         from my_model import User, Group, Permission, DBSession
         
         adapters = configure_sql_adapters(User, Group, Permission, DBSession)
-        group_adapter = adapters['group']
-        permission_adapter = adapters['permission']
+        groups = adapters['group']
+        permissions = adapters['permission']
         
         # ...
 
