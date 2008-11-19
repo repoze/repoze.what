@@ -20,7 +20,7 @@ Utilities to implement authorization in TG2.
 
 This is the core module and provides an authorize decorator that reimplements
 the functionalities that were present in the original identity framework of 
-TG1.
+TurboGears 1.
 
 @todo: The error messages of this module should be translatable.
 
@@ -88,16 +88,6 @@ def weak_signature_decorator(entangler):
     def callback(frame, k, v, old_locals):
         return decorate(v, entangler(v), make_weak_signature(v))
     return decorate_assignment(callback, 3)
-
-
-def simple_weak_signature_decorator(caller):
-    """Decorate function with caller and change signature to accept
-    arbitrary additional arguments.
-    
-    """
-    def entangle(func):
-        return decorate(func, caller, make_weak_signature(func))
-    return entangle
 
 
 def make_weak_signature(func):
