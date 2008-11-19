@@ -160,7 +160,7 @@ def make_app(controller_klass=None, environ=None):
     groups_adapters = {'my_groups': FakeGroupSourceAdapter()}
     permissions_adapters = {'my_permissions': FakePermissionSourceAdapter()}
     authenticators = (('auth', FakeAuthenticator()), )
-    app = setup_auth(app, config, groups_adapters, permissions_adapters,
+    app = setup_auth(app, groups_adapters, permissions_adapters,
                      authenticators)
 
     app = httpexceptions.make_middleware(app)
