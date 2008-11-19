@@ -41,12 +41,6 @@ def get_environment():
     return _environ
 
 
-def set_environment(new_environ):
-    """Set repoze.what's copy of the WSGI environment to C{new_environ}."""
-    global _environ
-    _environ = new_environ
-
-
 class EnvironmentIdentifier(object):
     """
     A supposed IIdentifier that actually simply stores the WSGI environment.

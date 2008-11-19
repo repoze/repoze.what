@@ -27,8 +27,8 @@ from repoze.who.interfaces import IIdentifier, IAuthenticator, \
                                   IMetadataProvider
 from repoze.who.tests import Base as BasePluginTester
 
-from repoze.what.middleware import get_environment, set_environment, \
-                                   EnvironmentIdentifier, AuthorizationMetadata
+from repoze.what.middleware import get_environment, EnvironmentIdentifier, \ 
+                                   AuthorizationMetadata
 
 
 #{ Fake adapters/plugins
@@ -88,13 +88,6 @@ class TestEnvironment(BasePluginTester):
         new_environ = u'hello world'
         middleware._environ = new_environ
         self.assertEqual(get_environment(), new_environ)
-    
-    def test_environment_setter_works(self):
-        """The environment setter really returns the environment"""
-        from repoze.what import middleware
-        new_environ = 'something cool'
-        set_environment(new_environ)
-        self.assertEqual(middleware._environ, new_environ)
     
     def test_identifier_plugin_is_valid(self):
         """L{EnvironmentIdentifier} implements the correct interface"""
