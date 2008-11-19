@@ -125,14 +125,13 @@ class AnonymousAuthorization(object):
     implements(IAuthenticator)
 
 
-def setup_auth(app, config, group_adapters, permission_adapters,
-               authenticators, form_plugin=None, form_identifies=True,
-               identifiers=None, challengers=[], mdproviders=[]):
+def setup_auth(app, group_adapters, permission_adapters, authenticators, 
+               form_plugin=None, form_identifies=True, identifiers=None, 
+               challengers=[], mdproviders=[]):
     """
     Setup repoze.who with repoze.what.
     
     @param app: The WSGI application object.
-    @param config: The Pylons config object.
     @param group_adapters: The group source adapters to be used.
     @type group_adapters: C{dict}
     @param permission_adapters: The permission source adapters to be used.
