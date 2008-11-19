@@ -29,7 +29,7 @@ TurboGears 1.
 from pylons import request
 from copy import copy
 import itertools
-from pylons.controllers.util import abort
+from webob.exc import HTTPUnauthorized
 from tg import flash
 from inspect import getargspec, formatargspec
 from peak.util.decorators import decorate_assignment
@@ -356,7 +356,7 @@ def require(predicate, obj=None):
 
             # if we did not return, then return a 401 to the WSGI stack now
             flash(errors, status="status_warning")
-            abort(401)
+            raise HTTPUnauthorized()
 
         fn._require = predicate
         return require
