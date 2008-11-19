@@ -16,7 +16,7 @@
 ##############################################################################
 
 """
-Utilities to implement authorization in TG2.
+Utilities to implement authorization in action controllers.
 
 This is the core module and provides an authorize decorator that reimplements
 the functionalities that were present in the original identity framework of 
@@ -26,13 +26,21 @@ TurboGears 1.
 
 """
 
-from pylons import request
 from copy import copy
 import itertools
 from webob.exc import HTTPUnauthorized
 from tg import flash
 from inspect import getargspec, formatargspec
 from peak.util.decorators import decorate_assignment
+
+from repoze.what.middleware import get_environment
+
+
+def get_identity():
+    """Return repoze.who's identity dict"""
+    environ = get_environment()
+    return environ.get('repoze.who.identity')
+
 
 # Inspired by Michele Simionato's decorator library
 # http://www.phyast.pitt.edu/~micheles/python/documentation.html
@@ -155,8 +163,7 @@ class Any(CompoundPredicate):
 class IdentityPredicateHelper(object):
     """A mix-in helper class for Identity Predicates."""
     def __nonzero__(self):
-        environ = request.environ
-        identity = environ.get('repoze.who.identity')
+        identity = get_identity()
         return self.eval_with_object(identity)
 
 
@@ -170,7 +177,7 @@ class is_user(Predicate, IdentityPredicateHelper):
 
     def eval_with_object(self, obj, errors=None):
         user = None
-        identity = request.environ.get('repoze.who.identity')
+        identity = get_identity()
         if identity:
             userid = identity.get('repoze.who.userid')
 
@@ -190,8 +197,7 @@ class in_group(Predicate, IdentityPredicateHelper):
         self.group_name = group_name
 
     def eval_with_object(self, obj, errors=None):
-        
-        identity = request.environ.get('repoze.who.identity')
+        identity = get_identity()
 
         if identity and self.group_name in identity.get('groups'):
             return True
@@ -225,12 +231,10 @@ class not_anonymous(Predicate, IdentityPredicateHelper):
     error_message = u"Anonymous access denied"
 
     def eval_with_object(self, obj, errors=None):
-        identity = request.environ.get('repoze.who.identity')
-
+        identity = get_identity()
         if not identity:
             self.append_error_message(errors)
             return False
-
         return True
 
 
@@ -246,7 +250,7 @@ class has_permission(Predicate, IdentityPredicateHelper):
 
     def eval_with_object(self, obj, errors=None):
         """Determine whether the visitor has the specified permission."""
-        identity = request.environ.get('repoze.who.identity')
+        identity = get_identity()
         if identity and self.permission_name in identity.get('permissions'):
             return True
         
@@ -348,8 +352,7 @@ def require(predicate, obj=None):
             # TODO: populate those errors ... for the moment
             # we don't flash nothing
             errors = []
-            environ = request.environ
-            identity = environ.get('repoze.who.identity')
+            identity = get_identity()
             if predicate is None or \
                predicate.eval_with_object(identity, errors):
                 return fn(self, *args, **kwargs)

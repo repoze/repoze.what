@@ -23,9 +23,12 @@ Tests for the repoze.what middleware.
 import unittest
 
 from zope.interface.verify import verifyClass
-from repoze.who.interfaces import IAuthenticator, IMetadataProvider
+from repoze.who.interfaces import IIdentifier, IAuthenticator, \
+                                  IMetadataProvider
+from repoze.who.tests import Base as BasePluginTester
 
-from repoze.what.middleware import AuthorizationMetadata
+from repoze.what.middleware import get_environment, set_environment, \
+                                   EnvironmentIdentifier, AuthorizationMetadata
 
 
 #{ Fake adapters/plugins
@@ -72,7 +75,41 @@ class FakePermissionFetcher3(object):
 #{ The tests themselves
 
 
-class TestAuthorizationMetadataBase(unittest.TestCase):
+class TestEnvironment(BasePluginTester):
+    def setUp(self):
+        from repoze.what import middleware
+        middleware._environ = None
+    
+    def test_environment_getter_works(self):
+        """The environment getter really returns the environment"""
+        self.assertEqual(get_environment(), None)
+        # Modifying the enviroment:
+        from repoze.what import middleware
+        new_environ = u'hello world'
+        middleware._environ = new_environ
+        self.assertEqual(get_environment(), new_environ)
+    
+    def test_environment_setter_works(self):
+        """The environment setter really returns the environment"""
+        from repoze.what import middleware
+        new_environ = 'something cool'
+        set_environment(new_environ)
+        self.assertEqual(middleware._environ, new_environ)
+    
+    def test_identifier_plugin_is_valid(self):
+        """L{EnvironmentIdentifier} implements the correct interface"""
+        verifyClass(IIdentifier, EnvironmentIdentifier, tentative=True)
+    
+    def test_identifier_plugin_sets_environment(self):
+        """L{EnvironmentIdentifier} must set the environment in repoze.what"""
+        env_vars = {'something': 'somewhere'}
+        fake_environ = self._makeEnviron(kw={'something': 'somewhere'})
+        identifier = EnvironmentIdentifier()
+        identifier.identify(fake_environ)
+        self.assertEqual(fake_environ, get_environment())
+
+
+class TestAuthorizationMetadata(unittest.TestCase):
     """Tests for the L{AuthorizationMetadata} IMetadata plugin.
     
     All of these tests, except the first one, check the behavior of the plugin

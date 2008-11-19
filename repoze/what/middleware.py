@@ -24,10 +24,52 @@ from zope.interface import implements
 from repoze.who.middleware import PluggableAuthenticationMiddleware
 from repoze.who.classifiers import default_challenge_decider, \
                                    default_request_classifier
-from repoze.who.interfaces import IAuthenticator, IMetadataProvider
+from repoze.who.interfaces import IIdentifier, IAuthenticator, \
+                                  IMetadataProvider
 from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
 
-__all__ = ['AuthorizationMetadata', 'AnonymousAuthorization', 'setup_auth']
+__all__ = ['EnvironmentIdentifier', 'AuthorizationMetadata',
+           'AnonymousAuthorization', 'setup_auth']
+
+
+_environ = None
+"""repoze.what's copy of the WSGI environment"""
+
+
+def get_environment():
+    """Return the repoze.what's copy of the WSGI environment."""
+    return _environ
+
+
+def set_environment(new_environ):
+    """Set repoze.what's copy of the WSGI environment to C{new_environ}."""
+    global _environ
+    _environ = new_environ
+
+
+class EnvironmentIdentifier(object):
+    """
+    A supposed IIdentifier that actually simply stores the WSGI environment.
+    
+    This is not a real repoze.who Identifier plugin. It acts like an identifier
+    just to store the WSGI environment in repoze.what.
+    
+    """
+    
+    implements(IIdentifier)
+    
+    def identify(self, environ):
+        """Store the WSGI environment in repoze.what."""
+        global _environ
+        _environ = environ
+    
+    def remember(self, environ, identity):
+        """Do nothing."""
+        pass
+    
+    def forget(self, environ, identity):
+        """Do nothing."""
+        pass
 
 
 class AuthorizationMetadata(object):
@@ -126,6 +168,7 @@ def setup_auth(app, config, group_adapters, permission_adapters,
     if form_identifies:
         identifiers.insert(0, ('main_identifier', form))
     
+    identifiers.append(('repozewhatenv', EnvironmentIdentifier()))
     challengers.append(('form', form))
     mdproviders.append(('authorization', authorization))
 
