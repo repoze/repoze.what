@@ -153,14 +153,7 @@ class Any(CompoundPredicate):
         return False
 
 
-class IdentityPredicateHelper(object):
-    """A mix-in helper class for Identity Predicates."""
-    def __nonzero__(self):
-        environ = get_environment()
-        return self.eval_with_environ(environ)
-
-
-class is_user(Predicate, IdentityPredicateHelper):
+class is_user(Predicate):
     """Predicate for checking if the username matches..."""
     
     error_message = u"Not the good user"
@@ -181,7 +174,7 @@ class is_user(Predicate, IdentityPredicateHelper):
         return False
 
 
-class in_group(Predicate, IdentityPredicateHelper):
+class in_group(Predicate):
     """Predicate for requiring a group."""
     
     error_message = u"Not member of group: %(group_name)s"
@@ -198,7 +191,7 @@ class in_group(Predicate, IdentityPredicateHelper):
         return False
 
 
-class in_all_groups(All, IdentityPredicateHelper):
+class in_all_groups(All):
     """Predicate for requiring membership in a number of groups."""
     
     def __init__(self, *groups):
@@ -206,7 +199,7 @@ class in_all_groups(All, IdentityPredicateHelper):
         super(in_all_groups,self).__init__(*group_predicates)
 
 
-class in_any_group(Any, IdentityPredicateHelper):
+class in_any_group(Any):
     """Predicate for requiring membership in at least one group"""
     
     error_message = u"Not member of any group: %(group_list)s"
@@ -217,7 +210,7 @@ class in_any_group(Any, IdentityPredicateHelper):
         super(in_any_group,self).__init__(*group_predicates)
 
 
-class not_anonymous(Predicate, IdentityPredicateHelper):
+class not_anonymous(Predicate):
     """Predicate for checking whether current visitor is anonymous."""
     
     error_message = u"Anonymous access denied"
@@ -230,7 +223,7 @@ class not_anonymous(Predicate, IdentityPredicateHelper):
         return True
 
 
-class has_permission(Predicate, IdentityPredicateHelper):
+class has_permission(Predicate):
     """Predicate for checking whether the visitor has a particular 
     permission.
     
@@ -249,7 +242,7 @@ class has_permission(Predicate, IdentityPredicateHelper):
         return False
 
 
-class has_all_permissions(All, IdentityPredicateHelper):
+class has_all_permissions(All):
     """Predicate for checking whether the visitor has all permissions."""
     
     def __init__(self, *permissions):
@@ -257,7 +250,7 @@ class has_all_permissions(All, IdentityPredicateHelper):
         super(has_all_permissions,self).__init__(*permission_predicates)
 
 
-class has_any_permission(Any, IdentityPredicateHelper):
+class has_any_permission(Any):
     """Predicate for checking whether the visitor has at least one 
     permission.
     
@@ -299,7 +292,7 @@ class has_any_permission(Any, IdentityPredicateHelper):
 
 
 # TODO: reimplement in a pylons context
-#class from_host(Predicate, IdentityPredicateHelper):
+#class from_host(Predicate):
 #    """Predicate for checking whether the visitor's host is an allowed host.
 #    Note: We never want to announce what the list of allowed hosts is, because
 #    it is way too easy to spoof an IP address in a TCP/IP packet.
@@ -321,7 +314,7 @@ class has_any_permission(Any, IdentityPredicateHelper):
 
 
 # TODO: reimplement in a pylons context
-#class from_any_host(Any, IdentityPredicateHelper):
+#class from_any_host(Any):
 #    """Predicate for checking whether the visitor's host is one of a number of
 #    permitted hosts.
 #    """
