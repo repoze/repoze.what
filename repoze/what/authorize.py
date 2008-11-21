@@ -36,12 +36,6 @@ from peak.util.decorators import decorate_assignment
 from repoze.what.middleware import get_environment
 
 
-def get_identity():
-    """Return repoze.who's identity dict"""
-    environ = get_environment()
-    return environ.get('repoze.who.identity')
-
-
 # Inspired by Michele Simionato's decorator library
 # http://www.phyast.pitt.edu/~micheles/python/documentation.html
 
@@ -108,10 +102,9 @@ def make_weak_signature(func):
     return argnames, varargs, kwargs, defaults
 
 
-# this code is a quite complete copy/paste from turbogears 1 identity
 class Predicate(object):
     """Generic base class for testing true or false for a condition."""
-    def eval_with_object(self, obj, errors=None):
+    def eval_with_environ(self, environ, errors=None):
         """Determine whether the predicate is True or False for the given
         object.
         
@@ -135,10 +128,10 @@ class All(CompoundPredicate):
     evaluate to true for the given input.
     
     """
-    def eval_with_object(self, obj, errors=None):
+    def eval_with_environ(self, environ, errors=None):
         """Return true if all sub-predicates evaluate to true."""
         for p in self.predicates:
-            if not p.eval_with_object(obj, errors):
+            if not p.eval_with_environ(environ, errors):
                 return False
         return True
 
@@ -150,10 +143,10 @@ class Any(CompoundPredicate):
     """
     error_message = u"No predicates were able to grant access"
 
-    def eval_with_object(self, obj, errors=None):
+    def eval_with_environ(self, environ, errors=None):
         """Return true if any sub-predicate evaluates to true."""
         for p in self.predicates:
-            if p.eval_with_object(obj, None):
+            if p.eval_with_environ(environ, None):
                 return True
 
         self.append_error_message(errors)
@@ -163,8 +156,8 @@ class Any(CompoundPredicate):
 class IdentityPredicateHelper(object):
     """A mix-in helper class for Identity Predicates."""
     def __nonzero__(self):
-        identity = get_identity()
-        return self.eval_with_object(identity)
+        environ = get_environment()
+        return self.eval_with_environ(environ)
 
 
 class is_user(Predicate, IdentityPredicateHelper):
@@ -175,9 +168,9 @@ class is_user(Predicate, IdentityPredicateHelper):
     def __init__(self, user_name):
         self.user_name = user_name
 
-    def eval_with_object(self, obj, errors=None):
+    def eval_with_environ(self, environ, errors=None):
         user = None
-        identity = get_identity()
+        identity = environ.get('repoze.who.identity')
         if identity:
             userid = identity.get('repoze.who.userid')
 
@@ -196,9 +189,8 @@ class in_group(Predicate, IdentityPredicateHelper):
     def __init__(self, group_name):
         self.group_name = group_name
 
-    def eval_with_object(self, obj, errors=None):
-        identity = get_identity()
-
+    def eval_with_environ(self, environ, errors=None):
+        identity = environ.get('repoze.who.identity')
         if identity and self.group_name in identity.get('groups'):
             return True
 
@@ -230,8 +222,8 @@ class not_anonymous(Predicate, IdentityPredicateHelper):
     
     error_message = u"Anonymous access denied"
 
-    def eval_with_object(self, obj, errors=None):
-        identity = get_identity()
+    def eval_with_environ(self, environ, errors=None):
+        identity = environ.get('repoze.who.identity')
         if not identity:
             self.append_error_message(errors)
             return False
@@ -248,12 +240,11 @@ class has_permission(Predicate, IdentityPredicateHelper):
     def __init__(self, permission_name):
         self.permission_name = permission_name
 
-    def eval_with_object(self, obj, errors=None):
+    def eval_with_environ(self, environ, errors=None):
         """Determine whether the visitor has the specified permission."""
-        identity = get_identity()
+        identity = environ.get('repoze.who.identity')
         if identity and self.permission_name in identity.get('permissions'):
             return True
-        
         self.append_error_message(errors)
         return False
 
@@ -318,7 +309,7 @@ class has_any_permission(Any, IdentityPredicateHelper):
 #    def __init__(self, host):
 #        self.host = host
 #
-#    def eval_with_object(self, obj, errors=None):
+#    def eval_with_environ(self, environ, errors=None):
 #        """Match the visitor's host against the criteria.
 #        """
 #        ip = _remoteHost()
@@ -352,9 +343,9 @@ def require(predicate, obj=None):
             # TODO: populate those errors ... for the moment
             # we don't flash nothing
             errors = []
-            identity = get_identity()
+            environ = get_environment()
             if predicate is None or \
-               predicate.eval_with_object(identity, errors):
+               predicate.eval_with_environ(environ, errors):
                 return fn(self, *args, **kwargs)
 
             # if we did not return, then return a 401 to the WSGI stack now

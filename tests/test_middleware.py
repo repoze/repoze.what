@@ -27,7 +27,7 @@ from repoze.who.interfaces import IIdentifier, IAuthenticator, \
                                   IMetadataProvider
 from repoze.who.tests import Base as BasePluginTester
 
-from repoze.what.middleware import get_environment, EnvironmentIdentifier, \ 
+from repoze.what.middleware import get_environment, EnvironmentIdentifier, \
                                    AuthorizationMetadata
 
 

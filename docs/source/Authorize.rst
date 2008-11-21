@@ -264,7 +264,7 @@ specified one", your predicate checker may look like this::
             self.month = month
             self.today = date.today()
         
-        def eval_with_object(self, obj, errors=None):
+        def eval_with_environ(self, environ, errors=None):
             if today.month == self.month:
                 return True
             
