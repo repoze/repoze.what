@@ -36,6 +36,24 @@ from peak.util.decorators import decorate_assignment
 from repoze.what.middleware import get_environment
 
 
+#{ Exceptions
+
+
+class NotAuthorizedError(Exception):
+    """
+    Exception raised when the subject is not allowed to access the 
+    resource.
+    
+    """
+    
+    def __init__(self, errors):
+        super(NotAuthorizedError, self).__init__()
+        self.errors = '; '.join(errors)
+    
+    def __str__(self):
+        return 'Subject cannot access resource: %s' % self.errors
+
+
 # Inspired by Michele Simionato's decorator library
 # http://www.phyast.pitt.edu/~micheles/python/documentation.html
 
@@ -104,17 +122,30 @@ def make_weak_signature(func):
 
 class Predicate(object):
     """Generic base class for testing true or false for a condition."""
-    def eval_with_environ(self, environ, errors=None):
-        """Determine whether the predicate is True or False for the given
+    
+    def _eval_with_environ(self, environ):
+        """
+        Determine whether the predicate is True or False for the given
         object.
+        
+        @raise NotImplementedError: This must be defined by the predicate
+            itself.
         
         """
         raise NotImplementedError
-
-    def append_error_message(self, errors=None):
-        if errors is None:
-            return
-        errors.append(self.error_message % self.__dict__)
+    
+    def eval_with_environ(self, environ, errors=None):
+        """
+        Evaluate the predicate and add the relevant error to C{errors} if
+        it's False.
+        
+        """
+        if self._eval_with_environ(environ):
+            return True
+        else:
+            if errors is not None:
+                errors.append(self.error_message % self.__dict__)
+            return False
 
 
 class CompoundPredicate(Predicate):
@@ -148,8 +179,8 @@ class Any(CompoundPredicate):
         for p in self.predicates:
             if p.eval_with_environ(environ, None):
                 return True
-
-        self.append_error_message(errors)
+        if errors is not None:
+            errors.append(self.error_message)
         return False
 
 
@@ -161,7 +192,7 @@ class is_user(Predicate):
     def __init__(self, user_name):
         self.user_name = user_name
 
-    def eval_with_environ(self, environ, errors=None):
+    def _eval_with_environ(self, environ):
         user = None
         identity = environ.get('repoze.who.identity')
         if identity:
@@ -170,7 +201,6 @@ class is_user(Predicate):
         if identity and userid and self.user_name == userid:
             return True
 
-        self.append_error_message(errors)
         return False
 
 
@@ -182,12 +212,10 @@ class in_group(Predicate):
     def __init__(self, group_name):
         self.group_name = group_name
 
-    def eval_with_environ(self, environ, errors=None):
+    def _eval_with_environ(self, environ):
         identity = environ.get('repoze.who.identity')
         if identity and self.group_name in identity.get('groups'):
             return True
-
-        self.append_error_message(errors)
         return False
 
 
@@ -215,10 +243,9 @@ class not_anonymous(Predicate):
     
     error_message = u"Anonymous access denied"
 
-    def eval_with_environ(self, environ, errors=None):
+    def _eval_with_environ(self, environ):
         identity = environ.get('repoze.who.identity')
         if not identity:
-            self.append_error_message(errors)
             return False
         return True
 
@@ -233,12 +260,11 @@ class has_permission(Predicate):
     def __init__(self, permission_name):
         self.permission_name = permission_name
 
-    def eval_with_environ(self, environ, errors=None):
+    def _eval_with_environ(self, environ):
         """Determine whether the visitor has the specified permission."""
         identity = environ.get('repoze.who.identity')
         if identity and self.permission_name in identity.get('permissions'):
             return True
-        self.append_error_message(errors)
         return False
 
 
@@ -302,14 +328,13 @@ class has_any_permission(Any):
 #    def __init__(self, host):
 #        self.host = host
 #
-#    def eval_with_environ(self, environ, errors=None):
+#    def _eval_with_environ(self, environ):
 #        """Match the visitor's host against the criteria.
 #        """
 #        ip = _remoteHost()
 #        if _match_ip(self.host, ip):
 #            return True
 #
-#        self.append_error_message(errors)
 #        return False
 
 
@@ -333,8 +358,6 @@ def require(predicate, obj=None):
     
     def entangle(fn):
         def require(func, self, *args, **kwargs):
-            # TODO: populate those errors ... for the moment
-            # we don't flash nothing
             errors = []
             environ = get_environment()
             if predicate is None or \
@@ -342,7 +365,6 @@ def require(predicate, obj=None):
                 return fn(self, *args, **kwargs)
 
             # if we did not return, then return a 401 to the WSGI stack now
-            flash(errors, status="status_warning")
             raise HTTPUnauthorized()
 
         fn._require = predicate
@@ -350,3 +372,23 @@ def require(predicate, obj=None):
 
     return weak_signature_decorator(entangle)
 
+
+#{ Utilities
+
+
+def check_authorization(predicate, environ):
+    """
+    Verify that the C{predicate} grants access to the subject.
+    
+    @param predicate: The repoze.what predicate.
+    @type predicate: L{Predicate}
+    @param environ: The WSGI environment.
+    @raise NotAuthorizedError: If the predicate rejects access to the subject.
+    
+    """
+    errors = []
+    if predicate and not predicate.eval_with_environ(environ, errors):
+        raise NotAuthorizedError(errors)
+
+
+#}

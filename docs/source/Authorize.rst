@@ -253,22 +253,19 @@ To do so, you should extend the :class:`repoze.what.authorize.Predicate`
 class. For example, if your predicate is "Check that the current month is the 
 specified one", your predicate checker may look like this::
 
+    from datetime import date
     from repoze.what.authorize import Predicate
     
     class is_month(Predicate):
         error_message = 'You cannot access this page this month'
         
         def __init__(self, month):
-            from datetime import date
-            
             self.month = month
             self.today = date.today()
         
-        def eval_with_environ(self, environ, errors=None):
+        def _eval_with_environ(self, environ):
             if today.month == self.month:
                 return True
-            
-            self.append_error_message(errors)
             return False
 
 If you defined that class in, say, ``{yourproject}.lib.auth``, you may use it
