@@ -313,6 +313,25 @@ class TestUserHasAnyPermissionsPredicate(unittest.TestCase):
         self.assertEqual(len(errors), 0)
 
 
+class TestAuthorizationChecker(unittest.TestCase):
+    
+    def test_authorized(self):
+        environ = make_environ('gustavo', permissions=['watch-tv', 'party',
+                                                       'eat'])
+        p = authorize.has_any_permission('party', 'scream')
+        authorize.check_authorization(p, environ)
+    
+    def test_unauthorized(self):
+        environ = make_environ('gustavo', permissions=['watch-tv', 'party',
+                                                       'eat'])
+        p = authorize.has_any_permission('jump', 'scream')
+        try:
+            authorize.check_authorization(p, environ)
+            self.fail('Authorization must be accepted')
+        except authorize.NotAuthorizedError, e:
+            self.assertEqual(len(e.errors), 1)
+
+
 #{ Test utilities
 
 

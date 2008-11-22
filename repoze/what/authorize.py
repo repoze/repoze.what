@@ -48,10 +48,10 @@ class NotAuthorizedError(Exception):
     
     def __init__(self, errors):
         super(NotAuthorizedError, self).__init__()
-        self.errors = '; '.join(errors)
+        self.errors = errors
     
     def __str__(self):
-        return 'Subject cannot access resource: %s' % self.errors
+        return 'Subject cannot access resource: %s' % '; '.join(self.errors)
 
 
 # Inspired by Michele Simionato's decorator library
