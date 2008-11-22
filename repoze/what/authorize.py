@@ -26,13 +26,6 @@ TurboGears 1.
 
 """
 
-from copy import copy
-import itertools
-from webob.exc import HTTPUnauthorized
-from tg import flash
-from inspect import getargspec, formatargspec
-from peak.util.decorators import decorate_assignment
-
 from repoze.what.middleware import get_environment
 
 
@@ -52,72 +45,6 @@ class NotAuthorizedError(Exception):
     
     def __str__(self):
         return 'Subject cannot access resource: %s' % '; '.join(self.errors)
-
-
-# Inspired by Michele Simionato's decorator library
-# http://www.phyast.pitt.edu/~micheles/python/documentation.html
-
-def decorate(func, caller, signature=None):
-    """Decorate func with caller."""
-    if signature is not None:
-        argnames, varargs, kwargs, defaults = signature
-    else:
-        argnames, varargs, kwargs, defaults = getargspec(func)
-    if defaults is None:
-        defaults = ()
-    parameters = formatargspec(argnames, varargs, kwargs, defaults)[1:-1]
-    defval = itertools.count(len(argnames)-len(defaults))
-    args = formatargspec(argnames, varargs, kwargs, defaults,
-                         formatvalue=lambda value:"=%s" % (
-                         argnames[defval.next()]))[1:-1]
-
-    func_str = """
-def %s(%s):
-  return caller(func, %s)
-""" % (func.__name__, parameters, args)
-
-    exec_dict = dict(func=func, caller=caller)
-    exec func_str in exec_dict
-    newfunc = exec_dict[func.__name__]
-    newfunc.__doc__ = func.__doc__
-    newfunc.__dict__ = func.__dict__.copy()
-    newfunc.__module__ = func.__module__
-    if hasattr(func, "__composition__"):
-        newfunc.__composition__ = copy(func.__composition__)
-    else:
-        newfunc.__composition__ = [func]
-    newfunc.__composition__.append(newfunc)
-    return newfunc
-
-
-# this code is a direct copy from turbogears1 decorator
-# with some small repoze.who adaptations
-def weak_signature_decorator(entangler):
-    """Decorate function with entangler and change signature to accept
-    arbitrary additional arguments.
-
-    Enables alternative decorator syntax for Python 2.3 as seen in PEAK:
-
-        [my_decorator(foo)]
-        def baz():
-            pass
-
-    Mind, the decorator needs to be a closure for this syntax to work.
-    
-    """
-    def callback(frame, k, v, old_locals):
-        return decorate(v, entangler(v), make_weak_signature(v))
-    return decorate_assignment(callback, 3)
-
-
-def make_weak_signature(func):
-    """Change signature to accept arbitrary additional arguments."""
-    argnames, varargs, kwargs, defaults = getargspec(func)
-    if kwargs is None:
-        kwargs = "_decorator__kwargs"
-    if varargs is None:
-        varargs = "_decorator__varargs"
-    return argnames, varargs, kwargs, defaults
 
 
 class Predicate(object):
@@ -348,29 +275,6 @@ class has_any_permission(Any):
 #    def __init__(self, hosts):
 #        host_predicates = [from_host(h) for h in hosts]
 #        super(from_any_host, self).__init__(*host_predicates)
-
-
-def require(predicate, obj=None):
-    """Function decorator that checks whether the current user is a member of 
-    the groups specified and has the permissions required.
-    
-    """
-    
-    def entangle(fn):
-        def require(func, self, *args, **kwargs):
-            errors = []
-            environ = get_environment()
-            if predicate is None or \
-               predicate.eval_with_environ(environ, errors):
-                return fn(self, *args, **kwargs)
-
-            # if we did not return, then return a 401 to the WSGI stack now
-            raise HTTPUnauthorized()
-
-        fn._require = predicate
-        return require
-
-    return weak_signature_decorator(entangle)
 
 
 #{ Utilities
