@@ -26,8 +26,6 @@ TurboGears 1.
 
 """
 
-from repoze.what.middleware import get_environment
-
 
 #{ Exceptions
 
