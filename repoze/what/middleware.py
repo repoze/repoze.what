@@ -15,7 +15,11 @@
 #
 ##############################################################################
 
-"""WSGI middleware to configure authorization in TG2 applications."""
+"""
+Utilities to setup authorization by configuring repoze.who's middleware to
+use repoze.what.
+
+"""
 
 import os
 import logging

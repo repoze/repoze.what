@@ -16,7 +16,7 @@
 ##############################################################################
 
 """
-Authorization framework for TurboGears 2 applications.
+Authorization framework for WSGI applications.
 
 """
 
