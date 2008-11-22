@@ -259,9 +259,10 @@ specified one", your predicate checker may look like this::
     class is_month(Predicate):
         error_message = 'You cannot access this page this month'
         
-        def __init__(self, month):
+        def __init__(self, month, **kwargs):
             self.month = month
             self.today = date.today()
+            super(is_month, self).__init__(**kwargs)
         
         def _eval_with_environ(self, environ):
             if today.month == self.month:

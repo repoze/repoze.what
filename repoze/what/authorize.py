@@ -48,6 +48,17 @@ class NotAuthorizedError(Exception):
 class Predicate(object):
     """Generic base class for testing true or false for a condition."""
     
+    def __init__(self, msg=None):
+        """
+        Create a predicate and use C{msg} as the error message if it fails.
+        
+        @param msg: The error message.
+        @type msg: C{str}
+        
+        """
+        if msg:
+            self.error_message = msg
+    
     def _eval_with_environ(self, environ):
         """
         Determine whether the predicate is True or False for the given
@@ -75,7 +86,9 @@ class Predicate(object):
 
 class CompoundPredicate(Predicate):
     """A predicate composed of other predicates."""
-    def __init__(self, *predicates):
+    
+    def __init__(self, *predicates, **kwargs):
+        super(CompoundPredicate, self).__init__(**kwargs)
         self.predicates = predicates
 
 
@@ -114,7 +127,8 @@ class is_user(Predicate):
     
     error_message = u"Not the good user"
 
-    def __init__(self, user_name):
+    def __init__(self, user_name, **kwargs):
+        super(is_user, self).__init__(**kwargs)
         self.user_name = user_name
 
     def _eval_with_environ(self, environ):
@@ -134,7 +148,8 @@ class in_group(Predicate):
     
     error_message = u"Not member of group: %(group_name)s"
 
-    def __init__(self, group_name):
+    def __init__(self, group_name, **kwargs):
+        super(in_group, self).__init__(**kwargs)
         self.group_name = group_name
 
     def _eval_with_environ(self, environ):
@@ -147,9 +162,9 @@ class in_group(Predicate):
 class in_all_groups(All):
     """Predicate for requiring membership in a number of groups."""
     
-    def __init__(self, *groups):
+    def __init__(self, *groups, **kwargs):
         group_predicates = [in_group(g) for g in groups]
-        super(in_all_groups,self).__init__(*group_predicates)
+        super(in_all_groups,self).__init__(*group_predicates, **kwargs)
 
 
 class in_any_group(Any):
@@ -157,10 +172,10 @@ class in_any_group(Any):
     
     error_message = u"Not member of any group: %(group_list)s"
 
-    def __init__(self, *groups):
+    def __init__(self, *groups, **kwargs):
         self.group_list = ", ".join(groups)
         group_predicates = [in_group(g) for g in groups]
-        super(in_any_group,self).__init__(*group_predicates)
+        super(in_any_group,self).__init__(*group_predicates, **kwargs)
 
 
 class not_anonymous(Predicate):
@@ -182,7 +197,8 @@ class has_permission(Predicate):
     """
     error_message = u"Permission denied: %(permission_name)s"
 
-    def __init__(self, permission_name):
+    def __init__(self, permission_name, **kwargs):
+        super(has_permission, self).__init__(**kwargs)
         self.permission_name = permission_name
 
     def _eval_with_environ(self, environ):
@@ -196,9 +212,10 @@ class has_permission(Predicate):
 class has_all_permissions(All):
     """Predicate for checking whether the visitor has all permissions."""
     
-    def __init__(self, *permissions):
+    def __init__(self, *permissions, **kwargs):
         permission_predicates = [has_permission(p) for p in permissions]
-        super(has_all_permissions,self).__init__(*permission_predicates)
+        super(has_all_permissions,self).__init__(*permission_predicates,
+                                                 **kwargs)
 
 
 class has_any_permission(Any):
@@ -209,10 +226,11 @@ class has_any_permission(Any):
     
     error_message = u"No matching permissions: %(permission_list)s"
 
-    def __init__(self, *permissions):
+    def __init__(self, *permissions, **kwargs):
         self.permission_list = ", ".join(permissions)
         permission_predicates = [has_permission(p) for p in permissions]
-        super(has_any_permission,self).__init__(*permission_predicates)
+        super(has_any_permission,self).__init__(*permission_predicates,
+                                                **kwargs)
 
 
 # TODO: does not make sense in a pylons app find some new implementation

@@ -47,6 +47,17 @@ class TestPredicate(unittest.TestCase):
         errors = None
         p.eval_with_environ(environ, errors)
         self.assertEqual(errors, None)
+    
+    def test_error_message_is_changeable(self):
+        previous_msg = EqualsTwo.error_message
+        new_msg = 'It does not equal two!'
+        p = EqualsTwo(msg=new_msg)
+        self.assertEqual(new_msg, p.error_message)
+    
+    def test_error_message_isnt_changed_unless_required(self):
+        previous_msg = EqualsTwo.error_message
+        p = EqualsTwo()
+        self.assertEqual(previous_msg, p.error_message)
 
 
 class TestCompoundPredicate(unittest.TestCase):
