@@ -125,7 +125,6 @@ def setup_auth(app, group_adapters, permission_adapters, authenticators,
     if form_identifies:
         identifiers.insert(0, ('main_identifier', form))
     
-    identifiers.append(('repozewhatenv', EnvironmentIdentifier()))
     challengers.append(('form', form))
     mdproviders.append(('authorization', authorization))
 

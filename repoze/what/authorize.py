@@ -22,8 +22,6 @@ This is the core module and provides an authorize decorator that reimplements
 the functionalities that were present in the original identity framework of 
 TurboGears 1.
 
-@todo: The error messages of this module should be translatable.
-
 """
 
 
@@ -43,6 +41,9 @@ class NotAuthorizedError(Exception):
     
     def __str__(self):
         return 'Subject cannot access resource: %s' % '; '.join(self.errors)
+
+
+#{ Predicates
 
 
 class Predicate(object):
