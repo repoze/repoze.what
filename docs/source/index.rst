@@ -8,38 +8,85 @@
 .. module:: repoze.what
     :synopsis: Authorization framework for WSGI applications
 .. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
-.. moduleauthor:: Florent Aide <florent.aide@gmail.com>
-.. moduleauthor:: Agendaless Consulting and Contributors
 
 .. topic:: Overview
 
     :mod:`repoze.what` is an `authorization framework` for WSGI applications,
     based on :mod:`repoze.who` (which deals with `authentication`).
     
-    On one hand, it enables an authorization system based on the groups to which
-    the `authenticated or anonymous` user belongs and the permissions granted to
-    such groups by loading these groups and permissions into the request on the 
-    way in to the downstream WSGI application. It also provides some decorators 
-    that check permissions for you, whose API is compatible with the `TurboGears 
-    <http://turbogears.org/>`_ 1.x *identity* module.
+    On the one hand, it enables an authorization system based on the groups to 
+    which the `authenticated or anonymous` user belongs and the permissions 
+    granted to such groups by loading these groups and permissions into the 
+    request on the way in to the downstream WSGI application.
     
     And on the other hand, it enables you to manage your groups and permissions
     from the application itself or another program, under a backend-independent 
-    API. Among other things, this means that it will be easy for you to switch 
-    from one back-end to another, and even use this framework to migrate the 
-    data.
+    API. For example, it would be easy for you to switch from one back-end to 
+    another, and even use this framework to migrate the data.
+    
+    It's highly extensible, so it's very unlikely that it will get in your way.
+    Among other things, you can extend it to check for many other conditions 
+    (such as checking that the user comes from a given country, based on her IP 
+    address, for example).
 
-:mod:`repoze.what` uses a common authorization pattern based on
-the ``users`` (authenticated or anonymous) of your web application, the 
-``groups`` they belong to and the ``permissions`` granted to such groups. But
-you can extend it to check for other conditions (such as checking that the
-user comes from a given country, based on her IP address, for example).
+
+Features
+========
+
+Unless mentioned otherwise, the following features are available in
+:mod:`repoze.what` and its official plugins:
+
+* ``Web framework independent``. You can use it on any WSGI 
+  application and any WSGI framework (or no framework at all). Web frameworks
+  may provide integration with it (like `TurboGears 2 
+  <http://turbogears.org/2.0/docs/>`_, which features a strong integration with 
+  :mod:`repoze.what`).
+* ``Authorization only``. It doesn't try to be an all-in-one auth
+  monster -- it will only do `authorization` and nothing else.
+* ``Highly extensible``. It's been created with extensibility in mind, so
+  that it won't get in your way and you can control authorization however you
+  want or need, either with official components, third party plugins or your
+  own plugins.
+* ``Fully documented``. If it's not described in the manual, it doesn't exist.
+* ``Reliable``. We are committed to keep the code coverage at 95% or 
+  better.
+* ``Control access to any resource``. Although it's only recommended to control
+  authorization on action controllers, you can also use it to restrict access
+  to other things in your package (e.g., only allow access to a database table
+  if the current user is the admin).
+* Your application's `groups` and `permissions` may be stored in an SQLAlchemy
+  managed database, thanks to the SQL plugin (:mod:`repoze.what.plugins.sql`).
+* The only requirement is that you use the powerful and extensible `repoze.who
+  <http://static.repoze.org/whodocs/>`_ authentication framework.
+* `It's not hard to get started!`
+
+
+And according to the to-do list, we *will* have official plugins to:
+
+* Enable `OAuth <http://oauth.net/>`_ support.
+* Enable authorization based on certain network conditions 
+  (e.g., grant access if the user's IP address belongs to a given IP range,
+  deny access if the user's host name is "example.org", grant access based on 
+  the user's ISP).
+* Enable authorization based on `client-side SSL certificates 
+  <http://en.wikipedia.org/wiki/X.509>`_ (e.g., allow access if the
+  `Certificate Authority` is XYZ, allow access if the user is called "John
+  Smith" or "Foo Bar").
+* Enable authorization based on LDAP attributes of the authenticated user's
+  entry (e.g., allow access if the user can be reached at a cellular phone,
+  allow access if the user belongs to the "ABC" organization).
+* Enable a highly extensible `CAPTCHA <http://en.wikipedia.org/wiki/CAPTCHA>`_
+  driven authorization mechanism to restrict access to a given resource 
+  (possibly the hardest to create plugin).
+* Store groups in ``Htgroups`` and ``ini`` files, and re-use LDAP
+  `Organizational Units` as groups. 
+* Store permissions in ``ini`` files.
 
 
 .. _install:
 
 How to install
---------------
+==============
 
 The only requirement of :mod:`repoze.what` is :mod:`repoze.who` and you can
 install both by running::
@@ -49,180 +96,12 @@ install both by running::
 The development mainline is available at the following Subversion repository::
 
     http://svn.repoze.org/repoze.what/trunk/
-    
-
-Terminology
------------
-
-Because you may store your groups and permissions where you would like to, not
-only in a database, :mod:`repoze.what` uses a generic terminology:
-
-.. glossary::
-
-    source
-        Where authorization data (groups and/or permissions) is stored.
-        It may be a database or a file (an Htgroups file, an Ini file, etc), for
-        example.
-    sources
-        See :term:`source`.
-    group source
-        A :term:`source` that stores groups. For example, an Htgroups
-        file or an Ini file.
-    permission source
-        A :term:`source` that stores permissions. For example, an
-        Ini file.
-    source adapter
-        An object that manages a given type of :term:`source` to add,
-        edit and delete entries under an API independent of the source type.
-    adapter
-        See :term:`source adapter`.
-    adapters
-        See :term:`source adapter`.
-    group adapter
-        An :term:`adapter` that deals with one :term:`group source`.
-    permission adapter
-        An :term:`adapter` that deals with one :term:`permission source`.
-    section
-        Sections are the groups that make up a source -- this is, in a
-        `permission source`, the sections are the permissions, and in a `group
-        source`, the sections are the groups.
-    item
-        The elements that are contained in a :term:`section`. In a
-        :term:`permission source`, the items are the groups that are granted
-        the permission represented in their parent section; likewise, in a
-        :term:`group source`, the items are the Ids of the users that belong to
-        the group represented in the parent section.
-
-
-The authentication framework (:mod:`repoze.who`) only deals with the 
-:term:`source` (or sources) that handle your users' credentials, while the 
-authorization framework (:mod:`repoze.what`) deals with both the 
-source(s) that handle your groups and those that handle your permissions.
-
-Sample sources
-~~~~~~~~~~~~~~
-
-Below are the contents of a mock ``.htgroups`` file that defines the groups of
-an application. In other words, such a file is a :term:`group source` of
-type ``htgroups``::
-
-    developers: rms, linus, guido
-    admins: rms, linus
-    users: gustavo, maribel
-
-It has three sections and five items: "developers" (made up of the items "rms",
-"linus" and "guido"), "admins" (made up of the items "rms" and "linus") and
-"users (made up of the items "gustavo" and "maribel").
-
-And below are the contents of a mock ``.ini`` file that defines the permissions
-of the groups in an application. In other words, such a file is a
-:term:`permission source` of type ``Ini``::
-
-    [manage-site]
-    admins
-    [release-software]
-    admins
-    developers
-    [contact-us]
-    users
-
-It has four sections and three items: "manage-site" (made up one item,
-"admins"), "release-software" (made up of the items "admins" and "developers")
-and "contact-us" (made up of the item "users").
-
-If you use a database to store your users, groups and permissions, then such a
-database is both the group and permission source:
-
-  * The tables where you store your groups and users are the sections and the
-    section items, respectively, of the ``group source``.
-  * The tables where you store your permissions and groups are the sections and
-    the section items, respectively, of the ``permission source``.
-
-
-.. _add-auth-middleware:
-
-Setting up authentication and authorization
--------------------------------------------
-
-To enable authorization in your Web application, you need to add some
-WSGI middleware to your application, which is automatically done for you if
-you are using the quickstart (:mod:`repoze.what.plugins.quickstart`).
-
-When you enable authorization with :mod:`repoze.what`, authentication
-with :mod:`repoze.who` is automatically enabled.
-
-.. note::
-    The `quickstart` is enabled when in ``{yourproject}.config.app_cfg`` you
-    have ``base_config.auth_backend`` set. To disable it, it's enough to
-    remove that line -- and you may also want to delete those like
-    ``base_config.sa_auth.*``.
-
-
-Using authentication and authorization without the quickstart
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you're not using the quickstart, then you have to add the required
-middleware in your application. This gives you more flexibility, such as being
-able not to use a database to store your users' credentials, your groups
-and/or your permissions.
-
-You are highly encouraged to add such a middleware with a function defined in,
-say, ``{yourproject}.config.middleware`` and called, say, ``add_auth``. Then
-such a function may look like this::
-
-    def add_auth(app, config):
-        from repoze.who.plugins.htpasswd import HTPasswdPlugin, crypt_check
-        from repoze.what.middleware import setup_auth
-        # Please note that the plugins below have not been created yet; want to
-        # jump in?
-        from repoze.what.plugins.htgroups import HtgroupsAdapter
-        from repoze.what.plugins.ini import IniPermissionAdapter
-
-        # Defining the group adapters; you may add as much as you need:
-        groups = {'all_groups': HtgroupsAdapter('/path/to/groups.htgroups')}
-
-        # Defining the permission adapters; you may add as much as you need:
-        permissions = {'all_perms': IniPermissionAdapter('/path/to/perms.ini')}
-
-        # repoze.who authenticators; you may add as much as you need:
-        htpasswd_auth = HTPasswdPlugin('/path/to/users.htpasswd', crypt_check)
-        authenticators = [('htpasswd', htpasswd_auth)]
-
-        app_with_auth = setup_auth(
-            app,
-            config,
-            groups,
-            permissions,
-            authenticators)
-        return app_with_auth
-
-Of course, there are other things you may customize, such as adding
-:mod:`repoze.who` identifiers, more authenticators, challengers and metadata
-providers -- read on!
-
-Now you're ready to add the middleware. Go to ``{yourproject}.config.middleware``
-and edit ``make_auth`` to make it look like this::
-
-    def make_app(global_conf, full_stack=True, **app_conf):
-        app = make_base_app(global_conf, full_stack=True, **app_conf)
-        # Wrap your base turbogears app with custom middleware
-        app = add_auth(app, config)
-        return app
-
-
-What's next?
-------------
-
-Once your application includes the required WSGI middleware for authentication
-and authorization, as explained in :ref:`add-auth-middleware`, you are ready
-to implement authorization in your controllers with
-:mod:`repoze.what.authorize`.
 
 
 How to get help?
-----------------
+================
 
-The prefered place to ask question is the `Repoze mailing list 
+The prefered place to ask questions is the `Repoze mailing list 
 <http://lists.repoze.org/listinfo/repoze-dev>`_ or the `#repoze 
 <irc://irc.freenode.net/#repoze>`_ IRC channel.
 
@@ -232,21 +111,23 @@ is based on TurboGears or Pylons, you may run it with the following command::
 
     WHO_LOG=1 paster serve --reload development.ini
 
+Bugs reports and feature requests should be sent to `the issue tracker of the
+Repoze project <http://bugs.repoze.org/>`_.
 
-Advanced topics
----------------
+
+Contents
+========
 
 .. toctree::
     :maxdepth: 2
 
-    Authorize
-    Plugins/index
-    ManagingSources
-    WritingSourceAdapters
-    InnerWorkings
+    Manual/index
+    News
+    Participate
+
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
