@@ -103,16 +103,16 @@ How to get help?
 
 The prefered place to ask questions is the `Repoze mailing list 
 <http://lists.repoze.org/listinfo/repoze-dev>`_ or the `#repoze 
-<irc://irc.freenode.net/#repoze>`_ IRC channel.
+<irc://irc.freenode.net/#repoze>`_ IRC channel. Bugs reports and feature 
+requests should be sent to `the issue tracker of the Repoze project 
+<http://bugs.repoze.org/>`_.
 
-Please don't forget to include the output of your application with the
-``WHO_LOG`` environment variable set to ``1``. For example, if your application
-is based on TurboGears or Pylons, you may run it with the following command::
+If you have problems, please don't forget to include the output of your 
+application with the ``WHO_LOG`` environment variable set to ``1`` when you
+get in touch with us. For example, if your application is based on TurboGears 
+or Pylons, you may run it with the following command::
 
     WHO_LOG=1 paster serve --reload development.ini
-
-Bugs reports and feature requests should be sent to `the issue tracker of the
-Repoze project <http://bugs.repoze.org/>`_.
 
 
 Contents
