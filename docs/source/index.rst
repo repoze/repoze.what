@@ -61,7 +61,9 @@ Unless mentioned otherwise, the following features are available in
 * `It's not hard to get started!`
 
 
-And according to the to-do list, we *will* have official plugins to:
+And according to `the to-do list
+<http://bugs.repoze.org/issue?@columns=title,id,activity,status,assignedto&@sort=activity&@group=priority&@filter=topic,status&topic=13&status=-1,1,2,3,4,5,6,7>`_, 
+we *will* have official plugins to:
 
 * Enable `OAuth <http://oauth.net/>`_ support.
 * Enable authorization based on certain network conditions 
