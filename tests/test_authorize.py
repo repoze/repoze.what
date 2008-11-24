@@ -28,6 +28,7 @@ from test_predicates import make_environ
 
 
 class TestAuthorizationChecker(unittest.TestCase):
+    """Tests for the check_authorization() function"""
     
     def test_authorized(self):
         environ = make_environ('gustavo', permissions=['watch-tv', 'party',
@@ -44,3 +45,15 @@ class TestAuthorizationChecker(unittest.TestCase):
             self.fail('Authorization must be accepted')
         except authorize.NotAuthorizedError, e:
             self.assertEqual(len(e.errors), 1)
+
+
+class TestNotAuthorizedError(unittest.TestCase):
+    """Tests for the NotAuthorizedError exception"""
+    
+    def test_string_representation(self):
+        error_messages = ['You are not the master of Universe',
+                          "Two plus two doesn't equal five"]
+        exc = authorize.NotAuthorizedError(error_messages)
+        assert 'Subject cannot access resource' in str(exc)
+        assert 'You are not the master of Universe' in str(exc)
+        assert "Two plus two doesn't equal five" in str(exc)
