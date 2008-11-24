@@ -2,11 +2,7 @@
 =========================================================
 
 :Author: Gustavo Narea.
-:Version: |version|
-
-.. module:: repoze.what
-    :synopsis: Authorization framework for WSGI applications
-.. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
+:Latest version: |release|
 
 .. topic:: Overview
 

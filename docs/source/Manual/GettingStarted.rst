@@ -2,6 +2,10 @@
 Getting started with :mod:`repoze.what`
 ***************************************
 
+.. topic:: Overview
+
+    This document describes the basics of :mod:`repoze.what`, including its
+    terminology and how to get started quickly.
 
 
 Terminology
@@ -97,18 +101,22 @@ database is both the group and permission source:
 Setting up authentication and authorization
 -------------------------------------------
 
+.. note::
+
+    If you are using a web framework and it already configures 
+    :mod:`repoze.what`, you may want to skip this section.
+
 To enable authorization in your Web application, you need to add some
 WSGI middleware to your application, which is automatically done for you if
 you are using the quickstart (:mod:`repoze.what.plugins.quickstart`).
 
 When you enable authorization with :mod:`repoze.what`, authentication
-with :mod:`repoze.who` is automatically enabled.
+with :mod:`repoze.who` is automatically enabled. 
 
-.. note::
-    The `quickstart` is enabled when in ``{yourproject}.config.app_cfg`` you
-    have ``base_config.auth_backend`` set. To disable it, it's enough to
-    remove that line -- and you may also want to delete those like
-    ``base_config.sa_auth.*``.
+.. warning::
+
+    Do not try to configure :mod:`repoze.who` directly -- if you want 
+    authorization to work, you have to configure it through :mod:`repoze.what`.
 
 
 Using authentication and authorization without the quickstart
@@ -123,7 +131,7 @@ You are highly encouraged to add such a middleware with a function defined in,
 say, ``{yourproject}.config.middleware`` and called, say, ``add_auth``. Then
 such a function may look like this::
 
-    def add_auth(app, config):
+    def add_auth(app):
         from repoze.who.plugins.htpasswd import HTPasswdPlugin, crypt_check
         from repoze.what.middleware import setup_auth
         # Please note that the plugins below have not been created yet; want to
@@ -143,7 +151,6 @@ such a function may look like this::
 
         app_with_auth = setup_auth(
             app,
-            config,
             groups,
             permissions,
             authenticators)
@@ -151,22 +158,11 @@ such a function may look like this::
 
 Of course, there are other things you may customize, such as adding
 :mod:`repoze.who` identifiers, more authenticators, challengers and metadata
-providers -- read on!
-
-Now you're ready to add the middleware. Go to ``{yourproject}.config.middleware``
-and edit ``make_auth`` to make it look like this::
-
-    def make_app(global_conf, full_stack=True, **app_conf):
-        app = make_base_app(global_conf, full_stack=True, **app_conf)
-        # Wrap your base turbogears app with custom middleware
-        app = add_auth(app, config)
-        return app
+providers (read :func:`repoze.what.middleware.setup_auth` for more information).
 
 
 What's next?
 ------------
 
-Once your application includes the required WSGI middleware for authentication
-and authorization, as explained in :ref:`add-auth-middleware`, you are ready
-to implement authorization in your controllers with
-:mod:`repoze.what.authorize`.
+Now you are ready to control authorization in your application with `predicates`
+(:mod:`repoze.what.predicates`)!

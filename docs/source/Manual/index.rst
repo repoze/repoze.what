@@ -1,6 +1,13 @@
-*************************
-:mod:`repoze.what` Manual
-*************************
+*****************************
+The :mod:`repoze.what` Manual
+*****************************
+
+:Author: Gustavo Narea.
+:Version: |version|
+
+.. module:: repoze.what
+    :synopsis: Authorization framework for WSGI applications
+.. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
 
 Below are the contents for the :mod:`repoze.what` manual:
 
@@ -8,7 +15,7 @@ Below are the contents for the :mod:`repoze.what` manual:
     :maxdepth: 2
 
     GettingStarted
-    Authorize
+    Predicates
     Plugins/index
     ManagingSources
     WritingSourceAdapters
