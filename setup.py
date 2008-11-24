@@ -50,9 +50,9 @@ setup(name='repoze.what',
       packages=find_packages(),
       include_package_data=True,
       zip_safe=False,
-      tests_require = ['repoze.who', 'WebOb'],
-      install_requires=['repoze.who', 'WebOb'],
-      test_suite="tests",
+      tests_require = ['repoze.who'],
+      install_requires=['repoze.who'],
+      test_suite="nose.collector",
       entry_points = """\
       """
       )
