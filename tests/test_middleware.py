@@ -20,13 +20,21 @@ Tests for the repoze.what middleware.
 
 """
 
-import unittest
+import unittest, os
 
 from zope.interface.verify import verifyClass
+from repoze.who.classifiers import default_challenge_decider, \
+                                   default_request_classifier
+from repoze.who.plugins.form import RedirectingFormPlugin
+from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
+from repoze.who.plugins.basicauth import BasicAuthPlugin
 from repoze.who.interfaces import IAuthenticator, IMetadataProvider
-from repoze.who.tests import Base as BasePluginTester
+from repoze.who.tests import Base as BasePluginTester, DummyApp
 
-from repoze.what.middleware import AuthorizationMetadata
+from repoze.what.middleware import AuthorizationMetadata, setup_auth
+
+from base import FakeAuthenticator, FakeGroupSourceAdapter, \
+                 FakePermissionSourceAdapter
 
 
 #{ Fake adapters/plugins
@@ -155,5 +163,67 @@ class TestAuthorizationMetadata(unittest.TestCase):
         expected_permissions = ('contact', )
         self._check_groups_and_permissions(plugin, expected_groups,
                                            expected_permissions)
+
+
+class TestSetupAuth(BasePluginTester):
+    """Tests for the setup_auth() function"""
+    
+    def _in_registry(self, app, registry_key, registry_type):
+        assert registry_key in app.name_registry, ('Key "%s" not in registry' %
+                                                   registry_key)
+        assert isinstance(app.name_registry[registry_key], registry_type), \
+               'Registry key "%s" is of type "%s" (not "%s")' % \
+               (registry_key, app.name_registry[registry_key].__class__.__name__,
+                registry_type.__name__)
+    
+    def _makeApp(self, form_plugin=None, form_identifies=True, 
+                  identifiers=None, challengers=[], mdproviders=[],
+                  request_classifier=None, challenge_decider=None, 
+                  log_level=None):
+        authenticator = ('fake_authenticator', FakeAuthenticator())
+        
+        app_with_auth = setup_auth(
+            DummyApp(),
+            [FakeGroupSourceAdapter()],
+            [FakePermissionSourceAdapter()],
+            [authenticator],
+            form_plugin,
+            form_identifies,
+            identifiers,
+            challengers,
+            mdproviders
+            )
+        return app_with_auth
+
+    def test_no_extras(self):
+        app = self._makeApp()
+        self._in_registry(app, 'main_identifier', RedirectingFormPlugin)
+        self._in_registry(app, 'authorization_md', AuthorizationMetadata)
+        self._in_registry(app, 'cookie', AuthTktCookiePlugin)
+        self._in_registry(app, 'fake_authenticator', FakeAuthenticator)
+        self._in_registry(app, 'form', RedirectingFormPlugin)
+        assert isinstance(app.challenge_decider,
+                          default_challenge_decider.__class__)
+        assert isinstance(app.classifier,
+                          default_request_classifier.__class__)
+        self.assertEqual(app.logger, None)
+    
+    def test_form_doesnt_identify(self):
+        app = self._makeApp(form_identifies=False)
+        assert 'main_identifier' not in app.name_registry
+    
+    def test_additional_identifiers(self):
+        identifiers = [('http_auth', BasicAuthPlugin('1+1=2'))]
+        app = self._makeApp(identifiers=identifiers)
+        self._in_registry(app, 'main_identifier', RedirectingFormPlugin)
+        self._in_registry(app, 'http_auth', BasicAuthPlugin)
+    
+    def test_non_default_form_plugin(self):
+        app = self._makeApp(form_plugin=BasicAuthPlugin('1+1=2'))
+        self._in_registry(app, 'main_identifier', BasicAuthPlugin)
+    
+    def test_who_log(self):
+        os.environ['WHO_LOG'] = '1'
+        app = self._makeApp()
 
 #}

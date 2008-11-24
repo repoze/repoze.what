@@ -89,7 +89,8 @@ class AnonymousAuthorization(object):
 
 def setup_auth(app, group_adapters, permission_adapters, authenticators, 
                form_plugin=None, form_identifies=True, identifiers=None, 
-               challengers=[], mdproviders=[]):
+               challengers=[], mdproviders=[], request_classifier=None,
+               challenge_decider=None, log_level=None):
     """
     Setup repoze.who with repoze.what.
     
@@ -106,6 +107,9 @@ def setup_auth(app, group_adapters, permission_adapters, authenticators,
     @param identifiers: Secondary repoze.who IIdentifier plugins, if any.
     @param challengers: Secondary repoze.who challenger plugins, if any.
     @param mdproviders: Secondary repoze.who metadata plugins, if any.
+    @param request_classifier: The repoze.who request classifier.
+    @param challenge_decider: The repoze.who challenge decider.
+    @param log_level: The log level for repoze.who.
     
     """
     authorization = AuthorizationMetadata(group_adapters,
@@ -130,7 +134,16 @@ def setup_auth(app, group_adapters, permission_adapters, authenticators,
         identifiers.insert(0, ('main_identifier', form))
     
     challengers.append(('form', form))
-    mdproviders.append(('authorization', authorization))
+    mdproviders.append(('authorization_md', authorization))
+    
+    if request_classifier is None:
+        request_classifier = default_request_classifier
+    
+    if challenge_decider is None:
+        challenge_decider = default_challenge_decider
+    
+    if log_level is None:
+        log_level = logging.INFO
 
     log_stream = None
     
@@ -144,9 +157,9 @@ def setup_auth(app, group_adapters, permission_adapters, authenticators,
         authenticators,
         challengers,
         mdproviders,
-        default_request_classifier,
-        default_challenge_decider,
+        request_classifier,
+        challenge_decider,
         log_stream=log_stream,
-        log_level=logging.DEBUG
+        log_level=log_level
         )
     return middleware

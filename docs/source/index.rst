@@ -3,7 +3,6 @@
 
 :Author: Gustavo Narea.
 :Version: |version|
-:Status: Official
 
 .. module:: repoze.what
     :synopsis: Authorization framework for WSGI applications
@@ -48,8 +47,7 @@ Unless mentioned otherwise, the following features are available in
   want or need, either with official components, third party plugins or your
   own plugins.
 * ``Fully documented``. If it's not described in the manual, it doesn't exist.
-* ``Reliable``. We are committed to keep the code coverage at 95% or 
-  better.
+* ``Reliable``. We are committed to keep the code coverage at 100%.
 * ``Control access to any resource``. Although it's only recommended to control
   authorization on action controllers, you can also use it to restrict access
   to other things in your package (e.g., only allow access to a database table
