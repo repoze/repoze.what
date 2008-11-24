@@ -13,6 +13,9 @@
 
 import sys, os
 
+here = os.path.dirname(os.path.abspath(__file__))
+root = os.path.dirname(os.path.dirname(here))
+
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
@@ -42,9 +45,9 @@ copyright = u'2008, The Repoze Project'
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '0.9'
+version = '1.0'
 # The full version, including alpha/beta/rc tags.
-release = '0.9a2'
+release = open(os.path.join(root, 'VERSION.txt')).readline().rstrip()
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:

@@ -15,8 +15,6 @@
 #
 ##############################################################################
 
-__version__ = '0.9a2'
-
 import os
 
 from ez_setup import use_setuptools
@@ -26,9 +24,10 @@ from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.txt')).read()
+version = open(os.path.join(here, 'VERSION.txt')).readline().rstrip()
 
 setup(name='repoze.what',
-      version=__version__,
+      version=version,
       description=('Authorization for WSGI applications'),
       long_description=README,
       classifiers=[
