@@ -26,11 +26,15 @@ a Repoze project in order to make it available in arbitrary WSGI applications.
   based on a predicate and the WSGI environment, along with the
   :class:`repoze.what.authorize.NotAuthorizedError` exception.
 * Now :mod:`repoze.what` is fully documented.
+* Moved the predicates from :mod:`repoze.what.authorize` to
+  :mod:`repoze.what.predicates`. Nevertheless, they are imported in the former
+  to avoid breaking TurboGears 2 applications created when 
+  :mod:`tg.ext.repoze.who` or :mod:`tgext.authorization` existed.
 * Now you can override the error message of the built-in predicates or set your
   own message at instantiation time by passing the ``msg`` keywork argument to
   the predicate. Example::
   
-      from repoze.what.authorize import is_user
+      from repoze.what.predicates import is_user
       
       my_predicate = is_user('carla', msg="You must be Carla to come here!")
       
@@ -38,7 +42,7 @@ a Repoze project in order to make it available in arbitrary WSGI applications.
   (``__init__``), then you're highly encouraged to call its parent with the
   ``msg`` keyword argument. Example::
   
-      from repoze.what.authorize import Predicate
+      from repoze.what.predicates import Predicate
       
       class MyCoolPredicate(Predicate):
           def __init__(self, **kwargs):
@@ -47,10 +51,6 @@ a Repoze project in order to make it available in arbitrary WSGI applications.
 * Moved the SQL plugin (:mod:`repoze.what.plugins.sql`) into a separate
   package. Also moved :mod:`repoze.what.plugins.quickstart` into that package
   because it's specific to the SQL plugin.
-* Moved the predicates from :mod:`repoze.what.authorize` to
-  :mod:`repoze.what.predicates`. Nevertheless, they are imported in the former
-  to avoid breaking TurboGears 2 applications created when 
-  :mod:`tg.ext.repoze.who` or :mod:`tgext.authorization` existed.
 
 
 Backwards-incompatible changes
