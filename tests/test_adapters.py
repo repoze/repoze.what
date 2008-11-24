@@ -214,3 +214,52 @@ class TestBaseSourceAdapter(unittest.TestCase):
         self.assertRaises(NonExistingSectionError,
                           self.adapter._confirm_item_is_present, u'users', 
                           u'linus')
+
+
+class TestBaseSourceAdapterAbstract(unittest.TestCase):
+    """
+    Tests for the base source adapter's abstract methods.
+    
+    """
+    
+    def setUp(self):
+        self.adapter = BaseSourceAdapter()
+        
+    def test_get_all_sections(self):
+        self.assertRaises(NotImplementedError, self.adapter._get_all_sections)
+        
+    def test_get_section_items(self):
+        self.assertRaises(NotImplementedError, self.adapter._get_section_items,
+                          None)
+        
+    def test_find_sections(self):
+        self.assertRaises(NotImplementedError, self.adapter._find_sections,
+                          None)
+        
+    def test_include_items(self):
+        self.assertRaises(NotImplementedError, self.adapter._include_items,
+                          None, None)
+        
+    def test_exclude_items(self):
+        self.assertRaises(NotImplementedError, self.adapter._exclude_items,
+                          None, None)
+        
+    def test_item_is_included(self):
+        self.assertRaises(NotImplementedError, self.adapter._item_is_included,
+                          None, None)
+        
+    def test_create_section(self):
+        self.assertRaises(NotImplementedError, self.adapter._create_section,
+                          None)
+        
+    def test_edit_section(self):
+        self.assertRaises(NotImplementedError, self.adapter._edit_section,
+                          None, None)
+        
+    def test_delete_section(self):
+        self.assertRaises(NotImplementedError, self.adapter._delete_section,
+                          None)
+        
+    def test_section_exists(self):
+        self.assertRaises(NotImplementedError, self.adapter._section_exists,
+                          None)

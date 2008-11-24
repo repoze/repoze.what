@@ -343,7 +343,7 @@ class BaseSourceAdapter(object):
     
     #{ Abstract methods
     
-    def _get_all_sections():
+    def _get_all_sections(self):
         """
         Return all the sections found in the source.
         
@@ -360,7 +360,7 @@ class BaseSourceAdapter(object):
         """
         raise NotImplementedError()
     
-    def _get_section_items(section):
+    def _get_section_items(self, section):
         """
         Return the properties of the section called C{section}.
         
@@ -382,7 +382,7 @@ class BaseSourceAdapter(object):
         """
         raise NotImplementedError()
         
-    def _find_sections(hint):
+    def _find_sections(self, hint):
         """
         Return the sections that meet a given criteria.
         
@@ -411,7 +411,7 @@ class BaseSourceAdapter(object):
         """
         raise NotImplementedError()
     
-    def _include_items(section, items):
+    def _include_items(self, section, items):
         """
         Add C{items} to the C{section}, in the source.
         
@@ -427,7 +427,7 @@ class BaseSourceAdapter(object):
         """
         raise NotImplementedError()
     
-    def _exclude_items(section, items):
+    def _exclude_items(self, section, items):
         """
         Remove C{items} from the C{section}, in the source.
         
@@ -443,7 +443,7 @@ class BaseSourceAdapter(object):
         """
         raise NotImplementedError()
     
-    def _item_is_included(section, item):
+    def _item_is_included(self, section, item):
         """
         Check whether C{item} is included in C{section}.
         
@@ -461,7 +461,7 @@ class BaseSourceAdapter(object):
         """
         raise NotImplementedError()
         
-    def _create_section(section):
+    def _create_section(self, section):
         """
         Add C{section} to the source.
         
@@ -475,7 +475,7 @@ class BaseSourceAdapter(object):
         """
         raise NotImplementedError()
         
-    def _edit_section(section, new_section):
+    def _edit_section(self, section, new_section):
         """
         Edit C{section}'s properties.
         
@@ -491,7 +491,7 @@ class BaseSourceAdapter(object):
         """
         raise NotImplementedError()
         
-    def _delete_section(section):
+    def _delete_section(self, section):
         """
         Delete C{section}.
         
@@ -507,7 +507,7 @@ class BaseSourceAdapter(object):
         """
         raise NotImplementedError()
     
-    def _section_exists(section):
+    def _section_exists(self, section):
         """
         Check whether C{section} is defined in the source.
         
