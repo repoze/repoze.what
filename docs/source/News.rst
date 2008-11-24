@@ -47,6 +47,10 @@ a Repoze project in order to make it available in arbitrary WSGI applications.
 * Moved the SQL plugin (:mod:`repoze.what.plugins.sql`) into a separate
   package. Also moved :mod:`repoze.what.plugins.quickstart` into that package
   because it's specific to the SQL plugin.
+* Moved the predicates from :mod:`repoze.what.authorize` to
+  :mod:`repoze.what.predicates`. Nevertheless, they are imported in the former
+  to avoid breaking TurboGears 2 applications created when 
+  :mod:`tg.ext.repoze.who` or :mod:`tgext.authorization` existed.
 
 
 Backwards-incompatible changes
