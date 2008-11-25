@@ -9,14 +9,14 @@
 
 .. topic:: Overview
 
-    Plugins extend the functionality of :mod:`repoze.what` and the most
-    common type of plugins are those that add support for more type of group and
-    permission sources.
-
-
-:mod:`repoze.what` itself doesn't ship with support for :term:`adapters
-<source adapter>`, so you should install the relevant plugins to manage your 
-groups and permissions.
+    :mod:`repoze.what` itself strives to be a rather minimalist project which
+    only depends on :mod:`repoze.who` and built-in Python modules, so that
+    it will never get in your way and thus make it rather easy for third parties
+    to extend it to suit their needs.
+    
+    As a consequence, it doesn't ship with support for :term:`adapters
+    <source adapter>`, so you should install the relevant plugins to manage your 
+    groups and permissions.
 
 There are three types of plugins:
 
