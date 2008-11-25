@@ -303,6 +303,7 @@ as in the example below::
         @require(has_permission('post-comment'))
         def add_comment(self, post_id, comment):
             new_comment = Comment(post=post_id, comment=comment)
+            save(new_comment)
 
 As you may have noticed, it's a more elegant solution because the predicate is
 defined outside of the method itself and the framework automatically passes 
