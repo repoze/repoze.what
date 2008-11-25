@@ -24,19 +24,23 @@ Overview
 ========
 
 :mod:`repoze.what` allows you to define access rules based on so-called
-"predicate checkers". 
+"predicate checkers":
 
-A ``predicate`` is the condition that must be met for the user to be able to 
-access the requested source (e.g., "The current user is not anonymous"). Such 
-a predicate, or condition, may be made up of more predicates -- those are 
-called `compound predicates` (e.g., "The user is not anonymous `and` her IP
-address belongs to the company's intranet").
+.. glossary::
 
-A ``predicate checker`` is a class that checks whether a predicate or
-condition is met.
+    predicate
+         A ``predicate`` is the condition that must be met for the user to be 
+         able to access the requested source (e.g., "The current user is not 
+         anonymous").
+    compound predicate
+        A :term:`predicate`, or condition, may be made up of more predicates 
+        -- those are called `compound predicates` (e.g., "The user is not 
+        anonymous `and` her IP address belongs to the company's intranet").
+    predicate checker
+        A class that checks whether a :term:`predicate` is met.
 
 If a user is not logged in, or does not have the proper permissions, the
-predicate checker throws a 401 (HTTP Unauthorized) which is caught by the
+application throws a 401 (HTTP Unauthorized) which is caught by the
 :mod:`repoze.who` middleware to display the login page allowing
 the user to login, and redirecting the user back to the proper page when they
 are done.

@@ -20,8 +20,6 @@ only in a database, :mod:`repoze.what` uses a generic terminology:
         Where authorization data (groups and/or permissions) is stored.
         It may be a database or a file (an Htgroups file, an Ini file, etc), for
         example.
-    sources
-        See :term:`source`.
     group source
         A :term:`source` that stores groups. For example, an Htgroups
         file or an Ini file.
@@ -31,14 +29,12 @@ only in a database, :mod:`repoze.what` uses a generic terminology:
     source adapter
         An object that manages a given type of :term:`source` to add,
         edit and delete entries under an API independent of the source type.
-    adapter
-        See :term:`source adapter`.
-    adapters
-        See :term:`source adapter`.
     group adapter
-        An :term:`adapter` that deals with one :term:`group source`.
+        An :term:`adapter <source adapter>` that deals with one :term:`group 
+        source`.
     permission adapter
-        An :term:`adapter` that deals with one :term:`permission source`.
+        An :term:`adapter <source adapter>` that deals with one 
+        :term:`permission source`.
     section
         Sections are the groups that make up a source -- this is, in a
         `permission source`, the sections are the permissions, and in a `group
