@@ -104,11 +104,11 @@ requests should be sent to `the issue tracker of the Repoze project
 <http://bugs.repoze.org/>`_.
 
 If you have problems, please don't forget to include the output of your 
-application with the ``WHO_LOG`` environment variable set to ``1`` when you
+application with the ``AUTH_LOG`` environment variable set to ``1`` when you
 get in touch with us. For example, if your application is based on TurboGears 
 or Pylons, you may run it with the following command::
 
-    WHO_LOG=1 paster serve --reload development.ini
+    AUTH_LOG=1 paster serve --reload development.ini
 
 
 Contents

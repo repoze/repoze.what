@@ -169,11 +169,11 @@ class TestSetupAuth(BasePluginTester):
     """Tests for the setup_auth() function"""
     
     def setUp(self):
-        self.old_who_log = os.environ.get('WHO_LOG')
-        os.environ['WHO_LOG'] = '0'
+        self.old_auth_log = os.environ.get('AUTH_LOG')
+        os.environ['AUTH_LOG'] = '0'
     
     def tearDown(self):
-        os.environ['WHO_LOG'] = str(self.old_who_log)
+        os.environ['AUTH_LOG'] = str(self.old_auth_log)
     
     def _in_registry(self, app, registry_key, registry_type):
         assert registry_key in app.name_registry, ('Key "%s" not in registry' %
@@ -229,8 +229,8 @@ class TestSetupAuth(BasePluginTester):
         app = self._makeApp(form_plugin=BasicAuthPlugin('1+1=2'))
         self._in_registry(app, 'main_identifier', BasicAuthPlugin)
     
-    def test_who_log(self):
-        os.environ['WHO_LOG'] = '1'
+    def test_with_auth_log(self):
+        os.environ['AUTH_LOG'] = '1'
         app = self._makeApp()
 
 #}

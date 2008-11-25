@@ -147,7 +147,7 @@ def setup_auth(app, group_adapters, permission_adapters, authenticators,
 
     log_stream = None
     
-    if os.environ.get('WHO_LOG'):
+    if os.environ.get('AUTH_LOG'):
         import sys
         log_stream = sys.stdout
     
