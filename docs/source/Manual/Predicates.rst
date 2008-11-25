@@ -27,10 +27,10 @@ Overview
 "predicate checkers". 
 
 A ``predicate`` is the condition that must be met for the user to be able to 
-access the requested source. Such a predicate, or condition, may be made
-up of more predicates -- those are called `compound predicates`. Action
-controllers, or controllers, may have only one predicate, be it single or
-compound.
+access the requested source (e.g., "The current user is not anonymous"). Such 
+a predicate, or condition, may be made up of more predicates -- those are 
+called `compound predicates` (e.g., "The user is not anonymous `and` her IP
+address belongs to the company's intranet").
 
 A ``predicate checker`` is a class that checks whether a predicate or
 condition is met.
@@ -63,9 +63,6 @@ and if you don't define it, the built-in predicates will use the default
 English message; you may take advantage of this funtionality to make such
 messages translatable.
 
-Below are described the convenient utilities TurboGears provides to deal with
-predicates in your applications.
-
 
 Creating your own single predicate checkers
 ===========================================
@@ -74,7 +71,7 @@ You may create your own predicate checkers if the built-in ones are not enough
 to achieve a given task.
 
 To do so, you should extend the :class:`repoze.what.predicates.Predicate`
-class. For example, if your predicate is "Check that the current month is the 
+class. For example, if your predicate is "The current month is the 
 specified one", your predicate checker may look like this::
 
     from datetime import date
@@ -91,8 +88,7 @@ specified one", your predicate checker may look like this::
         def _eval_with_environ(self, environ):
             return self.today.month == self.right_month
 
-If you defined that class in, say, ``{yourproject}.lib.auth``, you may use it
-as in this example::
+Then you can use your predicate this way::
 
     # Grant access if the current month is March
     p = is_month(3)
@@ -286,17 +282,18 @@ users, you may use it at the start of the function as in the example below::
     
     def add_comment(post_id, comment):
         check_authorization(has_permission('post-comment'), environ)
+        # If reached this point, then the user *can* leave a comment!
         new_comment = Comment(post=post_id, comment=comment)
+        save(new_comment)
 
 Web frameworks may provide utilities to make it easier to check authorization.
 For example, the TurboGears framework provides the ``@require`` decorator for 
-actions which is a wrapper for :func:`check_authorization` -- it can be used as 
-in the example below::
+actions, which is a wrapper for :func:`check_authorization` -- it can be used 
+as in the example below::
 
     # ...
-    from tg import expose, require
+    from tg import require
     # ...
-    from repoze.what.authorize import check_authorization
     from repoze.what.predicates import has_permission
     # ...
     
@@ -308,8 +305,8 @@ in the example below::
             new_comment = Comment(post=post_id, comment=comment)
 
 As you may have noticed, it's a more elegant solution because the predicate is
-evaluated outside of the method itself and the framework passes the
-WSGI environment to :func:`check_authorization`. The framework also catches
+defined outside of the method itself and the framework automatically passes 
+the WSGI environment to :func:`check_authorization`. The framework also catches
 the exception and replaces it with a 401 HTTP error and a error message visible
 to the user.
 
