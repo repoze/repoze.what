@@ -20,7 +20,7 @@ Tests for the repoze.what middleware.
 
 """
 
-import unittest, os
+import unittest, os, logging
 
 from zope.interface.verify import verifyClass
 from repoze.who.classifiers import default_challenge_decider, \
@@ -168,6 +168,13 @@ class TestAuthorizationMetadata(unittest.TestCase):
 class TestSetupAuth(BasePluginTester):
     """Tests for the setup_auth() function"""
     
+    def setUp(self):
+        self.old_who_log = os.environ.get('WHO_LOG')
+        os.environ['WHO_LOG'] = '0'
+    
+    def tearDown(self):
+        os.environ['WHO_LOG'] = str(self.old_who_log)
+    
     def _in_registry(self, app, registry_key, registry_type):
         assert registry_key in app.name_registry, ('Key "%s" not in registry' %
                                                    registry_key)
@@ -206,7 +213,7 @@ class TestSetupAuth(BasePluginTester):
                           default_challenge_decider.__class__)
         assert isinstance(app.classifier,
                           default_request_classifier.__class__)
-        self.assertEqual(app.logger, None)
+        assert isinstance(app.logger, logging.Logger)
     
     def test_form_doesnt_identify(self):
         app = self._makeApp(form_identifies=False)
