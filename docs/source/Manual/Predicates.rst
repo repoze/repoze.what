@@ -12,16 +12,10 @@ Controlling access with predicates
 
 .. topic:: Overview
 
-    This document explains how to implement authorization in the action 
-    controllers of your WSGI application.
-
-
-You are ready to use authorization in your controllers once you
-have setup the required middleware, either through the quickstart or in a
-custom way.
-
-Overview
-========
+    This document explains how to restrict access within your application
+    by using so-called :term:`predicates <predicate>`, which you will be
+    able to use  once you have setup the required middleware, either through 
+    the quickstart or in a custom way.
 
 :mod:`repoze.what` allows you to define access rules based on so-called
 "predicate checkers":
@@ -164,7 +158,7 @@ Single predicate checkers
 
     Check that the user belongs to at least one of the specified groups.
     
-    :param group1_name: The name of the one of the groups the user may belong to.
+    :param group1_name: The name of one of the groups the user may belong to.
     :param group2_name ...: The name of other groups the user may belong to.
     
     Example::
