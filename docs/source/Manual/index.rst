@@ -14,5 +14,4 @@ Below are the contents for the :mod:`repoze.what` manual:
     Predicates
     Plugins/index
     ManagingSources
-    Extending/index
     InnerWorkings
