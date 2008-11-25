@@ -101,3 +101,30 @@ class FakePermissionSourceAdapter(FakeGroupSourceAdapter):
     def _find_sections(self, group_name):
         return set([n for (n, p) in self.fake_sections.items()
                     if group_name in p])
+
+
+class FakeLogger(object):
+    
+    def __init__(self):
+        self.messages = {
+            'critical': [],
+            'error': [],
+            'warning': [],
+            'info': [],
+            'debug': []
+            }
+    
+    def critical(self, msg):
+        self.messages['critical'].append(msg)
+    
+    def error(self, msg):
+        self.messages['error'].append(msg)
+    
+    def warning(self, msg):
+        self.messages['warning'].append(msg)
+    
+    def info(self, msg):
+        self.messages['info'].append(msg)
+    
+    def error(self, msg):
+        self.messages['error'].append(msg)

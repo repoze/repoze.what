@@ -13,7 +13,7 @@
 #
 ##############################################################################
 
-"""Utilities to restrict access."""
+"""Utilities to restrict access based on predicates."""
 
 # We import the predicates just to make repoze.what backwards compatible
 # with tg.ext.repoze.who, but they are actually useless here:
@@ -45,6 +45,10 @@ def check_authorization(predicate, environ):
     @raise NotAuthorizedError: If the predicate rejects access to the subject.
     
     """
+    logger = environ.get('repoze.who.logger')
     errors = []
     if predicate and not predicate.eval_with_environ(environ, errors):
-        raise NotAuthorizedError(errors)
+        exc = NotAuthorizedError(errors)
+        logger and logger.warning(str(exc))
+        raise exc
+    logger and logger.info('Subject is granted access')

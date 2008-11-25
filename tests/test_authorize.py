@@ -24,6 +24,7 @@ import unittest
 
 from repoze.what import authorize
 
+from base import FakeLogger
 from test_predicates import make_environ
 
 
@@ -31,20 +32,30 @@ class TestAuthorizationChecker(unittest.TestCase):
     """Tests for the check_authorization() function"""
     
     def test_authorized(self):
+        logger = FakeLogger()
         environ = make_environ('gustavo', permissions=['watch-tv', 'party',
                                                        'eat'])
+        environ['repoze.who.logger'] = logger
         p = authorize.has_any_permission('party', 'scream')
         authorize.check_authorization(p, environ)
+        info = logger.messages['info']
+        assert "Subject is granted access" == info[0]
     
     def test_unauthorized(self):
+        logger = FakeLogger()
         environ = make_environ('gustavo', permissions=['watch-tv', 'party',
                                                        'eat'])
-        p = authorize.has_any_permission('jump', 'scream')
+        environ['repoze.who.logger'] = logger
+        p = authorize.has_any_permission('jump', 'scream',
+                                         msg="Go away!")
         try:
             authorize.check_authorization(p, environ)
-            self.fail('Authorization must be accepted')
+            self.fail('Authorization must have been rejected')
         except authorize.NotAuthorizedError, e:
             self.assertEqual(len(e.errors), 1)
+            # Testing the logs:
+            warnings = logger.messages['warning']
+            assert "Subject cannot access resource: Go away!" == warnings[0]
 
 
 class TestNotAuthorizedError(unittest.TestCase):

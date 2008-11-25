@@ -34,7 +34,7 @@ from repoze.who.tests import Base as BasePluginTester, DummyApp
 from repoze.what.middleware import AuthorizationMetadata, setup_auth
 
 from base import FakeAuthenticator, FakeGroupSourceAdapter, \
-                 FakePermissionSourceAdapter
+                 FakePermissionSourceAdapter, FakeLogger
 
 
 #{ Fake adapters/plugins
@@ -100,6 +100,21 @@ class TestAuthorizationMetadata(unittest.TestCase):
 
     def test_implements(self):
         verifyClass(IMetadataProvider, AuthorizationMetadata, tentative=True)
+    
+    def test_logger(self):
+        # Setting up logging:
+        logger = FakeLogger()
+        environ = {'repoze.who.logger': logger}
+        identity = {'repoze.who.userid': 'whatever'}
+        # Configuring the plugin:
+        group_fetchers = {'executive': FakeGroupFetcher3()}
+        permission_fetchers = {'perms1': FakePermissionFetcher2()}
+        plugin = AuthorizationMetadata(group_fetchers, permission_fetchers)
+        plugin.add_metadata(environ, identity)
+        # Testing it:
+        messages = "; ".join(logger.messages['info'])
+        assert "graphic-designers" in messages
+        assert "upload-images" in messages
     
     def test_add_metadata1(self):
         group_fetchers = {

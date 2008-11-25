@@ -53,6 +53,7 @@ a Repoze project in order to make it available in arbitrary WSGI applications.
   because it's specific to the SQL plugin.
 * Log messages are no longer sent to standard output if the ``WHO_LOG``
   environment variable is defined, but with ``AUTH_LOG``.
+* Now :mod:`repoze.what` uses logging internally to ease debugging.
 
 
 Backwards-incompatible changes

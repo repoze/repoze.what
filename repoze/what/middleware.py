@@ -66,6 +66,8 @@ class AuthorizationMetadata(object):
         @param identity: The repoze.who's identity dictionary.
         
         """
+        logger = environ.get('repoze.who.logger')
+        # Finding the groups and permissions:
         groups = set()
         permissions = set()
         for grp_fetcher in self.group_fetchers.values():
@@ -75,6 +77,11 @@ class AuthorizationMetadata(object):
                 permissions |= set(perm_fetcher.find_sections(group))
         identity['groups'] = tuple(groups)
         identity['permissions'] = tuple(permissions)
+        # Logging
+        logger and logger.info('User belongs to the following groups: %s' %
+                               str(groups))
+        logger and logger.info('User has the following permissions: %s' %
+                               str(permissions))
 
 
 # TODO: Make this IAuthenticator
