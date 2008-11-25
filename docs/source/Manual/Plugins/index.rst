@@ -48,10 +48,10 @@ There are three types of plugins:
         For example, the quickstart (:mod:`repoze.what.plugins.quickstart`).
 
 The classification above is not mutually exclusive: If a plugin provides
-:term:`adapters <source adapter>`, :term:`predicate checkers <predicate 
-checker>` and extra functionality, then it can be referred to as "a predicates,
-adapters and extras plugin". For instance, the SQL plugin is both an adapters
-and extras plugin.
+:term:`adapters <source adapter>`, :term:`predicate checkers 
+<predicate checker>` and extra functionality, then it can be referred to as 
+"a predicates, adapters and extras plugin". For instance, the SQL plugin 
+is both an adapters and extras plugin.
 
 The following plugins are currently available:
 

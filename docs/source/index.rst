@@ -1,6 +1,10 @@
 :mod:`repoze.what` -- Authorization for WSGI applications
 =========================================================
 
+.. module:: repoze.what
+    :synopsis: Authorization framework for WSGI applications
+.. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
+
 :Author: Gustavo Narea.
 :Latest version: |release|
 

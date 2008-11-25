@@ -5,10 +5,6 @@ The :mod:`repoze.what` Manual
 :Author: Gustavo Narea.
 :Version: |version|
 
-.. module:: repoze.what
-    :synopsis: Authorization framework for WSGI applications
-.. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
-
 Below are the contents for the :mod:`repoze.what` manual:
 
 .. toctree::
@@ -18,5 +14,5 @@ Below are the contents for the :mod:`repoze.what` manual:
     Predicates
     Plugins/index
     ManagingSources
-    WritingSourceAdapters
+    Extending/index
     InnerWorkings
