@@ -37,7 +37,7 @@ a Repoze project in order to make it available in arbitrary WSGI applications.
   
       from repoze.what.predicates import is_user
       
-      my_predicate = is_user('carla', msg="You must be Carla to come here!")
+      my_predicate = is_user('carla', msg="Only Carla may come here")
       
   As a result, if your custom predicate defines the constructor method
   (``__init__``), then you're highly encouraged to call its parent with the
