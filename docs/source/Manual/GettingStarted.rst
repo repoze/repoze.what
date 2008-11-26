@@ -48,9 +48,10 @@ only in a database, :mod:`repoze.what` uses a generic terminology:
 
 
 The authentication framework (:mod:`repoze.who`) only deals with the 
-:term:`source` (or sources) that handle your users' credentials, while the 
+:term:`sources <source>` that handle your users' credentials, while the 
 authorization framework (:mod:`repoze.what`) deals with both the 
-source(s) that handle your groups and those that handle your permissions.
+:term:`sources <source>` that handle your groups and those that handle your
+permissions.
 
 Sample sources
 ~~~~~~~~~~~~~~
@@ -104,7 +105,7 @@ Setting up authentication and authorization
 
 To enable authorization in your Web application, you need to add some
 WSGI middleware to your application, which is automatically done for you if
-you are using the quickstart (:mod:`repoze.what.plugins.quickstart`).
+you are using the :mod:`quickstart <repoze.what.plugins.quickstart>`.
 
 When you enable authorization with :mod:`repoze.what`, authentication
 with :mod:`repoze.who` is automatically enabled. 
@@ -160,5 +161,5 @@ providers (read :func:`repoze.what.middleware.setup_auth` for more information).
 What's next?
 ------------
 
-Now you are ready to control authorization in your application with `predicates`
-(:mod:`repoze.what.predicates`)!
+Now you are ready to control authorization in your application with 
+:mod:`predicates <repoze.what.predicates>`!
