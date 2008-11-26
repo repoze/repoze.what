@@ -47,6 +47,7 @@ Unless mentioned otherwise, the following features are available in
   want or need, either with official components, third party plugins or your
   own plugins.
 * ``Fully documented``. If it's not described in the manual, it doesn't exist.
+  Everything is documented along with examples.
 * ``Reliable``. We are committed to keep the code coverage at 100%.
 * ``Control access to any resource``. Although it's only recommended to control
   authorization on action controllers, you can also use it to restrict access
