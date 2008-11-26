@@ -44,6 +44,23 @@ Or to manage the permissions defined in an XML file, you could use::
     
     permissions = XmlGroupsAdapter('/path/to/permissions.xml')
 
+.. tip::
+
+    You can re-use the same adapters used by :mod:`repoze.what` to control
+    access. You will find them in the WSGI environment::
+    
+        # This is where repoze.who plugins are kept:
+        repozewho_plugins = environ['repoze.who.plugins']
+        
+        # Extracting the repoze.who metadata plugin provided by repoze.what.
+        # It contains the adapters:
+        repozewhat_md = repozewho_plugins['authorization_md']
+        
+        # Now let's extract the group and permission adapters:
+        group_adapters = repozewhat_md.group_fetchers
+        permission_adapters = repozewhat_md.permission_fetchers
+
+
 Retrieving all the available :term:`sections <section>` from a source
 ---------------------------------------------------------------------
 
