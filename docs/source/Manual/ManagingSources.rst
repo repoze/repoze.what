@@ -231,6 +231,12 @@ error occurs:
 Writing your own source adapters
 ================================
 
+.. note::
+
+    It's `very` unlikely that you'll want to write a :term:`source adapter`, so 
+    if you get bored reading this section, it's absolutely safe for you to skip
+    it and come back later if you need to create an adapter.
+
 Both :term:`group <group adapter>` and :term:`permission <permission adapter>` 
 :term:`adapters <source adapter>` must extend the abstract class 
 :class:`BaseSourceAdapter`:
@@ -595,5 +601,5 @@ verification of your adapters. This utility is the
 .. note::
 
     :mod:`repoze.what.adapters.testutil` is not a full replacement for a test 
-    suite, so you are still highly encouraged to write the relevent/missing 
+    suite, so you are still highly encouraged to write the relevant/missing 
     tests to lead the code coverage of your adapters to 100%.
