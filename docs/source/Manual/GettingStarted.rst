@@ -5,14 +5,17 @@ Getting started with :mod:`repoze.what`
 .. topic:: Overview
 
     This document describes the basics of :mod:`repoze.what`, including its
-    terminology and how to get started quickly.
+    terminology and how to configure authentication and authorization easily.
 
 
 Terminology
 -----------
 
-Because you may store your groups and permissions where you would like to, not
-only in a database, :mod:`repoze.what` uses a generic terminology:
+As explained previously, :mod:`repoze.what`'s base authorization pattern
+is based on the groups to which the user belongs and the permissions granted 
+to such groups, and such groups and permissions can be stored in different
+types of sources -- because of that, :mod:`repoze.what` uses a generic 
+terminology when it deals with those sources:
 
 .. glossary::
 
@@ -36,9 +39,10 @@ only in a database, :mod:`repoze.what` uses a generic terminology:
         An :term:`adapter <source adapter>` that deals with one 
         :term:`permission source`.
     section
-        Sections are the groups that make up a source -- this is, in a
-        `permission source`, the sections are the permissions, and in a `group
-        source`, the sections are the groups.
+        Sections are the `compound elements` that make up a :term:`source` -- 
+        this is, in a :term:`permission source`, the sections are the 
+        permissions, and in a :term:`group source`, the sections are the 
+        groups.
     item
         The elements that are contained in a :term:`section`. In a
         :term:`permission source`, the items are the groups that are granted
@@ -80,7 +84,7 @@ of the groups in an application. In other words, such a file is a
     [contact-us]
     users
 
-It has four sections and three items: "manage-site" (made up one item,
+It has three sections and three items: "manage-site" (made up one item,
 "admins"), "release-software" (made up of the items "admins" and "developers")
 and "contact-us" (made up of the item "users").
 
@@ -126,7 +130,7 @@ and/or your permissions.
 
 You are highly encouraged to add such a middleware with a function defined in,
 say, ``{yourproject}.config.middleware`` and called, say, ``add_auth``. Then
-such a function may look like this::
+that function may look like this::
 
     def add_auth(app):
         from repoze.who.plugins.htpasswd import HTPasswdPlugin, crypt_check

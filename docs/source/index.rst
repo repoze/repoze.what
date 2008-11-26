@@ -56,7 +56,8 @@ Unless mentioned otherwise, the following features are available in
 * Your application's `groups` and `permissions` may be stored in an SQLAlchemy
   managed database, thanks to the SQL plugin (:mod:`repoze.what.plugins.sql`).
 * The only requirement is that you use the powerful and extensible `repoze.who
-  <http://static.repoze.org/whodocs/>`_ authentication framework.
+  <http://static.repoze.org/whodocs/>`_ authentication framework (which
+  is configured for you by :mod:`repoze.what`).
 * `It's not hard to get started!`
 
 

@@ -13,7 +13,7 @@ Controlling access with predicates
 .. topic:: Overview
 
     This document explains how to restrict access within your application
-    by using so-called :term:`predicates <predicate>`, which you will be
+    by using :term:`predicates <predicate>`, which you will be
     able to use  once you have setup the required middleware, either through 
     the quickstart or in a custom way.
 
@@ -277,8 +277,8 @@ But you can also nest compound predicates::
 
     p = All(Any(is_month(4), is_month(10)), has_permission('release'))
 
-Which translates as "Anyone granted the 'release' permission may release a 
-version of Ubuntu, if and only if it's April or October".
+Which may be translated as "Anyone granted the 'release' permission may release 
+a version of Ubuntu, if and only if it's April or October".
 
 
 Evaluating your predicates
@@ -294,12 +294,12 @@ so that it can raise the :class:`NotAuthorizedError` exception if the user
 is not authorized:
 
 .. function:: check_authorization(predicate, environ)
+    
+    Verify if the current user really can access the requested source.
 
     :param predicate: The predicate to be evaluated.
     :param environ: The WSGI environment.
     :raise NotAuthorizedError: If it the predicate is not met.
-    
-    Verify if the current user really can access the requested source.
 
 For example, if you have a sensitive function that should be run by certain
 users, you may use it at the start of the function as in the example below::
