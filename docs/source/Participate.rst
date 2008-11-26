@@ -28,26 +28,24 @@ An important way to contribute to :mod:`repoze.what` is by creating
 
 There are no special guidelines to create unofficial plugins, but you are
 highly enccouraged to create plugins under the :mod:`repoze.what.plugins`
-namespace and contact us once you have at least one usable release.
+namespace and contact us once you have at least one usable release (so that
+we can mention it in the manual).
 
 Guidelines for official plugins
 -------------------------------
 
-There are some benefits in making your plugin official:
+Official plugins must meet certain requirements:
 
-* Its documentation will be merged into the official documentation.
-* The core :mod:`repoze.what` developers will also be able to contribute to
-  the plugin.
-* It will possibly have more visibility.
-
-However, there are some requirements that should be met:
-
-* It should have at least one usable release (no mere pre-alphas). The rate
-  of `stillborn` Free Software projects is very high, so we prefer to turn a
-  unofficial plugin into an official one if it has seen the light.
 * It must use `the Repoze license <http://repoze.org/license.html>`_.
 * It should follow the `coding conventions`_ of the project.
+* Its documentation should be merged into the official documentation.
 
+If you want to turn your :mod:`repoze.what` unofficial plugin into an official
+one and it already meets the first two requirements above, please propose it 
+after you have at least one usable release (e.g., a beta, a release candidate;
+not only pre-alphas) -- The rate of `stillborn` Free Software projects is very 
+high, so we prefer to turn a unofficial plugin into an official one if it has 
+ever seen the light.
 
 Coding conventions
 ==================
