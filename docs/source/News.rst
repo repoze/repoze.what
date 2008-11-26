@@ -25,7 +25,7 @@ a Repoze project in order to make it available in arbitrary WSGI applications.
   (:func:`repoze.what.authorize.check_authorization`) to check authorization 
   based on a predicate and the WSGI environment, along with the
   :class:`repoze.what.authorize.NotAuthorizedError` exception.
-* Now :mod:`repoze.what` is fully documented.
+* Now :mod:`repoze.what` is 100% documented.
 * Moved the predicates from :mod:`repoze.what.authorize` to
   :mod:`repoze.what.predicates`. Nevertheless, they are imported in the former
   to avoid breaking TurboGears 2 applications created when 
