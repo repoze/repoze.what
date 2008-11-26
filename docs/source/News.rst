@@ -61,7 +61,7 @@ Backwards-incompatible changes
 ------------------------------
 
 * If you have custom predicates, you should update the ``eval_with_object`` 
-  method, which has been renamed to ``eval_with_environ`` and only receives one 
+  method, which has been renamed to ``_eval_with_environ`` and only receives one 
   argument (the WSGI environment). This is, if your method's signature looks 
   like this::
 
