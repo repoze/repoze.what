@@ -8,8 +8,8 @@ plugins.
 
 .. _repoze.what-1.0b1:
 
-:mod:`repoze.what` 1.0b1 (*unreleased*)
-=======================================
+:mod:`repoze.what` 1.0b1 (2008-11-26)
+=====================================
 
 This is the first release of this package as part of the Repoze project. It
 started as the :mod:`repoze.who` extension for TurboGears 2 applications
