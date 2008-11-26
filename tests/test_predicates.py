@@ -39,7 +39,7 @@ class TestPredicate(unittest.TestCase):
         environ = {'test_number': 3}
         errors = []
         p.eval_with_environ(environ, errors)
-        self.assertEqual(errors, [p.error_message % p.__dict__])
+        self.assertEqual(errors, [p.message % p.__dict__])
     
     def test_errors_arent_added_if_not_required(self):
         p = EqualsTwo()
@@ -48,16 +48,16 @@ class TestPredicate(unittest.TestCase):
         p.eval_with_environ(environ, errors)
         self.assertEqual(errors, None)
     
-    def test_error_message_is_changeable(self):
-        previous_msg = EqualsTwo.error_message
+    def test_message_is_changeable(self):
+        previous_msg = EqualsTwo.message
         new_msg = 'It does not equal two!'
         p = EqualsTwo(msg=new_msg)
-        self.assertEqual(new_msg, p.error_message)
+        self.assertEqual(new_msg, p.message)
     
-    def test_error_message_isnt_changed_unless_required(self):
-        previous_msg = EqualsTwo.error_message
+    def test_message_isnt_changed_unless_required(self):
+        previous_msg = EqualsTwo.message
         p = EqualsTwo()
-        self.assertEqual(previous_msg, p.error_message)
+        self.assertEqual(previous_msg, p.message)
 
 
 class TestCompoundPredicate(unittest.TestCase):
@@ -77,9 +77,9 @@ class TestCompoundPredicate(unittest.TestCase):
 class TestNotPredicate(unittest.TestCase):
     
     def test_success(self):
-        environ = {'test_number': 7}
+        environ = {'test_number': 4}
         # It must not be greater than 5
-        p = predicates.Not(GreaterThan(5))
+        p = predicates.Not(EqualsFour())
         # It's greater than 5!
         self.assertFalse(p.eval_with_environ(environ, None))
     
@@ -358,11 +358,11 @@ def make_environ(user, groups=None, permissions=None):
 
 
 class MockPredicate(predicates.Predicate):
-    error_message = "I'm a fake predicate"
+    message = "I'm a fake predicate"
 
 
 class EqualsTwo(predicates.Predicate):
-    error_message = "Number %(number)s doesn't equal 2"
+    message = "Number %(number)s doesn't equal 2"
         
     def _eval_with_environ(self, environ):
         self.number = environ.get('test_number')
@@ -370,7 +370,7 @@ class EqualsTwo(predicates.Predicate):
 
 
 class EqualsFour(predicates.Predicate):
-    error_message = "Number %(number)s doesn't equal 4"
+    message = "Number %(number)s doesn't equal 4"
         
     def _eval_with_environ(self, environ):
         self.number = environ.get('test_number')
@@ -378,9 +378,10 @@ class EqualsFour(predicates.Predicate):
 
 
 class GreaterThan(predicates.Predicate):
-    error_message = "%(number)s is not greater than %(compared_number)s"
+    message = "%(number)s is not greater than %(compared_number)s"
     
-    def __init__(self, compared_number):
+    def __init__(self, compared_number, **kwargs):
+        super(GreaterThan, self).__init__(**kwargs)
         self.compared_number = compared_number
         
     def _eval_with_environ(self, environ):
@@ -389,9 +390,10 @@ class GreaterThan(predicates.Predicate):
 
 
 class LessThan(predicates.Predicate):
-    error_message = "%(number)s is not less than %(compared_number)s"
+    message = "%(number)s must be less than %(compared_number)s"
     
-    def __init__(self, compared_number):
+    def __init__(self, compared_number, **kwargs):
+        super(LessThan, self).__init__(**kwargs)
         self.compared_number = compared_number
         
     def _eval_with_environ(self, environ):

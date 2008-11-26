@@ -41,7 +41,7 @@ class Predicate(object):
         
         """
         if msg:
-            self.error_message = msg
+            self.message = msg
     
     def _eval_with_environ(self, environ):
         """
@@ -64,7 +64,7 @@ class Predicate(object):
             return True
         else:
             if errors is not None:
-                errors.append(self.error_message % self.__dict__)
+                errors.append(self.message % self.__dict__)
             return False
 
 
@@ -81,7 +81,7 @@ class Not(Predicate):
     A single predicate to negate another predicate.
     
     """
-    error_message = u"The predicate is met while the opposite was expected"
+    message = u"The condition must not be met"
 
     def __init__(self, predicate):
         self.predicate = predicate
@@ -108,7 +108,7 @@ class Any(CompoundPredicate):
     sub-predicates evaluates to true.
     
     """
-    error_message = u"No predicates were able to grant access"
+    message = u"At least one predicate must be met"
 
     def eval_with_environ(self, environ, errors=None):
         """Return true if any sub-predicate evaluates to true."""
@@ -116,14 +116,14 @@ class Any(CompoundPredicate):
             if p.eval_with_environ(environ, None):
                 return True
         if errors is not None:
-            errors.append(self.error_message)
+            errors.append(self.message)
         return False
 
 
 class is_user(Predicate):
     """Predicate for checking if the username matches..."""
     
-    error_message = u"Not the good user"
+    message = u"The current user must be %(user_name)s"
 
     def __init__(self, user_name, **kwargs):
         super(is_user, self).__init__(**kwargs)
@@ -144,7 +144,7 @@ class is_user(Predicate):
 class in_group(Predicate):
     """Predicate for requiring a group."""
     
-    error_message = u"Not member of group: %(group_name)s"
+    message = u"The current user must belong to the group %(group_name)s"
 
     def __init__(self, group_name, **kwargs):
         super(in_group, self).__init__(**kwargs)
@@ -168,7 +168,8 @@ class in_all_groups(All):
 class in_any_group(Any):
     """Predicate for requiring membership in at least one group"""
     
-    error_message = u"Not member of any group: %(group_list)s"
+    message = u"The member must belong to at least one of the following " \
+               "groups: %(group_list)s"
 
     def __init__(self, *groups, **kwargs):
         self.group_list = ", ".join(groups)
@@ -179,7 +180,7 @@ class in_any_group(Any):
 class not_anonymous(Predicate):
     """Predicate for checking whether current visitor is anonymous."""
     
-    error_message = u"Anonymous access denied"
+    message = u"The current user must have been authenticated"
 
     def _eval_with_environ(self, environ):
         identity = environ.get('repoze.who.identity')
@@ -193,7 +194,7 @@ class has_permission(Predicate):
     permission.
     
     """
-    error_message = u"Permission denied: %(permission_name)s"
+    message = u'The user must have the "%(permission_name)s" permission'
 
     def __init__(self, permission_name, **kwargs):
         super(has_permission, self).__init__(**kwargs)
@@ -222,7 +223,8 @@ class has_any_permission(Any):
     
     """
     
-    error_message = u"No matching permissions: %(permission_list)s"
+    message = u"The user must have at least one of the following " \
+               "permissions: %(permission_list)s"
 
     def __init__(self, *permissions, **kwargs):
         self.permission_list = ", ".join(permissions)

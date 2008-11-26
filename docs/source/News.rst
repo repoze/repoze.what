@@ -72,6 +72,10 @@ Backwards-incompatible changes
       _eval_with_environ(environ)
   
   Note that ``errors`` are no longer passed.
+  
+  On the other hand, the ``error_message`` attribute of predicates has been
+  renamed to ``message`` because they are not only used to display errors
+  (see :mod:`repoze.what.predicates`).
 * The :func:`repoze.what.authorize.require` decorator has been removed because 
   it's specific to TurboGears. TurboGears 2 applications will find it at
   :func:`tg.require`.

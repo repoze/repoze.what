@@ -23,7 +23,7 @@ Controlling access with predicates
 .. glossary::
 
     predicate
-         A ``predicate`` is the condition that must be met for the user to be 
+         A ``predicate`` is the condition that must be met for the subject to be 
          able to access the requested source (e.g., "The current user is not 
          anonymous").
     compound predicate
@@ -39,27 +39,40 @@ application throws a 401 (HTTP Unauthorized) which is caught by the
 the user to login, and redirecting the user back to the proper page when they
 are done.
 
-For example, if you have a predicate which is "grant access to any authenticated
-user", then you can use the following built-in predicate checker::
+For example, if you have a predicate above ("The user is not anonymous"), 
+then you can use the following built-in predicate checker::
 
     from repoze.what.predicates import not_anonymous
     
-    p = not_anonymous(msg='Please login to access this area')
+    p = not_anonymous(msg='Only logged in users can read this post')
 
-Or if you have a predicate which is "allow access to root or anyone with the
-'manage' permission", then you may use the following built-in predicate
-checker::
+Or if you have a predicate which is "The current user is root and/or somebody 
+with the 'manage' permission", then you may use the following built-in predicate
+checkers::
 
     from repoze.what.predicates import Any, is_user, has_permission
     
     p = Any(is_user('root'), has_permission('manage'),
-            msg='You must be root or have the "manage" permission')
+            msg='Only administrators can remove blog posts')
 
 As you may have noticed, predicates receive the ``msg`` keyword argument to
 use its value as the error message if the predicate is not met. It's optional
 and if you don't define it, the built-in predicates will use the default
 English message; you may take advantage of this funtionality to make such
 messages translatable.
+
+.. note::
+
+    Good predicate messages don't explain `what` went wrong; instead, they 
+    describe the predicate in the current context (regardless of whether
+    the condition is met or not!). This is because such messages may be used in 
+    places other than in a user-visible message (e.g., in the log file).
+    
+    * Really bad: "Please login to access this area".
+    * Bad: "You cannot delete an user account because you are not an 
+      administrator".
+    * OK: "You have to be an administrator to delete user accounts".
+    * Perfect: "Only administrators can delete user accounts".
 
 
 Creating your own single predicate checkers
@@ -76,7 +89,7 @@ specified one", your predicate checker may look like this::
     from repoze.what.predicates import Predicate
     
     class is_month(Predicate):
-        error_message = 'You can only come here if the current month is %(right_month)s'
+        message = 'The current month must be %(right_month)s'
         
         def __init__(self, right_month, **kwargs):
             self.right_month = right_month
@@ -85,6 +98,15 @@ specified one", your predicate checker may look like this::
         
         def _eval_with_environ(self, environ):
             return self.today.month == self.right_month
+
+.. warning::
+
+    When you create a predicate, don't try to guess/assume the context in
+    which the predicate is evaluated when you write the predicate message
+    because such a predicate may be used in a different context.
+    
+    * Bad: "The software can be released if it's %(right_month)s".
+    * Good: "The current month must be %(right_month)s".
 
 Then you can use your predicate this way::
 

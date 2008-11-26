@@ -62,9 +62,9 @@ class TestNotAuthorizedError(unittest.TestCase):
     """Tests for the NotAuthorizedError exception"""
     
     def test_string_representation(self):
-        error_messages = ['You are not the master of Universe',
+        messages = ['You are not the master of Universe',
                           "Two plus two doesn't equal five"]
-        exc = authorize.NotAuthorizedError(error_messages)
+        exc = authorize.NotAuthorizedError(messages)
         assert 'Subject cannot access resource' in str(exc)
         assert 'You are not the master of Universe' in str(exc)
         assert "Two plus two doesn't equal five" in str(exc)
