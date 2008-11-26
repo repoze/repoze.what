@@ -41,11 +41,11 @@ Official plugins must meet certain requirements:
 * Its documentation should be merged into the official documentation.
 
 If you want to turn your :mod:`repoze.what` unofficial plugin into an official
-one and it already meets the first two requirements above, please propose it 
-after you have at least one usable release (e.g., a beta, a release candidate;
-not only pre-alphas) -- The rate of `stillborn` Free Software projects is very 
-high, so we prefer to turn a unofficial plugin into an official one if it has 
-ever seen the light.
+one and you are willing to make it meet the requirements above, please 
+propose it after you have at least one usable release (e.g., a beta, a 
+release candidate; not only pre-alphas) -- The rate of `stillborn` Free 
+Software projects is very high, so we prefer to turn a unofficial plugin 
+into an official one if it has ever seen the light.
 
 Coding conventions
 ==================
