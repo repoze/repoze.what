@@ -362,7 +362,7 @@ class BaseSourceAdapter(object):
     
     def _get_section_items(self, section):
         """
-        Return the properties of the section called C{section}.
+        Return the items of the section called C{section}.
         
         L{BaseSourceAdapter.get_section_items} is more efficient than this 
         method because it uses a cache, so you should avoid this unless you 
