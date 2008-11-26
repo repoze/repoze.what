@@ -14,9 +14,9 @@ plugins.
 This is the first release of this package as part of the Repoze project. It
 started as the :mod:`repoze.who` extension for TurboGears 2 applications
 (:mod:`tg.ext.repoze.who`, doing authenticatication and authorization) by 
-Florent Aide and Agendaless Consulting, then Gustavo Narea took over the 
-project to make it deal with authorization only and add support to store 
-`groups` and `permissions` in other types of sources (among other things) 
+Chris McDonough, Florent Aide and Christopher Perkins, then Gustavo Narea took 
+over the project to make it deal with authorization only and add support to 
+store `groups` and `permissions` in other types of sources (among other things) 
 under the :mod:`tgext.authorization` namespace, but finally it was turned into
 a Repoze project in order to make it available in arbitrary WSGI applications.
 
