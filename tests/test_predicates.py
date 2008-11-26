@@ -87,7 +87,7 @@ class TestNotPredicate(unittest.TestCase):
         environ = {'test_number': 7}
         # It must not be less than 5
         p = predicates.Not(LessThan(5))
-        # It's less than 5!
+        # It's greater than 5!
         self.assertTrue(p.eval_with_environ(environ, None))
 
 
