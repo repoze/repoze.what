@@ -76,6 +76,20 @@ class CompoundPredicate(Predicate):
         self.predicates = predicates
 
 
+class Not(Predicate):
+    """
+    A single predicate to negate another predicate.
+    
+    """
+    error_message = u"The predicate is met while the opposite was expected"
+
+    def __init__(self, predicate):
+        self.predicate = predicate
+    
+    def _eval_with_environ(self, environ):
+        return not self.predicate.eval_with_environ(environ, None)
+
+
 class All(CompoundPredicate):
     """A compound predicate that evaluates to true only if all sub-predicates
     evaluate to true for the given input.

@@ -205,6 +205,17 @@ Single predicate checkers
     
         p = has_any_permission('manage-users', 'edit-users')
 
+.. class:: Not(predicate)
+
+    Negate the specified predicate.
+    
+    :param predicate: The predicate to be negated.
+    
+    Example::
+    
+        # The user *must* be anonymous:
+        p = Not(not_anonymous())
+
 
 Compound predicate checkers
 ---------------------------

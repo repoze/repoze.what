@@ -74,6 +74,23 @@ class TestCompoundPredicate(unittest.TestCase):
         self.assertEqual(cp.predicates, (p1, p2))
 
 
+class TestNotPredicate(unittest.TestCase):
+    
+    def test_success(self):
+        environ = {'test_number': 7}
+        # It must not be greater than 5
+        p = predicates.Not(GreaterThan(5))
+        # It's greater than 5!
+        self.assertFalse(p.eval_with_environ(environ, None))
+    
+    def test_failure(self):
+        environ = {'test_number': 7}
+        # It must not be less than 5
+        p = predicates.Not(LessThan(5))
+        # It's less than 5!
+        self.assertTrue(p.eval_with_environ(environ, None))
+
+
 class TestAllPredicate(unittest.TestCase):
     
     def test_one_true(self):

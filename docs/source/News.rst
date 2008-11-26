@@ -30,6 +30,7 @@ a Repoze project in order to make it available in arbitrary WSGI applications.
   :mod:`repoze.what.predicates`. Nevertheless, they are imported in the former
   to avoid breaking TurboGears 2 applications created when 
   :mod:`tg.ext.repoze.who` or :mod:`tgext.authorization` existed.
+* Added the :class:`Not <repoze.what.predicates.Not>` predicate.
 * Now you can override the error message of the built-in predicates or set your
   own message at instantiation time by passing the ``msg`` keywork argument to
   the predicate. Example::
