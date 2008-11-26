@@ -75,13 +75,13 @@ we *will* have official plugins to:
   Smith" or "Foo Bar").
 * Enable authorization based on LDAP attributes of the authenticated user's
   entry (e.g., allow access if the user can be reached at a cellular phone,
-  allow access if the user belongs to the "ABC" organization).
+  allow access if the user belongs to the "ABC" organization), as well as
+  the ability to re-use LDAP `Organizational Units` as groups.
 * Enable a highly extensible `CAPTCHA <http://en.wikipedia.org/wiki/CAPTCHA>`_
   driven authorization mechanism to restrict access to a given resource 
   (possibly the hardest to create plugin).
-* Store groups in ``Htgroups`` and ``ini`` files, and re-use LDAP
-  `Organizational Units` as groups. 
-* Store permissions in ``ini`` files.
+* Store groups in ``Htgroups`` and XML files.
+* Store permissions in XML files.
 
 
 .. _install:
@@ -98,6 +98,21 @@ The development mainline is available at the following Subversion repository::
 
     http://svn.repoze.org/repoze.what/trunk/
 
+
+Framework-specific documentation
+================================
+
+The following documents will help you implement :mod:`repoze.what` in your
+framework (if any):
+
+* `TurboGears <http://turbogears.org/2.0/>`_: :mod:`repoze.who` and
+  :mod:`repoze.what` are the default authentication and authorization 
+  frameworks (respectively) in TurboGears 2 applications. `Learn more about 
+  them inside TurboGears <http://www.turbogears.org/2.0/docs/main/Auth.html>`_.
+
+If you have written documents to implement :mod:`repoze.what` in a web
+framework, please `let us know <http://lists.repoze.org/listinfo/repoze-dev>`_
+to get a link here.
 
 How to get help?
 ================
