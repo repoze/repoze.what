@@ -107,9 +107,9 @@ class TestAuthorizationMetadata(unittest.TestCase):
         environ = {'repoze.who.logger': logger}
         identity = {'repoze.who.userid': 'whatever'}
         # Configuring the plugin:
-        group_fetchers = {'executive': FakeGroupFetcher3()}
-        permission_fetchers = {'perms1': FakePermissionFetcher2()}
-        plugin = AuthorizationMetadata(group_fetchers, permission_fetchers)
+        group_adapters = {'executive': FakeGroupFetcher3()}
+        permission_adapters = {'perms1': FakePermissionFetcher2()}
+        plugin = AuthorizationMetadata(group_adapters, permission_adapters)
         plugin.add_metadata(environ, identity)
         # Testing it:
         messages = "; ".join(logger.messages['info'])
@@ -117,38 +117,38 @@ class TestAuthorizationMetadata(unittest.TestCase):
         assert "upload-images" in messages
     
     def test_add_metadata1(self):
-        group_fetchers = {
+        group_adapters = {
             'tech-team': FakeGroupFetcher1(),
             'executive': FakeGroupFetcher3()
             }
-        permission_fetchers = {'perms1': FakePermissionFetcher2()}
-        plugin = AuthorizationMetadata(group_fetchers, permission_fetchers)
+        permission_adapters = {'perms1': FakePermissionFetcher2()}
+        plugin = AuthorizationMetadata(group_adapters, permission_adapters)
         expected_groups = ('directors', 'sysadmins', 'graphic-designers')
         expected_permissions = ('hire', 'fire', 'upload-images')
         self._check_groups_and_permissions(plugin, expected_groups,
                                            expected_permissions)
     
     def test_add_metadata2(self):
-        group_fetchers = {'a_nice_group': FakeGroupFetcher2()}
-        permission_fetchers = {'global_perms': FakePermissionFetcher3()}
-        plugin = AuthorizationMetadata(group_fetchers, permission_fetchers)
+        group_adapters = {'a_nice_group': FakeGroupFetcher2()}
+        permission_adapters = {'global_perms': FakePermissionFetcher3()}
+        plugin = AuthorizationMetadata(group_adapters, permission_adapters)
         expected_groups = ('webdesigners', 'directors')
         expected_permissions = ('contact', )
         self._check_groups_and_permissions(plugin, expected_groups,
                                            expected_permissions)
     
     def test_add_metadata3(self):
-        group_fetchers = {
+        group_adapters = {
             'tech-team1': FakeGroupFetcher1(),
             'tech-team2': FakeGroupFetcher2(),
             'executive-team': FakeGroupFetcher3()
             }
-        permission_fetchers = {
+        permission_adapters = {
             'human-resources': FakePermissionFetcher1(),
             'website-management': FakePermissionFetcher2(),
             'gallery-administration': FakePermissionFetcher3()
             }
-        plugin = AuthorizationMetadata(group_fetchers, permission_fetchers)
+        plugin = AuthorizationMetadata(group_adapters, permission_adapters)
         expected_groups = ('graphic-designers', 'sysadmins', 'webdesigners',
                            'directors')
         expected_permissions = ('view-users', 'edit-users', 'add-users',
@@ -157,13 +157,13 @@ class TestAuthorizationMetadata(unittest.TestCase):
                                            expected_permissions)
     
     def test_add_metadata4(self):
-        group_fetchers = {
+        group_adapters = {
             'group1': FakeGroupFetcher1(),
             'group2': FakeGroupFetcher2(),
             'group3': FakeGroupFetcher3()
             }
-        permission_fetchers = {'my_perms': FakePermissionFetcher3()}
-        plugin = AuthorizationMetadata(group_fetchers, permission_fetchers)
+        permission_adapters = {'my_perms': FakePermissionFetcher3()}
+        plugin = AuthorizationMetadata(group_adapters, permission_adapters)
         expected_groups = ('graphic-designers', 'sysadmins', 'webdesigners',
                            'directors')
         expected_permissions = ('contact', )
@@ -171,9 +171,9 @@ class TestAuthorizationMetadata(unittest.TestCase):
                                            expected_permissions)
     
     def test_add_metadata5(self):
-        group_fetchers = {'my_group': FakeGroupFetcher2()}
-        permission_fetchers = {'my_perm': FakePermissionFetcher3()}
-        plugin = AuthorizationMetadata(group_fetchers, permission_fetchers)
+        group_adapters = {'my_group': FakeGroupFetcher2()}
+        permission_adapters = {'my_perm': FakePermissionFetcher3()}
+        plugin = AuthorizationMetadata(group_adapters, permission_adapters)
         expected_groups = ('webdesigners', 'directors')
         expected_permissions = ('contact', )
         self._check_groups_and_permissions(plugin, expected_groups,

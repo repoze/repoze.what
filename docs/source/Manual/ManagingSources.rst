@@ -57,8 +57,8 @@ Or to manage the permissions defined in an XML file, you could use::
         repozewhat_md = repozewho_plugins['authorization_md']
         
         # Now let's extract the group and permission adapters:
-        group_adapters = repozewhat_md.group_fetchers
-        permission_adapters = repozewhat_md.permission_fetchers
+        group_adapters = repozewhat_md.group_adapters
+        permission_adapters = repozewhat_md.permission_adapters
 
 
 Retrieving all the available :term:`sections <section>` from a source

@@ -35,27 +35,28 @@ __all__ = ['AuthorizationMetadata', 'AnonymousAuthorization', 'setup_auth']
 
 
 class AuthorizationMetadata(object):
-    """repoze.who metadata provider to load groups and permissions data for
+    """
+    repoze.who metadata provider to load groups and permissions data for
     the current user.
     
     """
     
     implements(IMetadataProvider)
     
-    def __init__(self, group_fetchers, permission_fetchers):
+    def __init__(self, group_adapters, permission_adapters):
         """
         Fetch the groups and permissions of the authenticated user.
         
-        @param group_fetchers: Set of adapters that retrieve the known groups
+        @param group_adapters: Set of adapters that retrieve the known groups
             of the application, each identified by a keyword.
-        @type group_fetchers: C{dict}
-        @param permission_fetchers: Set of adapters that retrieve the
+        @type group_adapters: C{dict}
+        @param permission_adapters: Set of adapters that retrieve the
             permissions for the groups, each identified by a keyword.
-        @type permission_fetchers: C{dict}
+        @type permission_adapters: C{dict}
         
         """
-        self.group_fetchers = group_fetchers
-        self.permission_fetchers = permission_fetchers
+        self.group_adapters = group_adapters
+        self.permission_adapters = permission_adapters
     
     def add_metadata(self, environ, identity):
         """
@@ -70,10 +71,10 @@ class AuthorizationMetadata(object):
         # Finding the groups and permissions:
         groups = set()
         permissions = set()
-        for grp_fetcher in self.group_fetchers.values():
+        for grp_fetcher in self.group_adapters.values():
             groups |= set(grp_fetcher.find_sections(identity))
         for group in groups:
-            for perm_fetcher in self.permission_fetchers.values():
+            for perm_fetcher in self.permission_adapters.values():
                 permissions |= set(perm_fetcher.find_sections(group))
         identity['groups'] = tuple(groups)
         identity['permissions'] = tuple(permissions)
