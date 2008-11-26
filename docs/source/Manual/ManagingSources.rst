@@ -235,7 +235,7 @@ Writing your own source adapters
 
     It's `very` unlikely that you'll want to write a :term:`source adapter`, so 
     if you get bored reading this section, it's absolutely safe for you to skip
-    it and come back later if you need to create an adapter.
+    it and come back later if you `ever` need to create an adapter.
 
 Both :term:`group <group adapter>` and :term:`permission <permission adapter>` 
 :term:`adapters <source adapter>` must extend the abstract class 
