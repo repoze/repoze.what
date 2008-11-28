@@ -15,7 +15,8 @@ The :mod:`repoze.what` SQL plugin
 .. topic:: Overview
 
     The SQL plugin makes :mod:`repoze.what` support :term:`sources <source>` 
-    defined in `SQLAlchemy <http://www.sqlalchemy.org/>`_-managed databases by 
+    defined in `SQLAlchemy <http://www.sqlalchemy.org/>`_ or `Elixir 
+    <http://elixir.ematia.de/>`_-managed databases by 
     providing one :term:`group adapter`, one :term:`permission adapter` and 
     one utility to configure both in one go (optionally, when the 
     :term:`group source` and the :term:`permission source` have a 
@@ -29,12 +30,6 @@ The :mod:`repoze.what` SQL plugin
         easy_install repoze.what.plugins.sql
 
 
-.. warning::
-
-    This plugin doesn't work with Elixir yet. If you want to make it work with
-    Elixir, please contact us.
-
-
 .. contents:: Table of Contents
     :depth: 3
 
@@ -45,11 +40,11 @@ The :mod:`repoze.what` SQL plugin
     
     :param group_class: The class that manages the groups.
     :param user_class: The class that manages the users.
-    :param session: The SQLALchemy session to be used.
+    :param session: The SQLALchemy/Elixir session to be used.
     
-    To use this adapter, you must also define your users in a SQLAlchemy-managed
-    table with the relevant one-to-many (or many-to-many) relationship defined 
-    with ``group_class``.
+    To use this adapter, you must also define your users in a SQLAlchemy or
+    Elixir-managed table with the relevant one-to-many (or many-to-many) 
+    relationship defined with ``group_class``.
     
     On the other hand, unless stated otherwise, it will also assume the 
     following naming conventions in both classes; to replace any of those
@@ -103,10 +98,10 @@ The :mod:`repoze.what` SQL plugin
     
     :param permission_class: The class that manages the permissions.
     :param group_class: The class that manages the groups.
-    :param session: The SQLALchemy session to be used.
+    :param session: The SQLALchemy/Elixir session to be used.
     
-    To use this adapter, you must also define your groups in a 
-    SQLAlchemy-managed table with the relevant one-to-many (or many-to-many)
+    To use this adapter, you must also define your groups in a SQLAlchemy or
+    Elixir-managed table with the relevant one-to-many (or many-to-many)
     relationship defined with ``permission_class``.
     
     On the other hand, unless stated otherwise, it will also assume the 
@@ -162,16 +157,16 @@ The :mod:`repoze.what` SQL plugin
     :param user_class: The class that manages the users.
     :param group_class: The class that manages the groups.
     :param user_class: The class that manages the permissions.
-    :param session: The SQLALchemy session to be used.
+    :param session: The SQLALchemy/Elixir session to be used.
     :param group_translations: The dictionary of translations for the group.
     :param permission_translations: The dictionary of translations for the permissions.
     :return: The ``group`` and ``permission`` adapters, configured.
     :rtype: dict 
     
     For this function to work, ``user_class`` and ``group_class`` must have the
-    relevant one-to-many (or many-to-many) relationship; likewise, ``group_class`` 
-    and ``permission_class`` must have the relevant one-to-many (or many-to-many)
-    relationship.
+    relevant one-to-many (or many-to-many) relationship; likewise, 
+    ``group_class`` and ``permission_class`` must have the relevant one-to-many 
+    (or many-to-many) relationship.
     
     Example::
     
@@ -198,12 +193,15 @@ The :mod:`repoze.what` SQL plugin
 
 Your application may take advantage of a rather simple, and usual, 
 authentication and authorization setup, in which the users' data, the groups
-and the permissions used in the application are all stored in a SQLAlchemy
-managed database.
+and the permissions used in the application are all stored in a SQLAlchemy or
+Elixir-managed database.
 
-To get started quickly, you may copy the SQLAlchemy-powered model defined in
-`model_sa_example.py <../../_static/model_sa_example.py>`_ and then create
-at least a few rows to try it out::
+To get started quickly, you may copy the SQLAlchemy-powered model 
+defined in `model_sa_example.py 
+<http://static.repoze.org/whatdocs/_static/model_sa_example.py>`_ (or
+`model_elixir_example.py 
+<http://static.repoze.org/whatdocs/_static/model_elixir_example.py>`_ for
+Elixir) and then create at least a few rows to try it out::
 
     u = User()
     u.user_name = u'manager'
@@ -246,10 +244,10 @@ configure the authenticator.
     and authorization.
     
     :param app: Your WSGI application.
-    :param user_class: The SQLAlchemy class for the users.
-    :param group_class: The SQLAlchemy class for the groups.
-    :param permission_class: The SQLAlchemy class for the permissions.
-    :param session: The SQLAlchemy session.
+    :param user_class: The SQLAlchemy/Elixir class for the users.
+    :param group_class: The SQLAlchemy/Elixir class for the groups.
+    :param permission_class: The SQLAlchemy/Elixir class for the permissions.
+    :param session: The SQLAlchemy/Elixir session.
     :param form_plugin: The main :mod:`repoze.who` challenger plugin; this is 
         usually a login form.
     :param form_identifies: Whether the ``form_plugin`` may and should act as
@@ -270,8 +268,9 @@ configure the authenticator.
     Only :func:`setup_sql_auth` is expected to deal with this :mod:`repoze.who`
     authenticator.
 
-    :param user_class: The SQLAlchemy class for the users.
-    :param session: The SQLAlchemy session.
+    :param user_class: The SQLAlchemy/Elixir class for the users.
+    :param session: The SQLAlchemy/Elixir session.
+
 
 Customizing the model definition
 --------------------------------
@@ -301,7 +300,7 @@ Changing such values is what :mod:`repoze.what` calls "translating".
 You may set the translations for the attributes of the models
 :mod:`repoze.what` deals with in a dictionary passed to :func:`setup_sql_auth`
 as its ``translations`` parameters. For
-example, if you want to replace ``Group.users`` by ``Group.members``, you may
+example, if you want to replace ``Group.users`` with ``Group.members``, you may
 use the following translation dictionary::
 
     translations['users'] = 'members'

@@ -6,6 +6,14 @@ This document describes the releases of :mod:`repoze.what` and its official
 plugins.
 
 
+.. _repoze.what-sql-1.0b1:
+
+:mod:`repoze.what.plugins.sql` 1.0a2 (*unreleased*)
+===================================================
+
+* Fixed the broken test suite for Elixir, thanks to Helio Pereira.
+
+
 .. _repoze.what-1.0b1:
 
 :mod:`repoze.what` 1.0b1 (2008-11-26)

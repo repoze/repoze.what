@@ -62,12 +62,8 @@ class User(DeclarativeBase):
 
     _password = Column('password', Unicode(40))
 
-    created = Column(DateTime, default=datetime.now)
-
     def _set_password(self, password):
-        """encrypts password on the fly using the encryption
-        algo defined in the configuration
-        """
+        """encrypts password on the fly."""
         self._password = self.__encrypt_password(password)
 
     def _get_password(self):
