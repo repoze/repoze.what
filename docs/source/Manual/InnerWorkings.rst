@@ -30,7 +30,7 @@ authorization-related data in the ``identity`` dict.
     :param authenticators: The repoze.who authenticators to be used.
     :param form_plugin: The main repoze.who IChallenger; this is usually a
         login form.
-    :param form_identifies: Whether the form_plugin may and should act as
+    :param form_identifies: Whether the ``form_plugin`` may and should act as
         an repoze.who identifier.
     :param identifiers: Secondary repoze.who IIdentifier plugins, if any.
     :param challengers: Secondary repoze.who challenger plugins, if any.
@@ -39,8 +39,18 @@ authorization-related data in the ``identity`` dict.
     :param challenge_decider: The repoze.who challenge decider.
     :param log_level: The log level for repoze.who and repoze.what.
     
-    You can customize all the options for :mod:`repoze.who` from this function.
-    Keep in mind that :mod:`repoze.who` must be configured `through`
+    By default, it configures :mod:`repoze.who` to use its
+    :class:`repoze.who.plugins.form.RedirectingFormPlugin` as the first
+    identifier and challenger -- using ``/login`` as the relative URL that will 
+    display the login form, ``/login_handler`` as the relative URL where the 
+    form will be sent and ``/logout_handler`` as the relative URL where the 
+    user will be logged out. The so-called rememberer of such identifier will
+    be an instance of :class:`repoze.who.plugins.cookie.AuthTktCookiePlugin`.
+    You can override all this by using the parameters ``form_plugin``,
+    ``form_identifies`` and ``identifiers``.
+    
+    In fact, you can customize all the options for :mod:`repoze.who` from this 
+    function. Keep in mind that :mod:`repoze.who` must be configured `through`
     :mod:`repoze.what` for authorization to work.
 
     For example::
