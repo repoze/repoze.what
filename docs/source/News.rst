@@ -6,6 +6,15 @@ This document describes the releases of :mod:`repoze.what` and its official
 plugins.
 
 
+.. _repoze.what-1.0b2:
+
+:mod:`repoze.what` 1.0b2 (*unreleased*)
+===================================================
+
+* Added support for read-only sources. See 
+  :class:`repoze.what.adapters.BaseSourceAdapter`.
+
+
 .. _repoze.what-sql-1.0b1:
 
 :mod:`repoze.what.plugins.sql` 1.0a2 (*unreleased*)

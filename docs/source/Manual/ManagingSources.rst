@@ -189,6 +189,25 @@ And to remove a permission from the permission source above::
 
     >>> permissions.delete_section(u'write-post')
 
+Checking whether the :term:`source` is writable
+-----------------------------------------------
+
+Some adapters may not support writting the source, or some source types may
+be read-only (e.g., a source served over HTTP), or some source types may be
+writable but the current source itself may be read-only (e.g., a read-only
+file). For this reason, you should check whether you can write to the source 
+-- You will get a :class:`SourceError` exception if you try to write to a
+read-only source.
+
+To check whether the group source above is writable, you may use::
+
+    >>> groups.is_writable
+    True
+
+And to check whether the permission source above is writable::
+
+    >>> permissions.is_writable
+    False
 
 Possible problems
 =================
@@ -196,12 +215,12 @@ Possible problems
 While dealing with an adapter, the following exceptions may be raised if an
 error occurs:
 
-.. class:: AdapterError
+.. exception:: AdapterError
 
     This is the base class for adapter-related problems; it's never raised
     directly.
 
-.. class:: SourceError
+.. exception:: SourceError
 
     Exception raised when the adapter found a problem in the source itself.
     
@@ -209,20 +228,20 @@ error occurs:
         If you are creating a :term:`source adapter`, this is the only
         exception you should raise.
 
-.. class:: ExistingSectionError
+.. exception:: ExistingSectionError
 
     Exception raised when trying to add an existing group.
 
-.. class:: NonExistingSectionError
+.. exception:: NonExistingSectionError
 
     Exception raised when trying to use a non-existing group.
 
-.. class:: ItemPresentError
+.. exception:: ItemPresentError
 
     Exception raised when trying to add an item to a group that already
     contains it.
 
-.. class:: ItemNotPresentError
+.. exception:: ItemNotPresentError
 
     Exception raised when trying to remove an item from a group that doesn't
     contain it.
@@ -241,7 +260,10 @@ Both :term:`group <group adapter>` and :term:`permission <permission adapter>`
 :term:`adapters <source adapter>` must extend the abstract class 
 :class:`BaseSourceAdapter`:
 
-.. class:: BaseSourceAdapter()
+.. class:: BaseSourceAdapter([writable=True])
+
+    :param writable: Whether the source is writable.
+    :type writable: bool
 
     Base class for :term:`source adapters <source adapter>`.
     
@@ -259,7 +281,7 @@ Both :term:`group <group adapter>` and :term:`permission <permission adapter>`
         :raise SourceError: If there was a problem with the source while
             retrieving the sections.
     
-    .. method:: _get_section_items(section):
+    .. method:: _get_section_items(section)
         
         Return the items of the section called ``section``.
         
@@ -398,6 +420,42 @@ Both :term:`group <group adapter>` and :term:`permission <permission adapter>`
         :rtype: bool
         :raise SourceError: If there was a problem with the source.
 
+    .. attribute:: is_writable = True
+
+        :type: bool
+        
+        Whether the adapter can write to the source.
+        
+        If the source type handled by your adapter doesn't support write
+        access, or if your adapter itself doesn't support writting to the
+        source (yet), then you should set this value to ``False`` in the class
+        itself; it will get overriden if the ``writable`` parameter in 
+        :class:`the contructor<BaseSourceAdapter>` is set, unless you 
+        explicitly disable that parameter::
+        
+            # ...
+            class MyFakeAdapter(BaseSourceAdapter):
+                def __init__():
+                    super(MyFakeAdapter, self).__init__(writable=False)
+            # ...
+        
+        .. note::
+        
+            If it's ``False``, then you don't have to define the methods that
+            modify the source because they won't be used:
+            
+            * :meth:`_include_items`
+            * :meth:`_exclude_items`
+            * :meth:`_create_section`
+            * :meth:`_edit_section`
+            * :meth:`_delete_section`
+
+    .. warning::
+    
+        Do not ever cache the results -- that is :class:`BaseSourceAdapter`'s
+        job. It requests a given datum once, not multiple times, thanks to
+        its internal cache.
+
 
 Sample :term:`source adapters <source adapter>`
 -----------------------------------------------
@@ -409,8 +467,8 @@ The following class illustrates how a :term:`group adapter` may look like::
     class FakeGroupSourceAdapter(BaseSourceAdapter):
         """Mock group source adapter"""
     
-        def __init__(self):
-            super(FakeGroupSourceAdapter, self).__init__()
+        def __init__(self, *args, **kwargs):
+            super(FakeGroupSourceAdapter, self).__init__(*args, **kwargs)
             self.fake_sections = {
                 u'admins': set([u'rms']),
                 u'developers': set([u'rms', u'linus']),
@@ -461,8 +519,8 @@ like::
     class FakePermissionSourceAdapter(BaseSourceAdapter):
         """Mock permissions source adapter"""
     
-        def __init__(self):
-            super(FakePermissionSourceAdapter, self).__init__()
+        def __init__(self, *args, **kwargs):
+            super(FakePermissionSourceAdapter, self).__init__(*args, **kwargs)
             self.fake_sections = {
                 u'see-site': set([u'trolls']),
                 u'edit-site': set([u'admins', u'developers']),

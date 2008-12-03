@@ -42,8 +42,8 @@ class FakeAuthenticator(object):
 class FakeGroupSourceAdapter(BaseSourceAdapter):
     """Mock group source adapter"""
 
-    def __init__(self):
-        super(FakeGroupSourceAdapter, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(FakeGroupSourceAdapter, self).__init__(*args, **kwargs)
         self.fake_sections = {
             u'admins': set([u'rms']),
             u'developers': set([u'rms', u'linus']),
@@ -90,8 +90,8 @@ class FakeGroupSourceAdapter(BaseSourceAdapter):
 class FakePermissionSourceAdapter(FakeGroupSourceAdapter):
     """Mock permissions source adapter"""
 
-    def __init__(self):
-        super(FakePermissionSourceAdapter, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(FakePermissionSourceAdapter, self).__init__(*args, **kwargs)
         self.fake_sections = {
             u'see-site': set([u'trolls']),
             u'edit-site': set([u'admins', u'developers']),

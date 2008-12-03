@@ -263,3 +263,94 @@ class TestBaseSourceAdapterAbstract(unittest.TestCase):
     def test_section_exists(self):
         self.assertRaises(NotImplementedError, self.adapter._section_exists,
                           None)
+    
+    def test_adapter_is_writable_by_default(self):
+        self.assert_(self.adapter.is_writable)
+
+
+class TestNotWritableSourceAdapter(unittest.TestCase):
+    """Tests for an adapter dealing with a read-only source"""
+    
+    def setUp(self):
+        self.adapter = FakeGroupSourceAdapter(writable=False)
+        
+    def test_setting_items(self):
+        self.assertRaises(SourceError, 
+                          self.adapter.set_section_items,
+                          u'admins', ['gnu', 'tux'])
+        
+    def test_settings_items_in_non_existing_section(self):
+        """The section existence must be checked first"""
+        self.assertRaises(NonExistingSectionError, 
+                          self.adapter.set_section_items,
+                          u'mascots', ['gnu', 'tux'])
+        
+    def test_include_items(self):
+        self.assertRaises(SourceError, self.adapter.include_item,
+                          u'admins', 'tux')
+        self.assertRaises(SourceError, self.adapter.include_items,
+                          u'admins', ['gnu', 'tux'])
+        
+    def test_include_items_in_non_existing_section(self):
+        """The section existence must be checked first"""
+        self.assertRaises(NonExistingSectionError, self.adapter.include_item,
+                          u'mascots', 'gnu')
+        self.assertRaises(NonExistingSectionError, self.adapter.include_items,
+                          u'mascots', ['gnu', 'tux'])
+        
+    def test_include_existing_items(self):
+        """The items existence must be checked first"""
+        self.assertRaises(ItemPresentError, self.adapter.include_item,
+                          u'developers', 'rms')
+        self.assertRaises(ItemPresentError, self.adapter.include_items,
+                          u'developers', ['rms', 'linus'])
+        
+    def test_exclude_items(self):
+        self.assertRaises(SourceError, self.adapter.exclude_item,
+                          u'admins', u'rms')
+        self.assertRaises(SourceError, self.adapter.exclude_items,
+                          u'developers', [u'rms', u'linus'])
+        
+    def test_exclude_items_in_non_existing_section(self):
+        """The section existence must be checked first"""
+        self.assertRaises(NonExistingSectionError, self.adapter.exclude_item,
+                          u'mascots', 'gnu')
+        self.assertRaises(NonExistingSectionError, self.adapter.exclude_items,
+                          u'mascots', ['gnu', 'tux'])
+        
+    def test_exclude_existing_items(self):
+        """The items existence must be checked first"""
+        self.assertRaises(ItemNotPresentError, self.adapter.exclude_item,
+                          u'developers', 'rasmus')
+        self.assertRaises(ItemNotPresentError, self.adapter.exclude_items,
+                          u'developers', ['guido', 'rasmus'])
+        
+    def test_create_section(self):
+        self.assertRaises(SourceError, self.adapter.create_section,
+                          u'mascots')
+        
+    def test_create_existing_section(self):
+        """The section existence must be checked first"""
+        self.assertRaises(ExistingSectionError, self.adapter.create_section,
+                          u'admins')
+        
+    def test_edit_section(self):
+        self.assertRaises(SourceError, self.adapter.edit_section,
+                          u'admins', u'administrators')
+        
+    def test_edit_non_existing_section(self):
+        """The section existence must be checked first"""
+        self.assertRaises(NonExistingSectionError, self.adapter.edit_section,
+                          u'mascots', u'animals')
+        
+    def test_delete_section(self):
+        self.assertRaises(SourceError, self.adapter.delete_section,
+                          u'admins')
+        
+    def test_delete_non_existing_section(self):
+        """The section existence must be checked first"""
+        self.assertRaises(NonExistingSectionError, self.adapter.delete_section,
+                          u'mascots')
+    
+    def test_adapter_is_not_writable(self):
+        self.assertFalse(self.adapter.is_writable)

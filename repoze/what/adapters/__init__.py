@@ -31,7 +31,6 @@ and ``its items are the groups that are granted that permission``. Example: If
 ("update-site"), then you can also say that items "developers" and "designers"
 belong to the "update-site" section.
 
-@todo: Error messages should be translatable.
 @todo: Add support for "universal sections" (those containing item "_").
 @todo: Add support for "anonymous sections" (those containing item "-").
 
@@ -39,8 +38,8 @@ belong to the "update-site" section.
 
 from zope.interface import Interface
 
-__all__ = ['BaseSourceAdapter', 'AdapterError', 'SourceError', 
-           'ExistingSectionError', 'NonExistingSectionError',
+__all__ = ['BaseSourceAdapter', 'AdapterError', 'SourceError',
+           'ExistingSectionError', 'NonExistingSectionError', 
            'ItemPresentError', 'ItemNotPresentError']
 
 
@@ -55,12 +54,14 @@ class BaseSourceAdapter(object):
     
     """
     
-    def __init__(self):
+    def __init__(self, writable=True):
         """Run common setup for source adapters."""
         # The cache for the sections loaded by the source adapter.
         self.loaded_sections = {}
         # Whether all of the existing items have been loaded
         self.all_sections_loaded = False
+        # Whether the current source is writable:
+        self.is_writable = writable
     
     def get_all_sections(self):
         """
@@ -171,6 +172,8 @@ class BaseSourceAdapter(object):
         self._check_section_existence(section)
         for i in items:
             self._confirm_item_not_present(section, i)
+        # Verifying write permissions:
+        self._check_writable()
         # Everything's OK, let's add it:
         items = set(items)
         self._include_items(section, items)
@@ -194,7 +197,7 @@ class BaseSourceAdapter(object):
         @raise SourceError: If there was a problem with the source.
         
         """
-        self._exclude_items(section, (item, ))
+        self.exclude_items(section, (item, ))
     
     def exclude_items(self, section, items):
         """
@@ -216,6 +219,8 @@ class BaseSourceAdapter(object):
         self._check_section_existence(section)
         for i in items:
             self._confirm_item_is_present(section, i)
+        # Verifying write permissions:
+        self._check_writable()
         # Everything's OK, let's remove them:
         items = set(items)
         self._exclude_items(section, items)
@@ -234,6 +239,7 @@ class BaseSourceAdapter(object):
         
         """
         self._check_section_not_existence(section)
+        self._check_writable()
         self._create_section(section)
         # Adding to the cache:
         self.loaded_sections[section] = set()
@@ -251,6 +257,7 @@ class BaseSourceAdapter(object):
         
         """
         self._check_section_existence(section)
+        self._check_writable()
         self._edit_section(section, new_section)
         # Updating the cache too, if loaded:
         if self.loaded_sections.has_key(section):
@@ -271,10 +278,21 @@ class BaseSourceAdapter(object):
         
         """
         self._check_section_existence(section)
+        self._check_writable()
         self._delete_section(section)
         # Removing from the cache too, if loaded:
         if self.loaded_sections.has_key(section):
             del self.loaded_sections[section]
+    
+    def _check_writable(self):
+        """
+        Raise an exception if the source is not writable.
+        
+        @raise SourceError: If the source is not writable.
+        
+        """
+        if not self.is_writable:
+            raise SourceError('The source is not writable')
     
     def _check_section_existence(self, section):
         """

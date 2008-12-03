@@ -110,6 +110,11 @@ class _BaseAdapterTester(object):
         assert section not in self.adapter._get_all_sections().keys(), \
                'Section "%s" was not deleted' % section
 
+    def test_sets_if_it_is_writable(self):
+        assert hasattr(self.adapter, 'is_writable'), \
+               "The adapter doesn't have the 'is_writable' attribute; " \
+               "please call its parent's constructor too"
+
 
 class GroupsAdapterTester(_BaseAdapterTester):
     """
