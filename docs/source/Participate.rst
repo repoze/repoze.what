@@ -27,7 +27,7 @@ An important way to contribute to :mod:`repoze.what` is by creating
 :mod:`plugins <repoze.what.plugins>`.
 
 There are no special guidelines to create unofficial plugins, but you are
-highly enccouraged to create plugins under the :mod:`repoze.what.plugins`
+highly encouraged to create plugins under the :mod:`repoze.what.plugins`
 namespace and contact us once you have at least one usable release (so that
 we can mention it in the manual).
 
