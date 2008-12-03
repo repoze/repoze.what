@@ -198,22 +198,27 @@ class TestSetupAuth(BasePluginTester):
                (registry_key, app.name_registry[registry_key].__class__.__name__,
                 registry_type.__name__)
     
-    def _makeApp(self, form_plugin=None, form_identifies=True, 
-                  identifiers=None, challengers=[], mdproviders=[],
-                  request_classifier=None, challenge_decider=None, 
-                  log_level=None):
-        authenticator = ('fake_authenticator', FakeAuthenticator())
+    def _makeApp(self, **who_args):
+        cookie = AuthTktCookiePlugin('secret', 'authtkt')
+        
+        form = RedirectingFormPlugin('/login', '/login_handler',
+                                     '/logout_handler',
+                                     rememberer_name='cookie')
+        
+        identifiers = [('main_identifier', form), ('cookie', cookie)]
+        
+        authenticators = [('fake_authenticator', FakeAuthenticator())]
+        
+        challengers = [('form', form)]
         
         app_with_auth = setup_auth(
             DummyApp(),
             [FakeGroupSourceAdapter()],
             [FakePermissionSourceAdapter()],
-            [authenticator],
-            form_plugin,
-            form_identifies,
-            identifiers,
-            challengers,
-            mdproviders
+            identifiers=identifiers,
+            authenticators=authenticators,
+            challengers=challengers,
+            **who_args
             )
         return app_with_auth
 
@@ -229,20 +234,6 @@ class TestSetupAuth(BasePluginTester):
         assert isinstance(app.classifier,
                           default_request_classifier.__class__)
         assert isinstance(app.logger, logging.Logger)
-    
-    def test_form_doesnt_identify(self):
-        app = self._makeApp(form_identifies=False)
-        assert 'main_identifier' not in app.name_registry
-    
-    def test_additional_identifiers(self):
-        identifiers = [('http_auth', BasicAuthPlugin('1+1=2'))]
-        app = self._makeApp(identifiers=identifiers)
-        self._in_registry(app, 'main_identifier', RedirectingFormPlugin)
-        self._in_registry(app, 'http_auth', BasicAuthPlugin)
-    
-    def test_non_default_form_plugin(self):
-        app = self._makeApp(form_plugin=BasicAuthPlugin('1+1=2'))
-        self._in_registry(app, 'main_identifier', BasicAuthPlugin)
     
     def test_with_auth_log(self):
         os.environ['AUTH_LOG'] = '1'

@@ -22,14 +22,12 @@ use repoze.what.
 """
 
 import os
-import logging
 
 from zope.interface import implements
 from repoze.who.middleware import PluggableAuthenticationMiddleware
 from repoze.who.classifiers import default_challenge_decider, \
                                    default_request_classifier
 from repoze.who.interfaces import IAuthenticator, IMetadataProvider
-from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
 
 __all__ = ['AuthorizationMetadata', 'AnonymousAuthorization', 'setup_auth']
 
@@ -95,79 +93,37 @@ class AnonymousAuthorization(object):
     implements(IAuthenticator)
 
 
-def setup_auth(app, group_adapters, permission_adapters, authenticators, 
-               form_plugin=None, form_identifies=True, identifiers=None, 
-               challengers=[], mdproviders=[], request_classifier=None,
-               challenge_decider=None, log_level=None):
+def setup_auth(app, group_adapters, permission_adapters, **who_args):
     """
     Setup repoze.who with repoze.what.
+    
+    Additional keyword arguments will be passed to repoze.who's
+    PluggableAuthenticationMiddleware.
     
     @param app: The WSGI application object.
     @param group_adapters: The group source adapters to be used.
     @type group_adapters: C{dict}
     @param permission_adapters: The permission source adapters to be used.
     @type permission_adapters: C{dict}
-    @param authenticators: The repoze.who authenticators to be used.
-    @param form_plugin: The main repoze.who IChallenger; this is usually a
-        login form.
-    @param form_identifies: Whether the C{form_plugin} may and should act as
-        an repoze.who identifier.
-    @param identifiers: Secondary repoze.who IIdentifier plugins, if any.
-    @param challengers: Secondary repoze.who challenger plugins, if any.
-    @param mdproviders: Secondary repoze.who metadata plugins, if any.
-    @param request_classifier: The repoze.who request classifier.
-    @param challenge_decider: The repoze.who challenge decider.
-    @param log_level: The log level for repoze.who.
     
     """
     authorization = AuthorizationMetadata(group_adapters,
                                           permission_adapters)
-    # The following parameters may be customized by passing a list of
-    # IIdentifier plugins
-    cookie = AuthTktCookiePlugin('secret', 'authtkt')
-    if identifiers is None:
-        identifiers = [('cookie', cookie)]
-    else:
-        identifiers.append(('cookie', cookie))
     
-    if form_plugin is None:
-        from repoze.who.plugins.form import RedirectingFormPlugin
-        form = RedirectingFormPlugin('/login', '/login_handler',
-                                     '/logout_handler',
-                                     rememberer_name='cookie')
-    else:
-        form = form_plugin
+    if 'mdproviders' not in who_args:
+        who_args['mdproviders'] = []
     
-    if form_identifies:
-        identifiers.insert(0, ('main_identifier', form))
+    who_args['mdproviders'].append(('authorization_md', authorization))
     
-    challengers.append(('form', form))
-    mdproviders.append(('authorization_md', authorization))
+    if 'classifier' not in who_args:
+        who_args['classifier'] = default_request_classifier
     
-    if request_classifier is None:
-        request_classifier = default_request_classifier
-    
-    if challenge_decider is None:
-        challenge_decider = default_challenge_decider
-    
-    if log_level is None:
-        log_level = logging.INFO
-
-    log_stream = None
+    if 'challenge_decider' not in who_args:
+        who_args['challenge_decider'] = default_challenge_decider
     
     if os.environ.get('AUTH_LOG'):
         import sys
-        log_stream = sys.stdout
+        who_args['log_stream'] = sys.stdout
     
-    middleware = PluggableAuthenticationMiddleware(
-        app,
-        identifiers,
-        authenticators,
-        challengers,
-        mdproviders,
-        request_classifier,
-        challenge_decider,
-        log_stream=log_stream,
-        log_level=log_level
-        )
+    middleware = PluggableAuthenticationMiddleware(app, **who_args)
     return middleware

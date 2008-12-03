@@ -14,6 +14,19 @@ plugins.
 * Added support for read-only sources. See 
   :class:`repoze.what.adapters.BaseSourceAdapter`.
 
+Backwards-incompatible changes
+------------------------------
+* The signature of :func:`repoze.what.middleware.setup_auth` has changed:
+  Now it simply receives the WSGI application, the group adapters and the
+  permissions adapters -- additional keyword arguments will be sent to
+  :class:`repoze.who.middleware.PluggableAuthenticationMiddleware`. Also, it
+  no longer defines a default identifier or challenger.
+  
+  .. note::
+  
+      It's very unlikely that this affects your application, as that function
+      is normally used by :func:`repoze.what.plugins.quickstart.setup_sql_auth`.
+
 
 .. _repoze.what-sql-1.0b1:
 

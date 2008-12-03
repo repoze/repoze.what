@@ -260,6 +260,16 @@ configure the authenticator.
     :return: The WSGI application with authentication and authorization
         middleware.
     
+    By default, it configures :mod:`repoze.who` to use its
+    :class:`repoze.who.plugins.form.RedirectingFormPlugin` as the first
+    identifier and challenger -- using ``/login`` as the relative URL that will 
+    display the login form, ``/login_handler`` as the relative URL where the 
+    form will be sent and ``/logout_handler`` as the relative URL where the 
+    user will be logged out. The so-called rememberer of such identifier will
+    be an instance of :class:`repoze.who.plugins.cookie.AuthTktCookiePlugin`.
+    You can override all this by using the parameters ``form_plugin``,
+    ``form_identifies`` and ``identifiers``.
+    
     See `Changing attribute names`_ to learn how to use the `translations`
     argument.
 
