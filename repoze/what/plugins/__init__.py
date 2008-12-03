@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2007, Agendaless Consulting and Contributors.
-# Copyright (c) 2008, Florent Aide <florent.aide@gmail.com> and
-#                     Gustavo Narea <me@gustavonarea.net>
+# Copyright (c) 2008, Gustavo Narea <me@gustavonarea.net>
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -14,14 +12,6 @@
 # FITNESS FOR A PARTICULAR PURPOSE
 #
 ##############################################################################
-
-"""
-Authorization framework for WSGI applications.
-
-"""
-
-# This is a package. Do NOT put anything here to keep the repoze.what
-# namespace clear for plugins at repoze.what.plugins
 
 # See http://peak.telecommunity.com/DevCenter/setuptools#namespace-packages
 try:
