@@ -109,7 +109,7 @@ framework (if any):
 * `TurboGears <http://turbogears.org/2.0/>`_: :mod:`repoze.who` and
   :mod:`repoze.what` are the default authentication and authorization 
   frameworks (respectively) in TurboGears 2 applications. `Learn more about 
-  them inside TurboGears <http://www.turbogears.org/2.0/docs/main/Auth.html>`_.
+  them inside TurboGears <http://www.turbogears.org/2.0/docs/main/Auth/>`_.
 
 If you have written documents to implement :mod:`repoze.what` in a web
 framework, please `let us know <http://lists.repoze.org/listinfo/repoze-dev>`_
