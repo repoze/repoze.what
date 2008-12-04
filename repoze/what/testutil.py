@@ -14,8 +14,8 @@
 ##############################################################################
 
 """
-This module provides utilities for the test suite of :mod:`repoze.what` and 
-its plugins.
+Utilities for the test suite of :mod:`repoze.what` which `might` also come in
+handy to test its plugins.
 
 """
 
