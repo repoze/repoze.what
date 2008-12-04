@@ -23,7 +23,7 @@ from zope.interface import implements
 
 from repoze.what.adapters import *
 
-from base import FakeGroupSourceAdapter
+from repoze.what.testutil import FakeGroupSourceAdapter
 
 
 class TestBaseSourceAdapter(unittest.TestCase):

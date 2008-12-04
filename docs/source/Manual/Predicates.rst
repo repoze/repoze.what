@@ -5,7 +5,7 @@ Controlling access with predicates
 :Status: Official
 
 .. module:: repoze.what.predicates
-    :synopsis: repoze.what predicates.
+    :synopsis: repoze.what predicates checkers
 .. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
 .. moduleauthor:: Florent Aide <florent.aide@gmail.com>
 .. moduleauthor:: Agendaless Consulting and Contributors

@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2007, Agendaless Consulting and Contributors.
-# Copyright (c) 2008, Florent Aide <florent.aide@gmail.com> and
-#                     Gustavo Narea <me@gustavonarea.net>
+# Copyright (c) 2008, Gustavo Narea <me@gustavonarea.net>
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -15,15 +13,34 @@
 #
 ##############################################################################
 
-"""Stuff required to setup the test suite."""
+"""
+This module provides utilities for the test suite of :mod:`repoze.what` and 
+its plugins.
+
+"""
 
 
 from repoze.what.middleware import setup_auth
 from repoze.what.adapters import BaseSourceAdapter
 
+__all__ = ['FakeAuthenticator', 'FakeGroupSourceAdapter', 
+           'FakePermissionSourceAdapter', 'FakeLogger']
 
 class FakeAuthenticator(object):
-    """Fake repoze.who authenticator plugin"""
+    """
+    Fake :mod:`repoze.who` authenticator plugin.
+    
+    It will authenticate if you use one of the following credentials (username
+    and password):
+    
+    * ``rms``: ``freedom``
+    * ``linus``: ``linux``
+    * ``sballmer``: ``developers``
+    * ``guido``: ``pythonic``
+    * ``rasmus``: ``php``
+    
+    """
+    
     credentials = {
         u'rms': u'freedom',
         u'linus': u'linux',
@@ -40,7 +57,18 @@ class FakeAuthenticator(object):
 
 
 class FakeGroupSourceAdapter(BaseSourceAdapter):
-    """Mock group source adapter"""
+    """
+    Mock group source adapter.
+    
+    The `fake` source it handles contains the following groups:
+    
+    * ``admins``: ``rms``
+    * ``developers``: ``rms``, ``linus``
+    * ``trolls``: ``sballmer``
+    * ``python``: `(empty)`
+    * ``php``: `(empty)`
+    
+    """
 
     def __init__(self, *args, **kwargs):
         super(FakeGroupSourceAdapter, self).__init__(*args, **kwargs)
@@ -88,7 +116,16 @@ class FakeGroupSourceAdapter(BaseSourceAdapter):
 
 
 class FakePermissionSourceAdapter(FakeGroupSourceAdapter):
-    """Mock permissions source adapter"""
+    """
+    `Mock` permissions source adapter.
+    
+    The `fake` source it handles contains the following permissions:
+    
+    * ``see-site``: ``trolls``
+    * ``edit-site: ``admins``, ``developers``
+    * ``commit``: ``developers``
+    
+    """
 
     def __init__(self, *args, **kwargs):
         super(FakePermissionSourceAdapter, self).__init__(*args, **kwargs)
@@ -104,6 +141,7 @@ class FakePermissionSourceAdapter(FakeGroupSourceAdapter):
 
 
 class FakeLogger(object):
+    """A mock Python logger."""
     
     def __init__(self):
         self.messages = {

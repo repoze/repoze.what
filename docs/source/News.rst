@@ -13,6 +13,8 @@ plugins.
 
 * Added support for read-only sources. See 
   :class:`repoze.what.adapters.BaseSourceAdapter`.
+* Added :mod:`generic utilities for testing plugins <repoze.what.testutil>`.
+  That module used to be part of the :mod:`repoze.what` test suite.
 
 Backwards-incompatible changes
 ------------------------------
