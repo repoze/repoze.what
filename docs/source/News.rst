@@ -8,8 +8,8 @@ plugins.
 
 .. _repoze.what-1.0b2:
 
-:mod:`repoze.what` 1.0b2 (*unreleased*)
-===================================================
+:mod:`repoze.what` 1.0b2 (2008-12-04)
+=====================================
 
 * Added support for read-only sources. See 
   :class:`repoze.what.adapters.BaseSourceAdapter`.
@@ -30,8 +30,8 @@ Backwards-incompatible changes
 
 .. _repoze.what-sql-1.0b1:
 
-:mod:`repoze.what.plugins.sql` 1.0a2 (*unreleased*)
-===================================================
+:mod:`repoze.what.plugins.sql` 1.0a2 (2008-12-04)
+=================================================
 
 * Fixed the broken test suite for Elixir, thanks to Helio Pereira.
 * Updated :func:`repoze.what.plugins.quickstart.setup_sql_auth` according
@@ -40,6 +40,7 @@ Backwards-incompatible changes
   :ref:`repoze.what-1.0b2`.
 * Now it's possible to customize the authentication/identification cookie
   through :func:`repoze.what.plugins.quickstart.setup_sql_auth`.
+* Tons of minor bug fixes.
 
 .. _repoze.what-1.0b1:
 
