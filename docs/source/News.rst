@@ -36,7 +36,10 @@ Backwards-incompatible changes
 ===================================================
 
 * Fixed the broken test suite for Elixir, thanks to Helio Pereira.
-
+* Updated :func:`repoze.what.plugins.quickstart.setup_sql_auth` according
+  to the backwards incompatible change on 
+  :func:`repoze.what.middleware.setup_auth` introduced in 
+  :ref:`repoze.what-1.0b2`.
 
 .. _repoze.what-1.0b1:
 

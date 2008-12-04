@@ -252,10 +252,8 @@ configure the authenticator.
         usually a login form.
     :param form_identifies: Whether the ``form_plugin`` may and should act as
         an :mod:`repoze.who` identifier.
-    :param identifiers: Secondary :mod:`repoze.who` identifier plugins, if any.
-    :param authenticators: The :mod:`repoze.who` authenticators to be used.
-    :param challengers: Secondary :mod:`repoze.who` challenger plugins, if any.
-    :param mdproviders: Secondary :mod:`repoze.who` metadata plugins, if any.
+    :param cookie_secret: The "secret" for the AuthTktCookiePlugin.
+    :param cookie_name: The name for the AuthTktCookiePlugin.
     :param translations: The model translations.
     :return: The WSGI application with authentication and authorization
         middleware.
