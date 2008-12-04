@@ -34,13 +34,13 @@ The :mod:`repoze.what` SQL plugin
     :depth: 3
 
 
-.. class:: SqlGroupsAdapter(group_class, user_class, session)
+.. class:: SqlGroupsAdapter(group_class, user_class, dbsession)
     
     Create an SQL groups source adapter.
     
     :param group_class: The class that manages the groups.
     :param user_class: The class that manages the users.
-    :param session: The SQLALchemy/Elixir session to be used.
+    :param dbsession: The SQLALchemy/Elixir session to be used.
     
     To use this adapter, you must also define your users in a SQLAlchemy or
     Elixir-managed table with the relevant one-to-many (or many-to-many) 
@@ -92,13 +92,13 @@ The :mod:`repoze.what` SQL plugin
         # ...
 
 
-.. class:: SqlPermissionsAdapter(permission_class, group_class, session)
+.. class:: SqlPermissionsAdapter(permission_class, group_class, dbsession)
     
     Create an SQL permissions source adapter.
     
     :param permission_class: The class that manages the permissions.
     :param group_class: The class that manages the groups.
-    :param session: The SQLALchemy/Elixir session to be used.
+    :param dbsession: The SQLALchemy/Elixir session to be used.
     
     To use this adapter, you must also define your groups in a SQLAlchemy or
     Elixir-managed table with the relevant one-to-many (or many-to-many)
@@ -150,14 +150,14 @@ The :mod:`repoze.what` SQL plugin
         # ...
 
 
-.. function:: configure_sql_adapters(user_class, group_class, permission_class, session[, group_translations={}, permission_translations={}])
+.. function:: configure_sql_adapters(user_class, group_class, permission_class, dbsession[, group_translations={}, permission_translations={}])
     
     Configure and return group and permission adapters that share the same model.
     
     :param user_class: The class that manages the users.
     :param group_class: The class that manages the groups.
     :param user_class: The class that manages the permissions.
-    :param session: The SQLALchemy/Elixir session to be used.
+    :param dbsession: The SQLALchemy/Elixir session to be used.
     :param group_translations: The dictionary of translations for the group.
     :param permission_translations: The dictionary of translations for the permissions.
     :return: The ``group`` and ``permission`` adapters, configured.
@@ -238,7 +238,7 @@ You only have deal with that function (:func:`setup_sql_auth`), not with the
 authenticator (:class:`SQLAuthenticatorPlugin`) as the function itself will
 configure the authenticator.
 
-.. function:: setup_sql_auth(app, user_class, group_class, permission_class, session[, form_plugin=None, form_identifies=True, identifiers=None, authenticators=[], challengers=[], mdproviders=[], translations={}])
+.. function:: setup_sql_auth(app, user_class, group_class, permission_class, dbsession[, form_plugin=None, form_identifies=True, identifiers=None, authenticators=[], challengers=[], mdproviders=[], translations={}])
     
     Setup :mod:`repoze.who` and :mod:`repoze.what` with SQL authentication 
     and authorization.
@@ -247,7 +247,7 @@ configure the authenticator.
     :param user_class: The SQLAlchemy/Elixir class for the users.
     :param group_class: The SQLAlchemy/Elixir class for the groups.
     :param permission_class: The SQLAlchemy/Elixir class for the permissions.
-    :param session: The SQLAlchemy/Elixir session.
+    :param dbsession: The SQLAlchemy/Elixir session.
     :param form_plugin: The main :mod:`repoze.who` challenger plugin; this is 
         usually a login form.
     :param form_identifies: Whether the ``form_plugin`` may and should act as
