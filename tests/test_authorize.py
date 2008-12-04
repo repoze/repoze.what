@@ -24,7 +24,7 @@ import unittest
 
 from repoze.what import authorize
 
-from repoze.what.testutil import FakeLogger
+from base import FakeLogger
 from test_predicates import make_environ
 
 

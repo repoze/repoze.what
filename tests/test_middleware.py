@@ -33,7 +33,7 @@ from repoze.who.tests import Base as BasePluginTester, DummyApp
 
 from repoze.what.middleware import AuthorizationMetadata, setup_auth
 
-from repoze.what.testutil import FakeAuthenticator, FakeGroupSourceAdapter, \
+from base import FakeAuthenticator, FakeGroupSourceAdapter, \
                  FakePermissionSourceAdapter, FakeLogger
 
 

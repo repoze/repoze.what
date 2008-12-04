@@ -32,13 +32,6 @@ namespace and contact us once you have at least one usable release (so that
 we can mention it in the manual).
 
 
-:mod:`repoze.what.testutil` -- Utilities to test your plugins
--------------------------------------------------------------
-.. automodule:: repoze.what.testutil
-    :members:
-    :synopsis: repoze.what test utilities
-
-
 Guidelines for official plugins
 -------------------------------
 

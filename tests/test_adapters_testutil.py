@@ -22,7 +22,7 @@ import unittest
 from repoze.what.adapters.testutil import GroupsAdapterTester, \
                                           PermissionsAdapterTester
 
-from repoze.what.testutil import FakeGroupSourceAdapter, FakePermissionSourceAdapter
+from base import FakeGroupSourceAdapter, FakePermissionSourceAdapter
 
 class TestGroupsAdapterTester(GroupsAdapterTester, unittest.TestCase):
     def setUp(self):
