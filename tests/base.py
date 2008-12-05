@@ -14,8 +14,7 @@
 ##############################################################################
 
 """
-Utilities for the test suite of :mod:`repoze.what` which `might` also come in
-handy to test its plugins.
+Utilities for the test suite of :mod:`repoze.what`.
 
 """
 

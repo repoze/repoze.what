@@ -6,6 +6,14 @@ This document describes the releases of :mod:`repoze.what` and its official
 plugins.
 
 
+.. _repoze.what-1.0b3:
+
+:mod:`repoze.what` 1.0b3 (*unreleased*)
+=======================================
+
+* Added :mod:`anti-spam support <repoze.what.antispam>`.
+
+
 .. _repoze.what-1.0b2:
 
 :mod:`repoze.what` 1.0b2 (2008-12-04)

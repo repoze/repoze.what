@@ -12,6 +12,7 @@ Below are the contents for the :mod:`repoze.what` manual:
 
     GettingStarted
     Predicates
-    Plugins/index
     ManagingSources
+    AntiSpam/index
+    Plugins/index
     InnerWorkings
