@@ -12,6 +12,11 @@ plugins.
 =======================================
 
 * Added :mod:`anti-spam support <repoze.what.antispam>`.
+* Added support for read-only adapters in the :mod:`testutil 
+  <repoze.what.adapters.testutil>` with the :class:`ReadOnlyGroupsAdapterTester
+  <repoze.what.adapters.testutil.ReadOnlyGroupsAdapterTester>` and 
+  :class:`ReadOnlyPermissionsAdapterTester
+  <repoze.what.adapters.testutil.ReadOnlyPermissionsAdapterTester>` test cases.
 
 
 .. _repoze.what-1.0b2:

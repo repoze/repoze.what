@@ -139,7 +139,7 @@ Or to grant the same permission to many groups at once::
 Excluding :term:`items <item>` from a :term:`section`
 -----------------------------------------------------
 
-To remove one the item from a given group of the group source above, you may 
+To remove one the items from a given group of the group source above, you may 
 use::
 
     >>> groups.exclude_item(u'admins', u'gustavo')
@@ -567,106 +567,20 @@ Testing your source adapters with :mod:`testutil <repoze.what.adapters.testutil>
 .. module:: repoze.what.adapters.testutil
     :synopsis: Automatic tests for repoze.what source adapters
 
-:mod:`repoze.what` provides a very convenient utility to automate the
-verification of your adapters. This utility is the 
-:mod:`repoze.what.adapters.testutil` module, made up two test cases:
+:mod:`repoze.what` provides convenient utilities to automate the verification 
+of your adapters. This utility is the :mod:`repoze.what.adapters.testutil` 
+module, made up four test cases, which when extended must define the adapter 
+(as ``self.adapter``) in the setup, as well as call this class' ``setUp()``
+method:
 
-.. class:: GroupsAdapterTester
-    
-    Test case for groups source adapters.
-    
-    The groups source used for the tests `must` only contain the following
-    groups (aka "sections") and their relevant users (aka "items"; if any):
-    
-    * admins
-    
-      * rms
-      
-    * developers
-    
-      * rms
-      
-      * linus
-      
-    * trolls
-    
-      * sballmer
-      
-    * python
-    
-    * php
-    
-    .. attention::
-        
-        Test cases that extend this, must define the adapter (as :attr:`adapter`)
-        in the setup, as well as call this class' setUp() method.
-    
-    .. attribute:: adapter
-    
-        An instance of the :term:`group adapter` to be tested.
-    
-    For example, a test case for the mock group adapter defined above
-    (``FakeGroupSourceAdapter``) may look like this::
-    
-        from repoze.what.adapters.testutil import GroupsAdapterTester
-        
-        class TestGroupsAdapterTester(GroupsAdapterTester, unittest.TestCase):
-            def setUp(self):
-                super(TestGroupsAdapterTester, self).setUp()
-                self.adapter = FakeGroupSourceAdapter()
-    
-    .. note::
-    
-        If you are going to test a read-only adapter, then you should use
-        :class:`ReadOnlyGroupsAdapterTester` instead (it can be used
-        similarly).
+.. autoclass:: ReadOnlyGroupsAdapterTester
 
-.. class:: PermissionsAdapterTester
+.. autoclass:: ReadOnlyPermissionsAdapterTester
 
-    Test case for permissions source adapters.
-    
-    The permissions source used for the tests `must` only contain the following
-    permissions (aka "sections") and their relevant groups (aka "items"; if
-    any):
-    
-    * see-site
-    
-      * trolls
-      
-    * edit-site
-    
-      * admins
-      
-      * developers
-      
-    * commit
-    
-      * developers
-    
-    .. attention::
-        
-        Test cases that extend this, must define the adapter (as :attr:`adapter`)
-        in the setup, as well as call this class' setUp() method.
-    
-    .. attribute:: adapter
-    
-        An instance of the :term:`permission adapter` to be tested.
-    
-    For example, a test case for the mock permission adapter defined above
-    (``FakePermissionSourceAdapter``) may look like this::
-    
-        from repoze.what.adapters.testutil import PermissionsAdapterTester
-        
-        class TestPermissionsAdapterTester(PermissionsAdapterTester, unittest.TestCase):
-            def setUp(self):
-                super(TestPermissionsAdapterTester, self).setUp()
-                self.adapter = FakePermissionSourceAdapter()
-    
-    .. note::
-    
-        If you are going to test a read-only adapter, then you should use
-        :class:`ReadOnlyPermissionsAdapterTester` instead (it can be used
-        similarly).
+.. autoclass:: GroupsAdapterTester
+
+.. autoclass:: PermissionsAdapterTester
+
 
 .. attention::
 

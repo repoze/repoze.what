@@ -125,21 +125,38 @@ class ReadOnlyGroupsAdapterTester(_ReadOnlyBaseAdapterTester):
     """
     Test case for read-only groups source adapters.
     
-    Test cases that extend this, must define the adapter (as C{self.adapter})
-    in the setup, as well as call this class' setUp() method.
-    
     The groups source used for the tests must only contain the following
     groups (aka "sections") and their relevant users (aka "items"; if any):
     
-      * admins
-        * rms
-      * developers
-        * rms
-        * linus
-      * trolls
-        * sballmer
-      * python
-      * php
+    * admins
+       * rms
+    * developers
+       * rms
+       * linus
+    * trolls
+       * sballmer
+    * python
+    * php
+    
+    .. attribute:: adapter
+    
+        An instance of the :term:`group adapter` to be tested.
+    
+    For example, a test case for the mock group adapter
+    ``FakeReadOnlyGroupSourceAdapter`` may look like this::
+    
+        from repoze.what.adapters.testutil import ReadOnlyGroupsAdapterTester
+        
+        class TestReadOnlyGroupsAdapterTester(ReadOnlyGroupsAdapterTester, 
+                                              unittest.TestCase):
+            def setUp(self):
+                super(TestReadOnlyGroupsAdapterTester, self).setUp()
+                self.adapter = FakeReadOnlyGroupSourceAdapter()
+    
+    .. note::
+        
+        :class:`GroupsAdapterTester` extends this test case to check write
+        operations.
     
     """
     
@@ -179,21 +196,17 @@ class GroupsAdapterTester(ReadOnlyGroupsAdapterTester, _BaseAdapterTester):
     """
     Test case for groups source adapters.
     
-    Test cases that extend this, must define the adapter (as C{self.adapter})
-    in the setup, as well as call this class' setUp() method.
+    This test case extends :class:`ReadOnlyGroupsAdapterTester` to test
+    write operations in read & write adapters and it should be set up the same
+    way as its parent. For example, a test case for the mock group adapter
+    ``FakeGroupSourceAdapter`` may look like this::
     
-    The groups source used for the tests must only contain the following
-    groups (aka "sections") and their relevant users (aka "items"; if any):
-    
-      * admins
-        * rms
-      * developers
-        * rms
-        * linus
-      * trolls
-        * sballmer
-      * python
-      * php
+        from repoze.what.adapters.testutil import GroupsAdapterTester
+        
+        class TestGroupsAdapterTester(GroupsAdapterTester, unittest.TestCase):
+            def setUp(self):
+                super(TestGroupsAdapterTester, self).setUp()
+                self.adapter = FakeGroupSourceAdapter()
     
     """
     
@@ -209,20 +222,37 @@ class ReadOnlyPermissionsAdapterTester(_ReadOnlyBaseAdapterTester):
     """
     Test case for read-only permissions source adapters.
     
-    Test cases that extend this, must define the adapter (as C{self.adapter})
-    in the setup, as well as call this class' setUp() method.
-    
     The permissions source used for the tests must only contain the following
     permissions (aka "sections") and their relevant groups (aka "items"; if
     any):
     
-      * see-site
-        * trolls
-      * edit-site
-        * admins
-        * developers
-      * commit
-        * developers
+    * see-site
+       * trolls
+    * edit-site
+       * admins
+       * developers
+    * commit
+       * developers
+    
+    .. attribute:: adapter
+    
+        An instance of the :term:`permission adapter` to be tested.
+    
+    For example, a test case for the mock permission adapter defined above
+    (``FakeReadOnlyPermissionSourceAdapter``) may look like this::
+    
+        from repoze.what.adapters.testutil import ReadOnlyPermissionsAdapterTester
+        
+        class TestReadOnlyPermissionsAdapterTester(ReadOnlyPermissionsAdapterTester,
+                                                   unittest.TestCase):
+            def setUp(self):
+                super(TestReadOnlyPermissionsAdapterTester, self).setUp()
+                self.adapter = FakeReadOnlyPermissionSourceAdapter()
+    
+    .. note::
+        
+        :class:`PermissionsAdapterTester` extends this test case to check write
+        operations.
     
     """
     
@@ -249,20 +279,21 @@ class PermissionsAdapterTester(ReadOnlyPermissionsAdapterTester,
     """
     Test case for permissions source adapters.
     
-    Test cases that extend this, must define the adapter (as C{self.adapter})
-    in the setup, as well as call this class' setUp() method.
+    This test case extends :class:`ReadOnlyPermissionsAdapterTester` to test
+    write operations in read & write adapters and it should be set up the same
+    way as its parent. For example, a test case for the mock group adapter
+    ``FakePermissionSourceAdapter`` may look like this:
     
-    The permissions source used for the tests must only contain the following
-    permissions (aka "sections") and their relevant groups (aka "items"; if
-    any):
+    For example, a test case for the mock permission adapter defined above
+    (``FakePermissionSourceAdapter``) may look like this::
     
-      * see-site
-        * trolls
-      * edit-site
-        * admins
-        * developers
-      * commit
-        * developers
+        from repoze.what.adapters.testutil import PermissionsAdapterTester
+        
+        class TestPermissionsAdapterTester(PermissionsAdapterTester,
+                                           unittest.TestCase):
+            def setUp(self):
+                super(TestPermissionsAdapterTester, self).setUp()
+                self.adapter = FakePermissionSourceAdapter()
     
     """
     
