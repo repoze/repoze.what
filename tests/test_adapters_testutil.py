@@ -20,9 +20,14 @@
 import unittest
 
 from repoze.what.adapters.testutil import GroupsAdapterTester, \
-                                          PermissionsAdapterTester
+                                          PermissionsAdapterTester, \
+                                          ReadOnlyGroupsAdapterTester, \
+                                          ReadOnlyPermissionsAdapterTester
 
 from base import FakeGroupSourceAdapter, FakePermissionSourceAdapter
+
+#{ Read and write adapters
+
 
 class TestGroupsAdapterTester(GroupsAdapterTester, unittest.TestCase):
     def setUp(self):
@@ -33,3 +38,22 @@ class TestPermissionsAdapterTester(PermissionsAdapterTester, unittest.TestCase):
     def setUp(self):
         super(TestPermissionsAdapterTester, self).setUp()
         self.adapter = FakePermissionSourceAdapter()
+
+
+#{ Read-only adapters
+
+
+class TestReadOnlyGroupsAdapterTester(ReadOnlyGroupsAdapterTester, 
+                                      unittest.TestCase):
+    def setUp(self):
+        super(TestReadOnlyGroupsAdapterTester, self).setUp()
+        self.adapter = FakeGroupSourceAdapter(writable=False)
+
+class TestReadOnlyPermissionsAdapterTester(ReadOnlyPermissionsAdapterTester, 
+                                           unittest.TestCase):
+    def setUp(self):
+        super(TestReadOnlyPermissionsAdapterTester, self).setUp()
+        self.adapter = FakePermissionSourceAdapter(writable=False)
+
+
+#}

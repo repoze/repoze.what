@@ -614,6 +614,12 @@ verification of your adapters. This utility is the
             def setUp(self):
                 super(TestGroupsAdapterTester, self).setUp()
                 self.adapter = FakeGroupSourceAdapter()
+    
+    .. note::
+    
+        If you are going to test a read-only adapter, then you should use
+        :class:`ReadOnlyGroupsAdapterTester` instead (it can be used
+        similarly).
 
 .. class:: PermissionsAdapterTester
 
@@ -655,8 +661,14 @@ verification of your adapters. This utility is the
             def setUp(self):
                 super(TestPermissionsAdapterTester, self).setUp()
                 self.adapter = FakePermissionSourceAdapter()
+    
+    .. note::
+    
+        If you are going to test a read-only adapter, then you should use
+        :class:`ReadOnlyPermissionsAdapterTester` instead (it can be used
+        similarly).
 
-.. note::
+.. attention::
 
     :mod:`repoze.what.adapters.testutil` is not a full replacement for a test 
     suite, so you are still highly encouraged to write the relevant/missing 

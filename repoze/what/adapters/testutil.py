@@ -21,11 +21,12 @@ from repoze.what.adapters import SourceError, ExistingSectionError, \
                                          NonExistingSectionError, \
                                          ItemPresentError, ItemNotPresentError
 
-__all__ = ['GroupsAdapterTester', 'PermissionsAdapterTester']
+__all__ = ['GroupsAdapterTester', 'PermissionsAdapterTester',
+           'ReadOnlyGroupsAdapterTester', 'ReadOnlyPermissionsAdapterTester']
 
 
-class _BaseAdapterTester(object):
-    """Base test case for adapters"""
+class _ReadOnlyBaseAdapterTester(object):
+    """Base test case for read-only adapters"""
     
     def setUp(self):
         raise NotImplementedError('Use setUp() to define the adapter to test')
@@ -57,13 +58,6 @@ class _BaseAdapterTester(object):
         assert not self.adapter._section_exists(section_name), \
                'Section "%s" DOES exist' % section_name
     
-    def test_adding_many_items_to_section(self):
-        for section_name, items in self.all_sections.items():
-            self.adapter._include_items(section_name, self.new_items)
-            final_items = items | self.new_items
-            assert self.adapter._get_section_items(section_name)==final_items, \
-                   '"%s" does not include %s' % (section_name, self.new_items)
-    
     def test_checking_item_inclusion(self):
         for section_name, items in self.all_sections.items():
             for item in self.adapter._get_section_items(section_name):
@@ -88,6 +82,22 @@ class _BaseAdapterTester(object):
         invalid_section = u'designers'
         assert not self.adapter._section_exists(invalid_section), \
                    'Section "%s" must not exist' % invalid_section
+
+    def test_sets_if_it_is_writable(self):
+        assert hasattr(self.adapter, 'is_writable'), \
+               "The adapter doesn't have the 'is_writable' attribute; " \
+               "please call its parent's constructor too"
+
+
+class _BaseAdapterTester(_ReadOnlyBaseAdapterTester):
+    """Base test case for read & write adapters"""
+    
+    def test_adding_many_items_to_section(self):
+        for section_name, items in self.all_sections.items():
+            self.adapter._include_items(section_name, self.new_items)
+            final_items = items | self.new_items
+            assert self.adapter._get_section_items(section_name)==final_items, \
+                   '"%s" does not include %s' % (section_name, self.new_items)
     
     def test_creating_section(self):
         section = u'cool-section'
@@ -110,15 +120,10 @@ class _BaseAdapterTester(object):
         assert section not in self.adapter._get_all_sections().keys(), \
                'Section "%s" was not deleted' % section
 
-    def test_sets_if_it_is_writable(self):
-        assert hasattr(self.adapter, 'is_writable'), \
-               "The adapter doesn't have the 'is_writable' attribute; " \
-               "please call its parent's constructor too"
 
-
-class GroupsAdapterTester(_BaseAdapterTester):
+class ReadOnlyGroupsAdapterTester(_ReadOnlyBaseAdapterTester):
     """
-    Test case for groups source adapters.
+    Test case for read-only groups source adapters.
     
     Test cases that extend this, must define the adapter (as C{self.adapter})
     in the setup, as well as call this class' setUp() method.
@@ -168,6 +173,29 @@ class GroupsAdapterTester(_BaseAdapterTester):
     def test_finding_groups_of_non_existing_user(self):
         identity = self._make_identity(u'gustavo')
         self.assertEqual(self.adapter._find_sections(identity), set())
+
+
+class GroupsAdapterTester(ReadOnlyGroupsAdapterTester, _BaseAdapterTester):
+    """
+    Test case for groups source adapters.
+    
+    Test cases that extend this, must define the adapter (as C{self.adapter})
+    in the setup, as well as call this class' setUp() method.
+    
+    The groups source used for the tests must only contain the following
+    groups (aka "sections") and their relevant users (aka "items"; if any):
+    
+      * admins
+        * rms
+      * developers
+        * rms
+        * linus
+      * trolls
+        * sballmer
+      * python
+      * php
+    
+    """
     
     def test_removing_many_users_from_group(self):
         group = u'developers'
@@ -177,9 +205,9 @@ class GroupsAdapterTester(_BaseAdapterTester):
                '"%s" still includes %s' % (group, users)
 
 
-class PermissionsAdapterTester(_BaseAdapterTester):
+class ReadOnlyPermissionsAdapterTester(_ReadOnlyBaseAdapterTester):
     """
-    Test case for permissions source adapters.
+    Test case for read-only permissions source adapters.
     
     Test cases that extend this, must define the adapter (as C{self.adapter})
     in the setup, as well as call this class' setUp() method.
@@ -214,6 +242,29 @@ class PermissionsAdapterTester(_BaseAdapterTester):
     
     def test_finding_permissions_of_non_existing_group(self):
         self.assertEqual(self.adapter._find_sections(u'designers'), set())
+
+
+class PermissionsAdapterTester(ReadOnlyPermissionsAdapterTester,
+                               _BaseAdapterTester):
+    """
+    Test case for permissions source adapters.
+    
+    Test cases that extend this, must define the adapter (as C{self.adapter})
+    in the setup, as well as call this class' setUp() method.
+    
+    The permissions source used for the tests must only contain the following
+    permissions (aka "sections") and their relevant groups (aka "items"; if
+    any):
+    
+      * see-site
+        * trolls
+      * edit-site
+        * admins
+        * developers
+      * commit
+        * developers
+    
+    """
     
     def test_deying_permisssion_to_many_groups(self):
         permission = u'edit-site'
