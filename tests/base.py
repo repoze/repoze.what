@@ -163,5 +163,5 @@ class FakeLogger(object):
     def info(self, msg):
         self.messages['info'].append(msg)
     
-    def error(self, msg):
-        self.messages['error'].append(msg)
+    def debug(self, msg):
+        self.messages['debug'].append(msg)

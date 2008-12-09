@@ -28,9 +28,6 @@ __all__ = ['GroupsAdapterTester', 'PermissionsAdapterTester',
 class _ReadOnlyBaseAdapterTester(object):
     """Base test case for read-only adapters"""
     
-    def setUp(self):
-        raise NotImplementedError('Use setUp() to define the adapter to test')
-    
     def _get_all_items(self):
         all_items = set()
         for items in self.all_sections.values():
