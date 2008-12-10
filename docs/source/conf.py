@@ -16,10 +16,16 @@ import sys, os
 here = os.path.dirname(os.path.abspath(__file__))
 root = os.path.dirname(os.path.dirname(here))
 
-# If your extensions are in another directory, add it here. If the directory
-# is relative to the documentation root, use os.path.abspath to make it
-# absolute, like shown here.
+# If setting up the auto(module|class) functionality:
 sys.path.append(os.path.abspath(root))
+wd = os.getcwd()
+os.chdir(root)
+os.system('%s setup.py test -q' % sys.executable)
+os.chdir(wd)
+
+for item in os.listdir(root):
+    if item.endswith('.egg'):
+        sys.path.append(os.path.join(root, item))
 
 # General configuration
 # ---------------------
