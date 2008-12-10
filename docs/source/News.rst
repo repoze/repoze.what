@@ -16,6 +16,8 @@ and :term:`permission <permission adapter>` adapters for Ini files! So, thanks
 to him, now it's not only possible to store your groups and permissions in
 databases, but also in files!
 
+ * Link
+
 
 .. _repoze.what-1.0rc1:
 
