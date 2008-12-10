@@ -16,6 +16,7 @@ plugins.
   <repoze.what.adapters.testutil.ReadOnlyGroupsAdapterTester>` and
   :class:`ReadOnlyPermissionsAdapterTester
   <repoze.what.adapters.testutil.ReadOnlyPermissionsAdapterTester>` test cases.
+* Fixed Python 3 deprecation warnings.
 
 
 .. _repoze.what-1.0b2:

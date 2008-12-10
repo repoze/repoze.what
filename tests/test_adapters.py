@@ -129,7 +129,7 @@ class TestBaseSourceAdapter(unittest.TestCase):
 
     def test_creating_section(self):
         self.adapter.create_section('sysadmins')
-        self.assertTrue(self.adapter.fake_sections.has_key('sysadmins'))
+        self.assertTrue('sysadmins' in self.adapter.fake_sections)
         self.assertEqual(self.adapter.fake_sections['sysadmins'],
                          set())
     

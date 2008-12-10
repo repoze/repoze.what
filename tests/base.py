@@ -111,7 +111,7 @@ class FakeGroupSourceAdapter(BaseSourceAdapter):
         del self.fake_sections[section]
 
     def _section_exists(self, section):
-        return self.fake_sections.has_key(section)
+        return section in self.fake_sections
 
 
 class FakePermissionSourceAdapter(FakeGroupSourceAdapter):

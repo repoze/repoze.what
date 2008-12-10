@@ -95,7 +95,7 @@ class BaseSourceAdapter(object):
         @raise SourceError: If there was a problem with the source.
         
         """
-        if not self.loaded_sections.has_key(section):
+        if section not in self.loaded_sections:
             self._check_section_existence(section)
             # It does exist; let's load it:
             self.loaded_sections[section] = self._get_section_items(section)
@@ -178,7 +178,7 @@ class BaseSourceAdapter(object):
         items = set(items)
         self._include_items(section, items)
         # Updating the cache, if necessary:
-        if self.loaded_sections.has_key(section):
+        if section in self.loaded_sections:
             self.loaded_sections[section] |= items
     
     def exclude_item(self, section, item):
@@ -225,7 +225,7 @@ class BaseSourceAdapter(object):
         items = set(items)
         self._exclude_items(section, items)
         # Updating the cache, if necessary:
-        if self.loaded_sections.has_key(section):
+        if section in self.loaded_sections:
             self.loaded_sections[section] -= items
     
     def create_section(self, section):
@@ -260,7 +260,7 @@ class BaseSourceAdapter(object):
         self._check_writable()
         self._edit_section(section, new_section)
         # Updating the cache too, if loaded:
-        if self.loaded_sections.has_key(section):
+        if section in self.loaded_sections:
             self.loaded_sections[new_section] = self.loaded_sections[section]
             del self.loaded_sections[section]
         
@@ -281,7 +281,7 @@ class BaseSourceAdapter(object):
         self._check_writable()
         self._delete_section(section)
         # Removing from the cache too, if loaded:
-        if self.loaded_sections.has_key(section):
+        if section in self.loaded_sections:
             del self.loaded_sections[section]
     
     def _check_writable(self):
