@@ -29,7 +29,7 @@ from repoze.who.classifiers import default_challenge_decider, \
                                    default_request_classifier
 from repoze.who.interfaces import IAuthenticator, IMetadataProvider
 
-__all__ = ['AuthorizationMetadata', 'AnonymousAuthorization', 'setup_auth']
+__all__ = ['AuthorizationMetadata', 'setup_auth']
 
 
 class AuthorizationMetadata(object):
@@ -81,16 +81,6 @@ class AuthorizationMetadata(object):
                                str(groups))
         logger and logger.info('User has the following permissions: %s' %
                                str(permissions))
-
-
-# TODO: Make this IAuthenticator
-class AnonymousAuthorization(object):
-    """repoze.who IAuthenticator to grant permissions to anonymous users.
-    
-    
-    
-    """
-    implements(IAuthenticator)
 
 
 def setup_auth(app, group_adapters, permission_adapters, **who_args):
