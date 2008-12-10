@@ -19,7 +19,7 @@ root = os.path.dirname(os.path.dirname(here))
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
-#sys.path.append(os.path.abspath('some/directory'))
+sys.path.append(os.path.abspath(root))
 
 # General configuration
 # ---------------------
