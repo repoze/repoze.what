@@ -1,5 +1,6 @@
+**********************************************************************
 :mod:`repoze.what.plugins` -- Available plugins for :mod:`repoze.what`
-======================================================================
+**********************************************************************
 
 :Status: Official
 
@@ -53,10 +54,15 @@ The classification above is not mutually exclusive: If a plugin provides
 "a predicates, adapters and extras plugin". For instance, the SQL plugin 
 is both an adapters and extras plugin.
 
-The following plugins are currently available:
+The documentation for the following plugins is currently available here:
 
 .. toctree::
     :maxdepth: 2
 
     SQL
 
+Links
+=====
+
+* `repoze.what Ini plugin <http://pypi.python.org/pypi/repoze.what.plugins.ini>`_,
+  written by José Dinuncio. It's an :term:`adapters plugin`.

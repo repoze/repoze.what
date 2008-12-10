@@ -2,8 +2,19 @@
 :mod:`repoze.what` and :mod:`repoze.what.plugins` releases
 **********************************************************
 
-This document describes the releases of :mod:`repoze.what` and its official
-plugins.
+This document describes the releases of :mod:`repoze.what` and its 
+official/unofficial plugins.
+
+
+.. _repoze.what.plugins.ini:
+
+:mod:`repoze.what.plugins.ini` -- Ini adapters available (2008-12-09)
+=====================================================================
+
+José Dinuncio has made a *great* work writing :term:`group <group adapter>` 
+and :term:`permission <permission adapter>` adapters for Ini files! So, thanks
+to him, now it's not only possible to store your groups and permissions in
+databases, but also in files!
 
 
 .. _repoze.what-1.0rc1:
