@@ -6,6 +6,19 @@ This document describes the releases of :mod:`repoze.what` and its
 official/unofficial plugins.
 
 
+.. _repoze.what-1.0rc1:
+
+:mod:`repoze.what` 1.0rc1 (2008-12-10)
+======================================
+
+* Added support for read-only adapters in the :mod:`testutil
+  <repoze.what.adapters.testutil>` with the :class:`ReadOnlyGroupsAdapterTester
+  <repoze.what.adapters.testutil.ReadOnlyGroupsAdapterTester>` and
+  :class:`ReadOnlyPermissionsAdapterTester
+  <repoze.what.adapters.testutil.ReadOnlyPermissionsAdapterTester>` test cases.
+* Fixed Python 3 deprecation warnings.
+
+
 .. _repoze.what.plugins.ini:
 
 :mod:`repoze.what.plugins.ini` -- Ini adapters available (2008-12-09)
@@ -16,20 +29,7 @@ and :term:`permission <permission adapter>` adapters for Ini files! So, thanks
 to him, now it's not only possible to store your groups and permissions in
 databases, but also in files!
 
- * Link
-
-
-.. _repoze.what-1.0rc1:
-
-:mod:`repoze.what` 1.0rc1 (*unreleased*)
-========================================
-
-* Added support for read-only adapters in the :mod:`testutil
-  <repoze.what.adapters.testutil>` with the :class:`ReadOnlyGroupsAdapterTester
-  <repoze.what.adapters.testutil.ReadOnlyGroupsAdapterTester>` and
-  :class:`ReadOnlyPermissionsAdapterTester
-  <repoze.what.adapters.testutil.ReadOnlyPermissionsAdapterTester>` test cases.
-* Fixed Python 3 deprecation warnings.
+ * Link: http://github.com/jdinuncio/repoze.what.plugins.ini/
 
 
 .. _repoze.what-1.0b2:
