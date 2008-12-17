@@ -2,11 +2,11 @@ include README.txt
 include VERSION.txt
 include MANIFEST.in
 
-recursive-include docs/ *
+recursive-include docs *
 prune docs/build
 
-recursive-include repoze/ *
+recursive-include repoze *
 
-recursive-exclude tests/ *
+recursive-exclude tests *
 
 global-exclude *~ *.pyc *.egg .directory
