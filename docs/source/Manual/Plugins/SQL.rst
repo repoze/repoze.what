@@ -28,6 +28,12 @@ The :mod:`repoze.what` SQL plugin
     To install it, you may run::
     
         easy_install repoze.what.plugins.sql
+    
+    .. warning::
+    
+        Only SQLAlchemy is intended to be supported. Elixir
+        is known to work but it's not officially supported, so Elixir support
+        *might* be broken in future releases.
 
 
 .. contents:: Table of Contents
