@@ -54,7 +54,8 @@ Unless mentioned otherwise, the following features are available in
   to other things in your package (e.g., only allow access to a database table
   if the current user is the admin).
 * Your application's `groups` and `permissions` may be stored in an SQLAlchemy
-  or Elixir-managed database, in ``.ini`` files or in XML files.
+  or Elixir-managed database, in ``.ini`` files or in XML files (although
+  you may also create your own :mod:`adapters <repoze.what.adapters>`!).
 * The only requirement is that you use the powerful and extensible 
   :mod:`repoze.who` authentication framework (which can be configured for you 
   with the :mod:`quickstart <repoze.what.plugins.quickstart` plugin).

@@ -22,8 +22,10 @@ from repoze.what.predicates import *
 
 class NotAuthorizedError(Exception):
     """
-    Exception raised when the subject is not allowed to access the 
-    resource.
+    Exception raised by :func:`check_authorization` if the subject is not 
+    allowed to access the request source.
+    
+    :param errors: The error messages for the predicates that were not met.
     
     """
     
@@ -37,12 +39,11 @@ class NotAuthorizedError(Exception):
 
 def check_authorization(predicate, environ):
     """
-    Verify that the C{predicate} grants access to the subject.
-    
-    @param predicate: The repoze.what predicate.
-    @type predicate: L{Predicate}
-    @param environ: The WSGI environment.
-    @raise NotAuthorizedError: If the predicate rejects access to the subject.
+    Verify if the current user really can access the requested source.
+
+    :param predicate: The predicate to be evaluated.
+    :param environ: The WSGI environment.
+    :raise NotAuthorizedError: If it the predicate is not met.
     
     """
     logger = environ.get('repoze.who.logger')

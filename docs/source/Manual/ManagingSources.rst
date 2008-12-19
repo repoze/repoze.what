@@ -214,36 +214,17 @@ Possible problems
 While dealing with an adapter, the following exceptions may be raised if an
 error occurs:
 
-.. exception:: AdapterError
+.. autoexception:: AdapterError
 
-    This is the base class for adapter-related problems; it's never raised
-    directly.
+.. autoexception:: SourceError
 
-.. exception:: SourceError
+.. autoexception:: ExistingSectionError
 
-    Exception raised when the adapter found a problem in the source itself.
-    
-    .. attention::
-        If you are creating a :term:`source adapter`, this is the only
-        exception you should raise.
+.. autoexception:: NonExistingSectionError
 
-.. exception:: ExistingSectionError
+.. autoexception:: ItemPresentError
 
-    Exception raised when trying to add an existing group.
-
-.. exception:: NonExistingSectionError
-
-    Exception raised when trying to use a non-existing group.
-
-.. exception:: ItemPresentError
-
-    Exception raised when trying to add an item to a group that already
-    contains it.
-
-.. exception:: ItemNotPresentError
-
-    Exception raised when trying to remove an item from a group that doesn't
-    contain it.
+.. autoexception:: ItemNotPresentError
 
 
 Writing your own source adapters
@@ -259,201 +240,10 @@ Both :term:`group <group adapter>` and :term:`permission <permission adapter>`
 :term:`adapters <source adapter>` must extend the abstract class 
 :class:`BaseSourceAdapter`:
 
-.. class:: BaseSourceAdapter([writable=True])
-
-    :param writable: Whether the source is writable.
-    :type writable: bool
-
-    Base class for :term:`source adapters <source adapter>`.
-    
-    Please note that these abstract methods may only raise one exception:
-    :class:`SourceError`, which is raised if there was a problem while dealing 
-    with the source. They may not raise other exceptions because they should not
-    validate anything but the source (not even the parameters they get).
-    
-    .. method:: _get_all_sections()
-    
-        Return all the sections found in the source.
-        
-        :return: All the sections found in the source.
-        :rtype: dict
-        :raise SourceError: If there was a problem with the source while
-            retrieving the sections.
-    
-    .. method:: _get_section_items(section)
-        
-        Return the items of the section called ``section``.
-        
-        :param section: The name of the section to be fetched.
-        :type section: unicode
-        :return: The items of the section.
-        :rtype: set
-        :raise SourceError: If there was a problem with the source while 
-            retrieving the section.
-        
-        .. attention::
-            When implementing this method, don't check whether the
-            section really exists; that's already done when this method is
-            called.
-
-    .. method:: _find_sections(hint)
-    
-        Return the sections that meet a given criteria.
-        
-        This method depends on the type of adapter that is implementing it:
-        
-        * If it's a ``group`` source adapter, it returns the groups the 
-          authenticated user belongs to. In this case, hint represents
-          repoze.who's identity dict. Please note that hint is not an 
-          user name because some adapters may need something else to find the 
-          groups the authenticated user belongs to. For example, LDAP adapters 
-          need the full Distinguished Name (DN) in the identity dict, or a 
-          given adapter may only need the email address, so the user name alone 
-          would be useless in both situations.
-        * If it's a ``permission`` source adapter, it returns the name of the
-          permissions granted to the group in question; here hint represents
-          the name of such a group.
-        
-        :param hint: repoze.who's identity dictionary or a group name.
-        :type hint: dict or unicode
-        :return: The sections that meet the criteria.
-        :rtype: tuple
-        :raise SourceError: If there was a problem with the source while
-            retrieving the sections.
-
-    .. method:: _include_items(section, items)
-    
-        Add items to the section, in the source.
-        
-        :param section: The section to contain the items.
-        :type section: unicode
-        :param items: The new items of the section.
-        :type items: tuple
-        :raise SourceError: If the items could not be added to the section.
-
-        .. attention:: 
-            When implementing this method, don't check whether the
-            section really exists or the items are already included; that's 
-            already done when this method is called.
-
-    .. method:: _exclude_items(section, items)
-    
-        Remove C{items from the section, in the source.
-        
-        :param section: The section that contains the items.
-        :type section: unicode
-        :param items: The items to be removed from section.
-        :type items: tuple
-        :raise SourceError: If the items could not be removed from the section.
-        
-        .. attention:: 
-            When implementing this method, don't check whether the
-            section really exists or the items are already included; that's 
-            already done when this method is called.
-
-    .. method:: _item_is_included(section, item)
-    
-        Check whether item is included in section.
-        
-        :param section: The name of the item to look for.
-        :type section: unicode
-        :param section: The name of the section that may include the item.
-        :type section: unicode
-        :return: Whether the item is included in section or not.
-        :rtype: bool
-        :raise SourceError: If there was a problem with the source.
-        
-        .. attention:: 
-            When implementing this method, don't check whether the
-            section really exists; that's already done when this method is
-            called.
-
-    .. method:: _create_section(section)
-    
-        Add section to the source.
-        
-        :param section: The section name.
-        :type section: unicode
-        :raise SourceError: If the section could not be added.
-        
-        .. attention:: 
-            When implementing this method, don't check whether the
-            section already exists; that's already done when this method is
-            called.
-
-    .. method:: _edit_section(section, new_section)
-    
-        Edit section's properties.
-        
-        :param section: The current name of the section.
-        :type section: unicode
-        :param new_section: The new name of the section.
-        :type new_section: unicode
-        :raise SourceError: If the section could not be edited.
-        
-        .. attention:: 
-            When implementing this method, don't check whether the
-            section really exists; that's already done when this method is
-            called.
-
-    .. method:: _delete_section(section)
-    
-        It removes the section from the source.
-        
-        :param section: The name of the section to be deleted.
-        :type section: unicode
-        :raise SourceError: If the section could not be deleted.
-        
-        .. attention:: 
-            When implementing this method, don't check whether the
-            section really exists; that's already done when this method is
-            called.
-
-    .. method:: _section_exists(section)
-    
-        Check whether section is defined in the source.
-        
-        :param section: The name of the section to check.
-        :type section: unicode
-        :return: Whether the section is the defined in the source or not.
-        :rtype: bool
-        :raise SourceError: If there was a problem with the source.
-
-    .. attribute:: is_writable = True
-
-        :type: bool
-        
-        Whether the adapter can write to the source.
-        
-        If the source type handled by your adapter doesn't support write
-        access, or if your adapter itself doesn't support writting to the
-        source (yet), then you should set this value to ``False`` in the class
-        itself; it will get overriden if the ``writable`` parameter in 
-        :class:`the contructor<BaseSourceAdapter>` is set, unless you 
-        explicitly disable that parameter::
-        
-            # ...
-            class MyFakeAdapter(BaseSourceAdapter):
-                def __init__():
-                    super(MyFakeAdapter, self).__init__(writable=False)
-            # ...
-        
-        .. note::
-        
-            If it's ``False``, then you don't have to define the methods that
-            modify the source because they won't be used:
-            
-            * :meth:`_include_items`
-            * :meth:`_exclude_items`
-            * :meth:`_create_section`
-            * :meth:`_edit_section`
-            * :meth:`_delete_section`
-
-    .. warning::
-    
-        Do not ever cache the results -- that is :class:`BaseSourceAdapter`'s
-        job. It requests a given datum once, not multiple times, thanks to
-        its internal cache.
+.. autoclass:: BaseSourceAdapter
+    :members: __init__, _get_all_sections, _get_section_items, 
+        _find_sections, _include_items, _exclude_items, _item_is_included,
+        _create_section, _edit_section, _delete_section, _section_exists
 
 
 Sample :term:`source adapters <source adapter>`

@@ -30,14 +30,23 @@ __all__ = ['Predicate', 'CompoundPredicate', 'All', 'Any',
 
 
 class Predicate(object):
-    """Generic base class for testing true or false for a condition."""
+    """
+    Generic base class for testing true or false for a condition.
+    
+    This is the base predicate class. It won't do anything useful for you, 
+    unless you subclass it.
+    
+    """
     
     def __init__(self, msg=None):
         """
-        Create a predicate and use C{msg} as the error message if it fails.
+        Create a predicate and use ``msg`` as the error message if it fails.
         
-        @param msg: The predicate message.
-        @type msg: C{str}
+        :param msg: The error message, if you want to override the default one
+            defined by the predicate.
+        :type msg: str
+        
+        You may use the ``msg`` keyword argument with any predicate.
         
         """
         if msg:
@@ -49,7 +58,10 @@ class Predicate(object):
         Determine whether the predicate is True or False for the given
         object.
         
-        @raise NotImplementedError: This must be defined by the predicate
+        :param environ: The WSGI environment.
+        :return: Whether the predicate is met or not.
+        :rtype: bool
+        :raise NotImplementedError: This must be defined by the predicate
             itself.
         
         """
@@ -57,8 +69,14 @@ class Predicate(object):
     
     def eval_with_environ(self, environ, errors=None):
         """
-        Evaluate the predicate and add the relevant error to C{errors} if
-        it's False.
+        Evaluate the predicate and add the relevant error to ``errors`` if
+        it's ``False``.
+        
+        :param environ: The WSGI environment.
+        :param errors: List of previous authorization errors.
+        :type errors: list
+        :return: Whether the predicate is met or not.
+        :rtype: bool
         
         """
         if self._eval_with_environ(environ):
@@ -80,7 +98,14 @@ class CompoundPredicate(Predicate):
 
 class Not(Predicate):
     """
-    A single predicate to negate another predicate.
+    Negate the specified predicate.
+    
+    :param predicate: The predicate to be negated.
+    
+    Example::
+    
+        # The user *must* be anonymous:
+        p = Not(not_anonymous())
     
     """
     message = u"The condition must not be met"
@@ -94,8 +119,16 @@ class Not(Predicate):
 
 
 class All(CompoundPredicate):
-    """A compound predicate that evaluates to true only if all sub-predicates
-    evaluate to true for the given input.
+    """
+    Check that all of the specified predicates are met.
+    
+    :param predicates: All of the predicates that must be met.
+    
+    Example::
+    
+        # Grant access if the current month is July and the user belongs to
+        # the human resources group.
+        p = All(is_month(7), in_group('hr'))
     
     """
     def eval_with_environ(self, environ, errors=None):
@@ -107,8 +140,16 @@ class All(CompoundPredicate):
 
 
 class Any(CompoundPredicate):
-    """A compound predicate that evaluates to true if any one of its 
-    sub-predicates evaluates to true.
+    """
+    Check that at least one of the specified predicates is met.
+    
+    :param predicates: Any of the predicates that must be met.
+    
+    Example::
+    
+        # Grant access if the currest user is Richard Stallman or Linus
+        # Torvalds.
+        p = Any(is_user('rms'), is_user('linus'))
     
     """
     message = u"At least one predicate must be met"
@@ -124,7 +165,17 @@ class Any(CompoundPredicate):
 
 
 class is_user(Predicate):
-    """Predicate for checking if the username matches"""
+    """
+    Check that the authenticated user's username is the specified one.
+    
+    :param user_name: The required user name.
+    :type user_name: str
+    
+    Example::
+    
+        p = is_user('linus')
+    
+    """
     
     message = u"The current user must be %(user_name)s"
 
@@ -145,7 +196,17 @@ class is_user(Predicate):
 
 
 class in_group(Predicate):
-    """Predicate for requiring a group."""
+    """
+    Check that the user belongs to the specified group.
+    
+    :param group_name: The name of the group to which the user must belong.
+    :type group_name: str
+    
+    Example::
+    
+        p = in_group('customers')
+    
+    """
     
     message = u"The current user must belong to the group %(group_name)s"
 
@@ -161,7 +222,17 @@ class in_group(Predicate):
 
 
 class in_all_groups(All):
-    """Predicate for requiring membership in a number of groups."""
+    """
+    Check that the user belongs to all of the specified groups.
+    
+    :param groups: The name of all the groups the user must belong to.
+    
+    Example::
+    
+        p = in_all_groups('developers', 'designers')
+    
+    """
+    
     
     def __init__(self, *groups, **kwargs):
         group_predicates = [in_group(g) for g in groups]
@@ -169,7 +240,16 @@ class in_all_groups(All):
 
 
 class in_any_group(Any):
-    """Predicate for requiring membership in at least one group"""
+    """
+    Check that the user belongs to at least one of the specified groups.
+    
+    :param groups: The name of any of the groups the user may belong to.
+    
+    Example::
+    
+        p = in_any_group('directors', 'hr')
+    
+    """
     
     message = u"The member must belong to at least one of the following " \
                "groups: %(group_list)s"
@@ -181,7 +261,15 @@ class in_any_group(Any):
 
 
 class not_anonymous(Predicate):
-    """Predicate for checking whether current visitor is anonymous."""
+    """
+    Check that the current user has been authenticated.
+    
+    Example::
+    
+        # The user must have been authenticated!
+        p = not_anonymous()
+    
+    """
     
     message = u"The current user must have been authenticated"
 
@@ -193,8 +281,15 @@ class not_anonymous(Predicate):
 
 
 class has_permission(Predicate):
-    """Predicate for checking whether the visitor has a particular 
-    permission.
+    """
+    Check that the current user has the specified permission.
+    
+    :param permission_name: The name of the permission that must be granted to 
+        the user.
+    
+    Example::
+    
+        p = has_permission('hire')
     
     """
     message = u'The user must have the "%(permission_name)s" permission'
@@ -212,7 +307,18 @@ class has_permission(Predicate):
 
 
 class has_all_permissions(All):
-    """Predicate for checking whether the visitor has all permissions."""
+    """
+    Check that the current user has been granted all of the specified 
+    permissions.
+    
+    :param permissions: The names of all the permissions that must be
+        granted to the user.
+    
+    Example::
+    
+        p = has_all_permissions('view-users', 'edit-users')
+    
+    """
     
     def __init__(self, *permissions, **kwargs):
         permission_predicates = [has_permission(p) for p in permissions]
@@ -221,8 +327,15 @@ class has_all_permissions(All):
 
 
 class has_any_permission(Any):
-    """Predicate for checking whether the visitor has at least one 
-    permission.
+    """
+    Check that the user has at least one of the specified permissions.
+    
+    :param permissions: The names of any of the permissions that have to be
+        granted to the user.
+    
+    Example::
+    
+        p = has_any_permission('manage-users', 'edit-users')
     
     """
     

@@ -45,17 +45,59 @@ __all__ = ['BaseSourceAdapter', 'AdapterError', 'SourceError',
 
 class BaseSourceAdapter(object):
     """
-    Base class for source adapters.
+    Base class for :term:`source adapters <source adapter>`.
     
     Please note that these abstract methods may only raise one exception:
-    L{SourceError}, which is raised if there was a problem while dealing with
-    the source. They may not raise other exceptions because they should not
+    :class:`SourceError`, which is raised if there was a problem while dealing 
+    with the source. They may not raise other exceptions because they should not
     validate anything but the source (not even the parameters they get).
+
+    .. attribute:: is_writable = True
+
+        :type: bool
+        
+        Whether the adapter can write to the source.
+        
+        If the source type handled by your adapter doesn't support write
+        access, or if your adapter itself doesn't support writting to the
+        source (yet), then you should set this value to ``False`` in the class
+        itself; it will get overriden if the ``writable`` parameter in 
+        :meth:`the contructor <BaseSourceAdapter.__init__>` is set, unless you 
+        explicitly disable that parameter::
+        
+            # ...
+            class MyFakeAdapter(BaseSourceAdapter):
+                def __init__():
+                    super(MyFakeAdapter, self).__init__(writable=False)
+            # ...
+        
+        .. note::
+        
+            If it's ``False``, then you don't have to define the methods that
+            modify the source because they won't be used:
+            
+            * :meth:`_include_items`
+            * :meth:`_exclude_items`
+            * :meth:`_create_section`
+            * :meth:`_edit_section`
+            * :meth:`_delete_section`
+
+    .. warning::
+    
+        Do not ever cache the results -- that is :class:`BaseSourceAdapter`'s
+        job. It requests a given datum once, not multiple times, thanks to
+        its internal cache.
     
     """
     
     def __init__(self, writable=True):
-        """Run common setup for source adapters."""
+        """
+        Run common setup for source adapters.
+        
+        :param writable: Whether the source is writable.
+        :type writable: bool
+        
+        """
         # The cache for the sections loaded by the source adapter.
         self.loaded_sections = {}
         # Whether all of the existing items have been loaded
@@ -365,14 +407,9 @@ class BaseSourceAdapter(object):
         """
         Return all the sections found in the source.
         
-        L{BaseSourceAdapter.get_all_sections} is more efficient than this method
-        because it uses a cache, so you should avoid this unless you really
-        want to query the source directly. It doesn't add the sections found to
-        the cache either.
-        
-        @return: All the sections found in the source.
-        @rtype: C{dict}
-        @raise SourceError: If there was a problem with the source while
+        :return: All the sections found in the source.
+        :rtype: dict
+        :raise SourceError: If there was a problem with the source while
             retrieving the sections.
         
         """
@@ -380,22 +417,19 @@ class BaseSourceAdapter(object):
     
     def _get_section_items(self, section):
         """
-        Return the items of the section called C{section}.
+        Return the items of the section called ``section``.
         
-        L{BaseSourceAdapter.get_section_items} is more efficient than this 
-        method because it uses a cache, so you should avoid this unless you 
-        really want to query the source directly. It doesn't add the section 
-        found to the cache either.
+        :param section: The name of the section to be fetched.
+        :type section: unicode
+        :return: The items of the section.
+        :rtype: set
+        :raise SourceError: If there was a problem with the source while 
+            retrieving the section.
         
-        @attention: When implementing this method, don't check whether the
+        .. attention::
+            When implementing this method, don't check whether the
             section really exists; that's already done when this method is
             called.
-        @param section: The name of the section to be fetched.
-        @type section: C{unicode}
-        @return: The C{items} of the section.
-        @rtype: C{set}
-        @raise SourceError: If there was a problem with the source while
-            retrieving the section.
         
         """
         raise NotImplementedError()
@@ -404,136 +438,147 @@ class BaseSourceAdapter(object):
         """
         Return the sections that meet a given criteria.
         
-        This method depends on what kind of adapter is implementing it:
-        
-        If it's a ``group`` source adapter, it returns the groups the 
-        authenticated user belongs to. In this case, C{hint} represents
-        repoze.who's C{identity} dict. Please notice that C{hint} is not an 
-        user name because some adapters may need something else to find the 
-        groups the authenticated user belongs to. For example, LDAP adapters 
-        need the full Distinguished Name (DN) in the C{identity} dict, or a 
-        given adapter may only need the email address, so the user name alone 
-        would be useless in both situations.
-        
-        If it's a ``permission`` source adapter, it returns the name of the
-        permissions granted to the group in question; here C{hint} represents
-        the name of such a group.
-        
-        @param hint: repoze.who's C{identity} dictionary or a group name.
-        @type hint: C{dict} or C{unicode}
-        @return: The sections that meet the criteria.
-        @rtype: C{tuple}
-        @raise SourceError: If there was a problem with the source while
+        :param hint: repoze.who's identity dictionary or a group name.
+        :type hint: dict or unicode
+        :return: The sections that meet the criteria.
+        :rtype: tuple
+        :raise SourceError: If there was a problem with the source while
             retrieving the sections.
+        
+        This method depends on the type of adapter that is implementing it:
+        
+        * If it's a ``group`` source adapter, it returns the groups the 
+          authenticated user belongs to. In this case, hint represents
+          repoze.who's identity dict. Please note that hint is not an 
+          user name because some adapters may need something else to find the 
+          groups the authenticated user belongs to. For example, LDAP adapters 
+          need the full Distinguished Name (DN) in the identity dict, or a 
+          given adapter may only need the email address, so the user name alone 
+          would be useless in both situations.
+        * If it's a ``permission`` source adapter, it returns the name of the
+          permissions granted to the group in question; here hint represents
+          the name of such a group.
         
         """
         raise NotImplementedError()
     
     def _include_items(self, section, items):
         """
-        Add C{items} to the C{section}, in the source.
+        Add ``items`` to the ``section``, in the source.
         
-        @attention: When implementing this method, don't check whether the
+        :param section: The section to contain the items.
+        :type section: unicode
+        :param items: The new items of the section.
+        :type items: tuple
+        :raise SourceError: If the items could not be added to the section.
+
+        .. attention:: 
+            When implementing this method, don't check whether the
             section really exists or the items are already included; that's 
             already done when this method is called.
-        @param section: The section to contain the items.
-        @type section: C{unicode}
-        @param items: The new items of the C{section}.
-        @type items: C{tuple}
-        @raise SourceError: If the items could not be added to the section.
         
         """
         raise NotImplementedError()
     
     def _exclude_items(self, section, items):
         """
-        Remove C{items} from the C{section}, in the source.
+        Remove ``items`` from the ``section``, in the source.
         
-        @attention: When implementing this method, don't check whether the
+        :param section: The section that contains the items.
+        :type section: unicode
+        :param items: The items to be removed from section.
+        :type items: tuple
+        :raise SourceError: If the items could not be removed from the section.
+        
+        .. attention:: 
+            When implementing this method, don't check whether the
             section really exists or the items are already included; that's 
             already done when this method is called.
-        @param section: The section that contains the items.
-        @type section: C{unicode}
-        @param items: The items to be removed from C{section}.
-        @type items: C{tuple}
-        @raise SourceError: If the items could not be removed from the section.
         
         """
         raise NotImplementedError()
     
     def _item_is_included(self, section, item):
         """
-        Check whether C{item} is included in C{section}.
+        Check whether ``item`` is included in ``section``.
         
-        @attention: When implementing this method, don't check whether the
+        :param section: The name of the item to look for.
+        :type section: unicode
+        :param section: The name of the section that may include the item.
+        :type section: unicode
+        :return: Whether the item is included in section or not.
+        :rtype: bool
+        :raise SourceError: If there was a problem with the source.
+        
+        .. attention:: 
+            When implementing this method, don't check whether the
             section really exists; that's already done when this method is
             called.
-        @param section: The name of the item to look for.
-        @type section: C{unicode}
-        @param section: The name of the section that may include the item.
-        @type section: C{unicode}
-        @return: Whether the C{item} is included in C{section} or not.
-        @rtype: C{bool}
-        @raise SourceError: If there was a problem with the source.
         
         """
         raise NotImplementedError()
         
     def _create_section(self, section):
         """
-        Add C{section} to the source.
+        Add ``section`` to the source.
         
-        @attention: When implementing this method, don't check whether the
+        :param section: The section name.
+        :type section: unicode
+        :raise SourceError: If the section could not be added.
+        
+        .. attention:: 
+            When implementing this method, don't check whether the
             section already exists; that's already done when this method is
             called.
-        @param section: The section name.
-        @type section: C{unicode}
-        @raise SourceError: If the section could not be added.
         
         """
         raise NotImplementedError()
         
     def _edit_section(self, section, new_section):
         """
-        Edit C{section}'s properties.
+        Edit ``section``'s properties.
         
-        @attention: When implementing this method, don't check whether the
+        :param section: The current name of the section.
+        :type section: unicode
+        :param new_section: The new name of the section.
+        :type new_section: unicode
+        :raise SourceError: If the section could not be edited.
+        
+        .. attention:: 
+            When implementing this method, don't check whether the
             section really exists; that's already done when this method is
             called.
-        @param section: The current name of the section.
-        @type section: C{unicode}
-        @param new_section: The new name of the section.
-        @type new_section: C{unicode}
-        @raise SourceError: If the section could not be edited.
         
         """
         raise NotImplementedError()
         
     def _delete_section(self, section):
         """
-        Delete C{section}.
+        Delete ``section``.
         
-        It removes the C{section} from the source.
+        It removes the ``section`` from the source.
         
-        @attention: When implementing this method, don't check whether the
+        :param section: The name of the section to be deleted.
+        :type section: unicode
+        :raise SourceError: If the section could not be deleted.
+        
+        .. attention:: 
+            When implementing this method, don't check whether the
             section really exists; that's already done when this method is
             called.
-        @param section: The name of the section to be deleted.
-        @type section: C{unicode}
-        @raise SourceError: If the section could not be deleted.
         
         """
         raise NotImplementedError()
     
     def _section_exists(self, section):
         """
-        Check whether C{section} is defined in the source.
+        Check whether ``section`` is defined in the source.
         
-        @param section: The name of the section to check.
-        @type section: C{unicode}
-        @return: Whether the C{section} is the defined in the source or not.
-        @rtype: C{bool}
-        @raise SourceError: If there was a problem with the source.
+        :param section: The name of the section to check.
+        :type section: unicode
+        :return: Whether the section is the defined in the source or not.
+        :rtype: bool
+        :raise SourceError: If there was a problem with the source.
         
         """
         raise NotImplementedError()
@@ -545,12 +590,24 @@ class BaseSourceAdapter(object):
 
 
 class AdapterError(Exception):
-    """Base exception for problems the source adapters."""
+    """
+    Base exception for problems the source adapters.
+    
+    It's never raised directly.
+    
+    """
     pass
 
 
 class SourceError(AdapterError):
-    """Exception for problems with the source itself."""
+    """
+    Exception for problems with the source itself.
+    
+    .. attention::
+        If you are creating a :term:`source adapter`, this is the only
+        exception you should raise.
+    
+    """
     pass
 
 
