@@ -36,12 +36,13 @@ class Predicate(object):
         """
         Create a predicate and use C{msg} as the error message if it fails.
         
-        @param msg: The error message.
+        @param msg: The predicate message.
         @type msg: C{str}
         
         """
         if msg:
             self.message = msg
+        self.error = ''
     
     def _eval_with_environ(self, environ):
         """
@@ -63,8 +64,9 @@ class Predicate(object):
         if self._eval_with_environ(environ):
             return True
         else:
+            self.error = self.message % self.__dict__
             if errors is not None:
-                errors.append(self.message % self.__dict__)
+                errors.append(self.error)
             return False
 
 
@@ -83,7 +85,8 @@ class Not(Predicate):
     """
     message = u"The condition must not be met"
 
-    def __init__(self, predicate):
+    def __init__(self, predicate, **kwargs):
+        super(Not, self).__init__(**kwargs)
         self.predicate = predicate
     
     def _eval_with_environ(self, environ):
@@ -121,7 +124,7 @@ class Any(CompoundPredicate):
 
 
 class is_user(Predicate):
-    """Predicate for checking if the username matches..."""
+    """Predicate for checking if the username matches"""
     
     message = u"The current user must be %(user_name)s"
 

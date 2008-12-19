@@ -54,10 +54,10 @@ Unless mentioned otherwise, the following features are available in
   to other things in your package (e.g., only allow access to a database table
   if the current user is the admin).
 * Your application's `groups` and `permissions` may be stored in an SQLAlchemy
-  managed database, thanks to the SQL plugin (:mod:`repoze.what.plugins.sql`).
-* The only requirement is that you use the powerful and extensible `repoze.who
-  <http://static.repoze.org/whodocs/>`_ authentication framework (which
-  is configured for you by :mod:`repoze.what`).
+  or Elixir-managed database, in ``.ini`` files or in XML files.
+* The only requirement is that you use the powerful and extensible 
+  :mod:`repoze.who` authentication framework (which can be configured for you 
+  with the :mod:`quickstart <repoze.what.plugins.quickstart` plugin).
 * `It's not hard to get started!`
 
 
@@ -81,8 +81,7 @@ we *will* have official plugins to:
 * Enable a highly extensible `CAPTCHA <http://en.wikipedia.org/wiki/CAPTCHA>`_
   driven authorization mechanism to restrict access to a given resource 
   (possibly the hardest to create plugin).
-* Store groups in ``Htgroups`` and XML files.
-* Store permissions in XML files.
+* Store groups in ``Htgroups``.
 
 
 .. _install:

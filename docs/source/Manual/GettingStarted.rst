@@ -133,28 +133,53 @@ say, ``{yourproject}.config.middleware`` and called, say, ``add_auth``. Then
 that function may look like this::
 
     def add_auth(app):
+        """
+        Add authentication and authorization middleware to the ``app``.
+        
+        :param app: The WSGI application.
+        :return: The same WSGI application, with authentication and
+            authorization middleware.
+        
+        People will login using HTTP Authentication and their credentials are
+        kept in an ``Htpasswd`` file. For authorization through repoze.what,
+        we load our groups stored in an ``Htgroups`` file and our permissions
+        stored in an ``.ini`` file.
+        
+        """
+    
+        from repoze.who.plugins.basicauth import BasicAuthPlugin
         from repoze.who.plugins.htpasswd import HTPasswdPlugin, crypt_check
+        
         from repoze.what.middleware import setup_auth
-        # Please note that the plugins below have not been created yet; want to
-        # jump in?
+        from repoze.what.plugins.ini import INIPermissionsAdapter
+        # Please note that the Htgroups plugins has not been created yet; want 
+        # to jump in?
         from repoze.what.plugins.htgroups import HtgroupsAdapter
-        from repoze.what.plugins.ini import IniPermissionAdapter
 
         # Defining the group adapters; you may add as much as you need:
         groups = {'all_groups': HtgroupsAdapter('/path/to/groups.htgroups')}
 
         # Defining the permission adapters; you may add as much as you need:
-        permissions = {'all_perms': IniPermissionAdapter('/path/to/perms.ini')}
+        permissions = {'all_perms': INIPermissionsAdapter('/path/to/perms.ini')}
+        
+        # repoze.who identifiers; you may add as much as you need:
+        basicauth = BasicAuthPlugin('Private web site')
+        identifiers = [('basicauth', basicauth)]
 
         # repoze.who authenticators; you may add as much as you need:
         htpasswd_auth = HTPasswdPlugin('/path/to/users.htpasswd', crypt_check)
         authenticators = [('htpasswd', htpasswd_auth)]
 
+        # repoze.who challengers; you may add as much as you need:
+        challengers = [('basicauth', basicauth)]
+
         app_with_auth = setup_auth(
             app,
             groups,
             permissions,
-            authenticators)
+            identifiers=identifiers,
+            authenticators=authenticators,
+            challengers=challengers)
         return app_with_auth
 
 Of course, there are other things you may customize, such as adding

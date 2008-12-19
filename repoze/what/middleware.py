@@ -37,6 +37,10 @@ class AuthorizationMetadata(object):
     repoze.who metadata provider to load groups and permissions data for
     the current user.
     
+    There's no need to include this class in the end-user documentation,
+    as there's no reason why they may ever need it... It's only by
+    :func:`setup_auth`.
+    
     """
     
     implements(IMetadataProvider)
@@ -45,12 +49,12 @@ class AuthorizationMetadata(object):
         """
         Fetch the groups and permissions of the authenticated user.
         
-        @param group_adapters: Set of adapters that retrieve the known groups
+        :param group_adapters: Set of adapters that retrieve the known groups
             of the application, each identified by a keyword.
-        @type group_adapters: C{dict}
-        @param permission_adapters: Set of adapters that retrieve the
+        :type group_adapters: dict
+        :param permission_adapters: Set of adapters that retrieve the
             permissions for the groups, each identified by a keyword.
-        @type permission_adapters: C{dict}
+        :type permission_adapters: dict
         
         """
         self.group_adapters = group_adapters
@@ -59,10 +63,10 @@ class AuthorizationMetadata(object):
     def add_metadata(self, environ, identity):
         """
         Load the groups and permissions of the authenticated user into the
-        repoze.who identity.
+        :mod:`repoze.who` identity.
         
-        @param environ: The WSGI environment.
-        @param identity: The repoze.who's identity dictionary.
+        :param environ: The WSGI environment.
+        :param identity: The :mod:`repoze.who`'s identity dictionary.
         
         """
         logger = environ.get('repoze.who.logger')
@@ -85,16 +89,64 @@ class AuthorizationMetadata(object):
 
 def setup_auth(app, group_adapters, permission_adapters, **who_args):
     """
-    Setup repoze.who with repoze.what.
+    Setup :mod:`repoze.who` with :mod:`repoze.what` support.
     
-    Additional keyword arguments will be passed to repoze.who's
-    PluggableAuthenticationMiddleware.
+    :param app: The WSGI application object.
+    :param group_adapters: The group source adapters to be used.
+    :type group_adapters: dict
+    :param permission_adapters: The permission source adapters to be used.
+    :type permission_adapters: dict
+    :param who_args: Authentication-related keyword arguments to be passed to
+        :mod:`repoze.who`.
+    :return: The WSGI application with authentication and authorization
+        middleware.
     
-    @param app: The WSGI application object.
-    @param group_adapters: The group source adapters to be used.
-    @type group_adapters: C{dict}
-    @param permission_adapters: The permission source adapters to be used.
-    @type permission_adapters: C{dict}
+    .. tip::
+        If you are looking for an easier way to get started, you may want to
+        use :mod:`the quickstart plugin <repoze.what.plugins.quickstart>` and
+        its :func:`setup_sql_auth() 
+        <repoze.what.plugins.quickstart.setup_sql_auth>` function.
+    
+    Additional keyword arguments will be passed to
+    :class:`repoze.who.middleware.PluggableAuthenticationMiddleware` -- and
+    among those keyword arguments, you *must* define at least the identifier(s),
+    authenticator(s) and challenger(s) to be used. For example::
+        
+        from repoze.who.plugins.basicauth import BasicAuthPlugin
+        from repoze.who.plugins.htpasswd import HTPasswdPlugin, crypt_check
+        
+        from repoze.what.middleware import setup_auth
+        from repoze.what.plugins.xml import XMLGroupsAdapter
+        from repoze.what.plugins.ini import INIPermissionAdapter
+
+        # Defining the group adapters; you may add as much as you need:
+        groups = {'all_groups': XMLGroupsAdapter('/path/to/groups.xml')}
+
+        # Defining the permission adapters; you may add as much as you need:
+        permissions = {'all_perms': INIPermissionAdapter('/path/to/perms.ini')}
+
+        # repoze.who identifiers; you may add as much as you need:
+        basicauth = BasicAuthPlugin('Private web site')
+        identifiers = [('basicauth', basicauth)]
+
+        # repoze.who authenticators; you may add as much as you need:
+        htpasswd_auth = HTPasswdPlugin('/path/to/users.htpasswd', crypt_check)
+        authenticators = [('htpasswd', htpasswd_auth)]
+
+        # repoze.who challengers; you may add as much as you need:
+        challengers = [('basicauth', basicauth)]
+
+        app_with_auth = setup_auth(
+            app,
+            groups,
+            permissions,
+            identifiers=identifiers,
+            authenticators=authenticators,
+            challengers=challengers)
+    
+    .. attention::
+        Keep in mind that :mod:`repoze.who` must be configured `through`
+        :mod:`repoze.what` for authorization to work.
     
     """
     authorization = AuthorizationMetadata(group_adapters,

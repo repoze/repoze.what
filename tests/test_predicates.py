@@ -89,6 +89,14 @@ class TestNotPredicate(unittest.TestCase):
         p = predicates.Not(LessThan(5))
         # It's greater than 5!
         self.assertTrue(p.eval_with_environ(environ, None))
+    
+    def test_custom_message(self):
+        environ = {'test_number': 4}
+        # It must not be greater than 5
+        p = predicates.Not(EqualsFour(), msg='It must not equal four')
+        # It's greater than 5!
+        self.assertFalse(p.eval_with_environ(environ, None))
+        self.assertEqual(p.error, 'It must not equal four')
 
 
 class TestAllPredicate(unittest.TestCase):

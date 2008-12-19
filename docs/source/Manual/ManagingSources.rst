@@ -39,10 +39,9 @@ groups defined in a database, you can use::
 
 Or to manage the permissions defined in an XML file, you could use::
 
-    # Please note that the XML plugin has not been created as of this writing.
-    from repoze.what.plugins.xml import XmlGroupsAdapter
+    from repoze.what.plugins.xml import XMLGroupsAdapter
     
-    permissions = XmlGroupsAdapter('/path/to/permissions.xml')
+    permissions = XMLGroupsAdapter('/path/to/permissions.xml')
 
 .. tip::
 

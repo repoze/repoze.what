@@ -1,9 +1,18 @@
-**********************************************************
-:mod:`repoze.what` and :mod:`repoze.what.plugins` releases
-**********************************************************
+***************************
+:mod:`repoze.what` releases
+***************************
 
-This document describes the releases of :mod:`repoze.what` and its 
-official/unofficial plugins.
+This document describes the releases of :mod:`repoze.what`.
+
+
+.. _repoze.what-1.0rc2:
+
+:mod:`repoze.what` 1.0rc2 (*unreleased*)
+========================================
+
+* Fixed the constructor of the :class:`Not <repoze.what.predicates.Not>`
+  predicate, which didn't call its parent and therefore it was not possible
+  to specify a custom message.
 
 
 .. _repoze.what-1.0rc1:
@@ -54,20 +63,6 @@ Backwards-incompatible changes
       is normally used by :func:`repoze.what.plugins.quickstart.setup_sql_auth`.
 
 
-.. _repoze.what-sql-1.0b1:
-
-:mod:`repoze.what.plugins.sql` 1.0a2 (2008-12-04)
-=================================================
-
-* Fixed the broken test suite for Elixir, thanks to Helio Pereira.
-* Updated :func:`repoze.what.plugins.quickstart.setup_sql_auth` according
-  to the backwards incompatible change on
-  :func:`repoze.what.middleware.setup_auth` introduced in
-  :ref:`repoze.what-1.0b2`.
-* Now it's possible to customize the authentication/identification cookie
-  through :func:`repoze.what.plugins.quickstart.setup_sql_auth`.
-* Tons of minor bug fixes.
-
 .. _repoze.what-1.0b1:
 
 :mod:`repoze.what` 1.0b1 (2008-11-26)
@@ -117,7 +112,6 @@ a Repoze project in order to make it available in arbitrary WSGI applications.
 * Log messages are no longer sent to standard output if the ``WHO_LOG``
   environment variable is defined, but with ``AUTH_LOG``.
 * Now :mod:`repoze.what` uses logging internally to ease debugging.
-
 
 Backwards-incompatible changes
 ------------------------------

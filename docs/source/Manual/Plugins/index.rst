@@ -51,18 +51,40 @@ There are three types of plugins:
 The classification above is not mutually exclusive: If a plugin provides
 :term:`adapters <source adapter>`, :term:`predicate checkers 
 <predicate checker>` and extra functionality, then it can be referred to as 
-"a predicates, adapters and extras plugin". For instance, the SQL plugin 
-is both an adapters and extras plugin.
+"a predicates, adapters and extras plugin". For instance, the :mod:`SQL plugin
+<repoze.what.plugins.sql>` is both an adapters and extras plugin because
+it provides the :mod:`quickstart <repoze.what.plugins.quickstart>` plugin.
 
-The documentation for the following plugins is currently available here:
+Available :term:`adapters plugins <adapters plugin>`
+====================================================
 
-.. toctree::
-    :maxdepth: 2
+============================== ================ =============== ================ ====================
+      Plugin name                 Source type    Write support   Groups adapter   Permissions adapter
+============================== ================ =============== ================ ====================
+repoze.what.plugins.ini [#f1]_  ``.ini`` files        No               Yes                Yes
+:mod:`repoze.what.plugins.sql`       SQL             Yes               Yes                Yes
+:mod:`repoze.what.plugins.xml`     XML files         Yes               Yes                Yes
+============================== ================ =============== ================ ====================
 
-    SQL
 
-Links
-=====
+Available :term:`predicates plugins <predicates plugin>`
+========================================================
 
-* `repoze.what Ini plugin <http://pypi.python.org/pypi/repoze.what.plugins.ini>`_,
-  written by José Dinuncio. It's an :term:`adapters plugin`.
+None, yet.
+
+
+Available :term:`extras plugins <extras plugin>`
+================================================
+
+====================================== ===========================================================================================================
+             Plugin name                  Description
+====================================== ===========================================================================================================
+:mod:`repoze.what.plugins.quickstart`   Pre-configured authentication system to get started with :mod:`repoze.who` and :mod:`repoze.what` quickly
+====================================== ===========================================================================================================
+
+
+.. rubric:: Footnotes
+
+.. [#f1] `repoze.what Ini plugin 
+    <http://github.com/jdinuncio/repoze.what.plugins.ini/wikis>`_, written by 
+    José Dinuncio.
