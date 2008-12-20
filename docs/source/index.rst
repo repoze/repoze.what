@@ -56,7 +56,8 @@ Unless mentioned otherwise, the following features are available in
   authorization on action controllers, you can also use it to restrict access
   to other things in your package (e.g., only allow access to a database table
   if the current user is the admin).
-* Your application's `groups` and `permissions` may be stored in an SQLAlchemy
+* If you use the groups/permissions-based authorization pattern, your
+  application's `groups` and `permissions` may be stored in an SQLAlchemy
   or Elixir-managed database, in ``.ini`` files or in XML files (although
   you may also create your own :mod:`adapters <repoze.what.adapters>`!).
 * The only requirement is that you use the powerful and extensible 

@@ -7,8 +7,8 @@ This document describes the releases of :mod:`repoze.what`.
 
 .. _repoze.what-1.0rc2:
 
-:mod:`repoze.what` 1.0rc2 (*unreleased*)
-========================================
+:mod:`repoze.what` 1.0rc2 (2008-12-20)
+======================================
 
 * Fixed the constructor of the :class:`Not <repoze.what.predicates.Not>`
   predicate, which didn't call its parent and therefore it was not possible
