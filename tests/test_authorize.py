@@ -54,8 +54,8 @@ class TestAuthorizationChecker(unittest.TestCase):
         except authorize.NotAuthorizedError, e:
             self.assertEqual(str(e), "Go away!")
             # Testing the logs:
-            warnings = logger.messages['warning']
-            assert "Authorization denied: Go away!" == warnings[0]
+            info = logger.messages['info']
+            assert "Authorization denied: Go away!" == info[0]
 
 
 class TestNotAuthorizedError(unittest.TestCase):
