@@ -37,16 +37,14 @@ class TestPredicate(unittest.TestCase):
     def test_errors_are_added_if_required(self):
         p = EqualsTwo()
         environ = {'test_number': 3}
-        errors = []
-        p.eval_with_environ(environ, errors)
-        self.assertEqual(errors, [p.message % p.__dict__])
+        p.eval_with_environ(environ)
+        self.assertEqual(p.error, p.message % p.__dict__)
     
     def test_errors_arent_added_if_not_required(self):
         p = EqualsTwo()
-        environ = {'test_number': 4}
-        errors = None
-        p.eval_with_environ(environ, errors)
-        self.assertEqual(errors, None)
+        environ = {'test_number': 2}
+        p.eval_with_environ(environ)
+        self.assertEqual(p.error, '')
     
     def test_message_is_changeable(self):
         previous_msg = EqualsTwo.message
@@ -81,21 +79,23 @@ class TestNotPredicate(unittest.TestCase):
         # It must not be greater than 5
         p = predicates.Not(EqualsFour())
         # It's greater than 5!
-        self.assertFalse(p.eval_with_environ(environ, None))
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error, 'The condition must not be met')
     
     def test_failure(self):
         environ = {'test_number': 7}
         # It must not be less than 5
         p = predicates.Not(LessThan(5))
         # It's greater than 5!
-        self.assertTrue(p.eval_with_environ(environ, None))
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
     
     def test_custom_message(self):
         environ = {'test_number': 4}
         # It must not be greater than 5
         p = predicates.Not(EqualsFour(), msg='It must not equal four')
         # It's greater than 5!
-        self.assertFalse(p.eval_with_environ(environ, None))
+        self.assertFalse(p.eval_with_environ(environ))
         self.assertEqual(p.error, 'It must not equal four')
 
 
@@ -104,33 +104,32 @@ class TestAllPredicate(unittest.TestCase):
     def test_one_true(self):
         environ = {'test_number': 2}
         p = predicates.All(EqualsTwo())
-        self.assertTrue(p.eval_with_environ(environ, None))
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
         
     def test_one_false(self):
         environ = {'test_number': 3}
         p = predicates.All(EqualsTwo())
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error, "Number 3 doesn't equal 2")
     
     def test_two_true(self):
         environ = {'test_number': 4}
         p = predicates.All(EqualsFour(), GreaterThan(3))
-        self.assertTrue(p.eval_with_environ(environ, None))
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
     
     def test_two_false(self):
         environ = {'test_number': 1}
         p = predicates.All(EqualsFour(), GreaterThan(3))
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error, "Number 1 doesn't equal 4")
     
     def test_two_mixed(self):
         environ = {'test_number': 5}
         p = predicates.All(EqualsFour(), GreaterThan(3))
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error, "Number 5 doesn't equal 4")
 
 
 class TestAnyPredicate(unittest.TestCase):
@@ -138,31 +137,37 @@ class TestAnyPredicate(unittest.TestCase):
     def test_one_true(self):
         environ = {'test_number': 2}
         p = predicates.Any(EqualsTwo())
-        self.assertTrue(p.eval_with_environ(environ, None))
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
         
     def test_one_false(self):
         environ = {'test_number': 3}
         p = predicates.Any(EqualsTwo())
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error,
+                         "At least one of the following predicates must be "
+                         "met: Number 3 doesn't equal 2")
     
     def test_two_true(self):
         environ = {'test_number': 4}
         p = predicates.Any(EqualsFour(), GreaterThan(3))
-        self.assertTrue(p.eval_with_environ(environ, None))
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
     
     def test_two_false(self):
         environ = {'test_number': 1}
         p = predicates.Any(EqualsFour(), GreaterThan(3))
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error,
+                         "At least one of the following predicates must be "
+                         "met: Number 1 doesn't equal 4, 1 is not greater "
+                         "than 3")
     
     def test_two_mixed(self):
         environ = {'test_number': 5}
         p = predicates.Any(EqualsFour(), GreaterThan(3))
-        self.assertTrue(p.eval_with_environ(environ, None))
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
 
 
 class TestIsUserPredicate(unittest.TestCase):
@@ -170,30 +175,26 @@ class TestIsUserPredicate(unittest.TestCase):
     def test_user_without_identity(self):
         environ = {}
         p = predicates.is_user('gustavo')
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error, 'The current user must be "gustavo"')
     
     def test_user_without_userid(self):
         environ = {'repoze.who.identity': {}}
         p = predicates.is_user('gustavo')
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error, 'The current user must be "gustavo"')
     
     def test_right_user(self):
         environ = make_environ('gustavo')
         p = predicates.is_user('gustavo')
-        errors = []
-        self.assertTrue(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 0)
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
     
     def test_wrong_user(self):
         environ = make_environ('andreina')
         p = predicates.is_user('gustavo')
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error, 'The current user must be "gustavo"')
 
 
 class TestInGroupPredicate(unittest.TestCase):
@@ -201,16 +202,15 @@ class TestInGroupPredicate(unittest.TestCase):
     def test_user_belongs_to_group(self):
         environ = make_environ('gustavo', ['developers'])
         p = predicates.in_group('developers')
-        errors = []
-        self.assertTrue(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 0)
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
     
     def test_user_doesnt_belong_to_group(self):
         environ = make_environ('gustavo', ['developers', 'admins'])
         p = predicates.in_group('designers')
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error,
+                         'The current user must belong to the group "designers"')
 
 
 class TestInAllGroupsPredicate(unittest.TestCase):
@@ -218,23 +218,22 @@ class TestInAllGroupsPredicate(unittest.TestCase):
     def test_user_belongs_to_groups(self):
         environ = make_environ('gustavo', ['developers', 'admins'])
         p = predicates.in_all_groups('developers', 'admins')
-        errors = []
-        self.assertTrue(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 0)
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
     
     def test_user_doesnt_belong_to_groups(self):
         environ = make_environ('gustavo', ['users', 'admins'])
         p = predicates.in_all_groups('developers', 'designers')
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error,
+                         'The current user must belong to the group "developers"')
     
     def test_user_doesnt_belong_to_one_group(self):
         environ = make_environ('gustavo', ['developers'])
         p = predicates.in_all_groups('developers', 'designers')
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error,
+                         'The current user must belong to the group "designers"')
 
 
 class TestInAnyGroupsPredicate(unittest.TestCase):
@@ -242,23 +241,22 @@ class TestInAnyGroupsPredicate(unittest.TestCase):
     def test_user_belongs_to_groups(self):
         environ = make_environ('gustavo', ['developers',' admins'])
         p = predicates.in_any_group('developers', 'admins')
-        errors = []
-        self.assertTrue(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 0)
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
     
     def test_user_doesnt_belong_to_groups(self):
         environ = make_environ('gustavo', ['users', 'admins'])
         p = predicates.in_any_group('developers', 'designers')
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error,
+                         'The member must belong to at least one of the '
+                         'following groups: developers, designers')
     
     def test_user_doesnt_belong_to_one_group(self):
         environ = make_environ('gustavo', ['designers'])
         p = predicates.in_any_group('developers', 'designers')
-        errors = []
-        self.assertTrue(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 0)
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
 
 
 class TestNotAnonymousPredicate(unittest.TestCase):
@@ -266,16 +264,15 @@ class TestNotAnonymousPredicate(unittest.TestCase):
     def test_authenticated_user(self):
         environ = make_environ('gustavo')
         p = predicates.not_anonymous()
-        errors = []
-        self.assertTrue(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 0)
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
     
     def test_anonymous_user(self):
         environ = {}
         p = predicates.not_anonymous()
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error,
+                         'The current user must have been authenticated')
 
 
 class TestHasPermissionPredicate(unittest.TestCase):
@@ -283,16 +280,14 @@ class TestHasPermissionPredicate(unittest.TestCase):
     def test_user_has_permission(self):
         environ = make_environ('gustavo', permissions=['watch-tv'])
         p = predicates.has_permission('watch-tv')
-        errors = []
-        self.assertTrue(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 0)
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
     
     def test_user_doesnt_have_permission(self):
         environ = make_environ('gustavo', permissions=['watch-tv'])
         p = predicates.has_permission('eat')
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error, 'The user must have the "eat" permission')
 
 
 class TestHasAllPermissionsPredicate(unittest.TestCase):
@@ -301,25 +296,22 @@ class TestHasAllPermissionsPredicate(unittest.TestCase):
         environ = make_environ('gustavo', permissions=['watch-tv', 'party',
                                                        'eat'])
         p = predicates.has_all_permissions('watch-tv', 'eat')
-        errors = []
-        self.assertTrue(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 0)
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
     
     def test_user_doesnt_have_permissions(self):
         environ = make_environ('gustavo', permissions=['watch-tv', 'party',
                                                        'eat'])
         p = predicates.has_all_permissions('jump', 'scream')
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error, 'The user must have the "jump" permission')
     
     def test_user_has_one_permission(self):
         environ = make_environ('gustavo', permissions=['watch-tv', 'party',
                                                        'eat'])
         p = predicates.has_all_permissions('party', 'scream')
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error, 'The user must have the "scream" permission')
 
 
 class TestUserHasAnyPermissionsPredicate(unittest.TestCase):
@@ -328,25 +320,24 @@ class TestUserHasAnyPermissionsPredicate(unittest.TestCase):
         environ = make_environ('gustavo', permissions=['watch-tv', 'party',
                                                        'eat'])
         p = predicates.has_any_permission('watch-tv', 'eat')
-        errors = []
-        self.assertTrue(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 0)
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
     
-    def test_user_doesnt_have_permissions(self):
+    def test_user_doesnt_have_all_permissions(self):
         environ = make_environ('gustavo', permissions=['watch-tv', 'party',
                                                        'eat'])
         p = predicates.has_any_permission('jump', 'scream')
-        errors = []
-        self.assertFalse(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 1)
+        self.assertFalse(p.eval_with_environ(environ))
+        self.assertEqual(p.error,
+                         'The user must have at least one of the following '
+                         'permissions: jump, scream')
     
     def test_user_has_one_permission(self):
         environ = make_environ('gustavo', permissions=['watch-tv', 'party',
                                                        'eat'])
         p = predicates.has_any_permission('party', 'scream')
-        errors = []
-        self.assertTrue(p.eval_with_environ(environ, errors))
-        self.assertEqual(len(errors), 0)
+        self.assertTrue(p.eval_with_environ(environ))
+        self.assertEqual(p.error, '')
 
 
 #{ Test utilities

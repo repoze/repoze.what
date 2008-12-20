@@ -13,6 +13,33 @@ This document describes the releases of :mod:`repoze.what`.
 * Fixed the constructor of the :class:`Not <repoze.what.predicates.Not>`
   predicate, which didn't call its parent and therefore it was not possible
   to specify a custom message.
+* From now on, predicates that are not met will have only *one* error message,
+  even in compound predicates. It didn't make sense to have a list of errors
+  and thus this behavior has been changed in this release. This will affect
+  you if you deal with :func:`repoze.what.authorize.check_authorization`
+  directly and handled the errors of
+  :class:`repoze.what.authorize.NotAuthorizedError` as in::
+  
+    try:
+        check_authorization(predicate, environ)
+    except NotAuthorizedError, exc:
+        for error in exc.errors:
+            print error
+  
+  The code above may be updated this way::
+  
+    try:
+        check_authorization(predicate, environ)
+    except NotAuthorizedError, exc:
+        print exc
+  
+  .. note::
+  
+    This doesn't affect TurboGears 2 users because TG itself deals with this
+    function and it's already updated to work with :mod:`repoze.what` 1.0rc2.
+    Keep in mind that for this release to work on TurboGears 2, you need
+    TurboGears 2 Beta 1 (not yet released as of this writing) or the latest
+    revision in the repository.
 
 
 .. _repoze.what-1.0rc1:

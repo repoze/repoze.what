@@ -39,7 +39,7 @@ class TestAuthorizationChecker(unittest.TestCase):
         p = authorize.has_any_permission('party', 'scream')
         authorize.check_authorization(p, environ)
         info = logger.messages['info']
-        assert "Subject is granted access" == info[0]
+        assert "Authorization granted" == info[0]
     
     def test_unauthorized(self):
         logger = FakeLogger()
@@ -52,19 +52,16 @@ class TestAuthorizationChecker(unittest.TestCase):
             authorize.check_authorization(p, environ)
             self.fail('Authorization must have been rejected')
         except authorize.NotAuthorizedError, e:
-            self.assertEqual(len(e.errors), 1)
+            self.assertEqual(str(e), "Go away!")
             # Testing the logs:
             warnings = logger.messages['warning']
-            assert "Subject cannot access resource: Go away!" == warnings[0]
+            assert "Authorization denied: Go away!" == warnings[0]
 
 
 class TestNotAuthorizedError(unittest.TestCase):
     """Tests for the NotAuthorizedError exception"""
     
     def test_string_representation(self):
-        messages = ['You are not the master of Universe',
-                          "Two plus two doesn't equal five"]
-        exc = authorize.NotAuthorizedError(messages)
-        assert 'Subject cannot access resource' in str(exc)
-        assert 'You are not the master of Universe' in str(exc)
-        assert "Two plus two doesn't equal five" in str(exc)
+        msg = 'You are not the master of Universe'
+        exc = authorize.NotAuthorizedError(msg)
+        self.assertEqual(msg, str(exc))

@@ -64,17 +64,19 @@ class Predicate(object):
         :raise NotImplementedError: This must be defined by the predicate
             itself.
         
+        .. attention::
+        
+            This is the method that must be overridden by descendant classes.
+        
         """
         raise NotImplementedError
     
-    def eval_with_environ(self, environ, errors=None):
+    def eval_with_environ(self, environ):
         """
         Evaluate the predicate and add the relevant error to ``errors`` if
         it's ``False``.
         
         :param environ: The WSGI environment.
-        :param errors: List of previous authorization errors.
-        :type errors: list
         :return: Whether the predicate is met or not.
         :rtype: bool
         
@@ -82,10 +84,12 @@ class Predicate(object):
         if self._eval_with_environ(environ):
             return True
         else:
-            self.error = self.message % self.__dict__
-            if errors is not None:
-                errors.append(self.error)
+            self._set_error()
             return False
+    
+    def _set_error(self):
+        """Set the error message for this predicate when it's not met."""
+        self.error = self.message % self.__dict__
 
 
 class CompoundPredicate(Predicate):
@@ -115,7 +119,7 @@ class Not(Predicate):
         self.predicate = predicate
     
     def _eval_with_environ(self, environ):
-        return not self.predicate.eval_with_environ(environ, None)
+        return not self.predicate.eval_with_environ(environ)
 
 
 class All(CompoundPredicate):
@@ -131,10 +135,11 @@ class All(CompoundPredicate):
         p = All(is_month(7), in_group('hr'))
     
     """
-    def eval_with_environ(self, environ, errors=None):
+    def eval_with_environ(self, environ):
         """Return true if all sub-predicates evaluate to true."""
         for p in self.predicates:
-            if not p.eval_with_environ(environ, errors):
+            if not p.eval_with_environ(environ):
+                self.error = p.error
                 return False
         return True
 
@@ -152,15 +157,19 @@ class Any(CompoundPredicate):
         p = Any(is_user('rms'), is_user('linus'))
     
     """
-    message = u"At least one predicate must be met"
+    message = u"At least one of the following predicates must be met: " \
+               "%(failed_predicates)s"
 
-    def eval_with_environ(self, environ, errors=None):
+    def eval_with_environ(self, environ):
         """Return true if any sub-predicate evaluates to true."""
+        errors = []
         for p in self.predicates:
-            if p.eval_with_environ(environ, None):
+            if p.eval_with_environ(environ):
                 return True
-        if errors is not None:
-            errors.append(self.message)
+            else:
+                errors.append(p.error)
+        self.failed_predicates = ', '.join(errors)
+        self._set_error()
         return False
 
 
@@ -177,7 +186,7 @@ class is_user(Predicate):
     
     """
     
-    message = u"The current user must be %(user_name)s"
+    message = u'The current user must be "%(user_name)s"'
 
     def __init__(self, user_name, **kwargs):
         super(is_user, self).__init__(**kwargs)
@@ -208,7 +217,7 @@ class in_group(Predicate):
     
     """
     
-    message = u"The current user must belong to the group %(group_name)s"
+    message = u'The current user must belong to the group "%(group_name)s"'
 
     def __init__(self, group_name, **kwargs):
         super(in_group, self).__init__(**kwargs)

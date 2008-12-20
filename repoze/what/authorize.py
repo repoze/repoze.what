@@ -25,16 +25,8 @@ class NotAuthorizedError(Exception):
     Exception raised by :func:`check_authorization` if the subject is not 
     allowed to access the request source.
     
-    :param errors: The error messages for the predicates that were not met.
-    
     """
-    
-    def __init__(self, errors):
-        super(NotAuthorizedError, self).__init__()
-        self.errors = errors
-    
-    def __str__(self):
-        return 'Subject cannot access resource: %s' % '; '.join(self.errors)
+    pass
 
 
 def check_authorization(predicate, environ):
@@ -47,9 +39,8 @@ def check_authorization(predicate, environ):
     
     """
     logger = environ.get('repoze.who.logger')
-    errors = []
-    if predicate and not predicate.eval_with_environ(environ, errors):
-        exc = NotAuthorizedError(errors)
-        logger and logger.warning(str(exc))
+    if predicate and not predicate.eval_with_environ(environ):
+        exc = NotAuthorizedError(predicate.error)
+        logger and logger.warning('Authorization denied: %s' % str(exc))
         raise exc
-    logger and logger.info('Subject is granted access')
+    logger and logger.info('Authorization granted')
