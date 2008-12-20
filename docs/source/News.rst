@@ -40,7 +40,23 @@ This document describes the releases of :mod:`repoze.what`.
     Keep in mind that for this release to work on TurboGears 2, you need
     TurboGears 2 Beta 1 (not yet released as of this writing) or the latest
     revision in the repository.
-
+* For forward compatibility, it's no longer mandatory to use the
+  groups/permissions-based authorization pattern in order to use
+  :mod:`repoze.what`. This package should support several authorization 
+  patterns and they must all be optional, such as the upcoming support for
+  roles-based authorization in :mod:`repoze.what` 1.5. As a result, now you
+  can skip the definition of group and permission adapters and use
+  :func:`repoze.what.middleware.setup_auth` as a simple proxy for
+  :class:`repoze.who.middleware.PluggableAuthenticationMiddleware`::
+  
+      app_with_auth = setup_auth(
+          app,
+          identifiers=identifiers,
+          challengers=challengers,
+          mdproviders=mdproviders,
+          classifier=classifier,
+          challenge_decider=challenge_decider
+          )
 
 .. _repoze.what-1.0rc1:
 

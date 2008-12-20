@@ -11,7 +11,8 @@
 .. topic:: Overview
 
     :mod:`repoze.what` is an `authorization framework` for WSGI applications,
-    based on :mod:`repoze.who` (which deals with `authentication`).
+    based on :mod:`repoze.who` (which deals with `authentication` and
+    `identification`).
     
     On the one hand, it enables an authorization system based on the groups to 
     which the `authenticated or anonymous` user belongs and the permissions 
@@ -23,10 +24,12 @@
     API. For example, it would be easy for you to switch from one back-end to 
     another, and even use this framework to migrate the data.
     
-    It's highly extensible, so it's very unlikely that it will get in your way.
-    Among other things, you can extend it to check for many other conditions 
-    (such as checking that the user comes from a given country, based on her IP 
-    address, for example).
+    This is just the authorization pattern it supports out-of-the-box, but you
+    can may it support other authorization patterns with your own
+    :term:`predicates <predicate>`. It's highly extensible, so it's 
+    very unlikely that it will get in your way -- Among other things, you can 
+    extend it to check for many conditions (such as checking that the 
+    user comes from a given country, based on her IP address, for example).
 
 
 Features

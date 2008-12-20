@@ -45,7 +45,7 @@ class AuthorizationMetadata(object):
     
     implements(IMetadataProvider)
     
-    def __init__(self, group_adapters, permission_adapters):
+    def __init__(self, group_adapters=None, permission_adapters=None):
         """
         Fetch the groups and permissions of the authenticated user.
         
@@ -60,6 +60,24 @@ class AuthorizationMetadata(object):
         self.group_adapters = group_adapters
         self.permission_adapters = permission_adapters
     
+    def _find_groups(self, identity):
+        """
+        Return the groups to which the authenticated user belongs, as well as
+        the permissions granted to such groups.
+        
+        """
+        groups = set()
+        permissions = set()
+        if self.group_adapters is not None:
+            # It's using groups/permissions-based authorization
+            for grp_fetcher in self.group_adapters.values():
+                groups |= set(grp_fetcher.find_sections(identity))
+            for group in groups:
+                for perm_fetcher in self.permission_adapters.values():
+                    permissions |= set(perm_fetcher.find_sections(group))
+        return tuple(groups), tuple(permissions)
+    
+    # IMetadataProvider
     def add_metadata(self, environ, identity):
         """
         Load the groups and permissions of the authenticated user into the
@@ -71,15 +89,9 @@ class AuthorizationMetadata(object):
         """
         logger = environ.get('repoze.who.logger')
         # Finding the groups and permissions:
-        groups = set()
-        permissions = set()
-        for grp_fetcher in self.group_adapters.values():
-            groups |= set(grp_fetcher.find_sections(identity))
-        for group in groups:
-            for perm_fetcher in self.permission_adapters.values():
-                permissions |= set(perm_fetcher.find_sections(group))
-        identity['groups'] = tuple(groups)
-        identity['permissions'] = tuple(permissions)
+        groups, permissions = self._find_groups(identity)
+        identity['groups'] = groups
+        identity['permissions'] = permissions
         # Logging
         logger and logger.info('User belongs to the following groups: %s' %
                                str(groups))
@@ -87,7 +99,7 @@ class AuthorizationMetadata(object):
                                str(permissions))
 
 
-def setup_auth(app, group_adapters, permission_adapters, **who_args):
+def setup_auth(app, group_adapters=None, permission_adapters=None, **who_args):
     """
     Setup :mod:`repoze.who` with :mod:`repoze.what` support.
     
@@ -106,6 +118,10 @@ def setup_auth(app, group_adapters, permission_adapters, **who_args):
         use :mod:`the quickstart plugin <repoze.what.plugins.quickstart>` and
         its :func:`setup_sql_auth() 
         <repoze.what.plugins.quickstart.setup_sql_auth>` function.
+    
+    You must define the ``group_adapters`` and ``permission_adapters``
+    keyword arguments if you want to use the groups/permissions-based
+    authorization pattern.
     
     Additional keyword arguments will be passed to
     :class:`repoze.who.middleware.PluggableAuthenticationMiddleware` -- and

@@ -101,6 +101,18 @@ class TestAuthorizationMetadata(unittest.TestCase):
     def test_implements(self):
         verifyClass(IMetadataProvider, AuthorizationMetadata, tentative=True)
     
+    def test_no_groups_and_permissions(self):
+        """Groups/permissions-based authorization is optional"""
+        environ = {}
+        identity = {'repoze.who.userid': 'whatever'}
+        # Configuring the plugin:
+        group_adapters = {'executive': FakeGroupFetcher3()}
+        permission_adapters = {'perms1': FakePermissionFetcher2()}
+        plugin = AuthorizationMetadata()
+        plugin.add_metadata(environ, identity)
+        # Testing it:
+        self._check_groups_and_permissions(plugin, (), ())
+    
     def test_logger(self):
         # Setting up logging:
         logger = FakeLogger()
@@ -198,7 +210,7 @@ class TestSetupAuth(BasePluginTester):
                (registry_key, app.name_registry[registry_key].__class__.__name__,
                 registry_type.__name__)
     
-    def _makeApp(self, **who_args):
+    def _makeApp(self, groups, permissions, **who_args):
         cookie = AuthTktCookiePlugin('secret', 'authtkt')
         
         form = RedirectingFormPlugin('/login', '/login_handler',
@@ -211,19 +223,30 @@ class TestSetupAuth(BasePluginTester):
         
         challengers = [('form', form)]
         
-        app_with_auth = setup_auth(
-            DummyApp(),
-            [FakeGroupSourceAdapter()],
-            [FakePermissionSourceAdapter()],
-            identifiers=identifiers,
-            authenticators=authenticators,
-            challengers=challengers,
-            **who_args
-            )
+        if groups is None:
+            app_with_auth = setup_auth(
+                DummyApp(),
+                identifiers=identifiers,
+                authenticators=authenticators,
+                challengers=challengers,
+                **who_args
+                )
+        else:
+            app_with_auth = setup_auth(
+                DummyApp(),
+                groups,
+                permissions,
+                identifiers=identifiers,
+                authenticators=authenticators,
+                challengers=challengers,
+                **who_args
+                )
         return app_with_auth
 
     def test_no_extras(self):
-        app = self._makeApp()
+        groups = [FakeGroupSourceAdapter()]
+        permissions = [FakePermissionSourceAdapter()]
+        app = self._makeApp(groups, permissions)
         self._in_registry(app, 'main_identifier', RedirectingFormPlugin)
         self._in_registry(app, 'authorization_md', AuthorizationMetadata)
         self._in_registry(app, 'cookie', AuthTktCookiePlugin)
@@ -237,6 +260,18 @@ class TestSetupAuth(BasePluginTester):
     
     def test_with_auth_log(self):
         os.environ['AUTH_LOG'] = '1'
-        app = self._makeApp()
+        groups = [FakeGroupSourceAdapter()]
+        permissions = [FakePermissionSourceAdapter()]
+        app = self._makeApp(groups, permissions)
+    
+    def test_no_groups_and_permissions(self):
+        """Groups/permissions-based authorization must be optional"""
+        groups = None
+        permissions = None
+        app = self._makeApp(groups, permissions)
+        self._in_registry(app, 'authorization_md', AuthorizationMetadata)
+        authorization_md = app.name_registry['authorization_md']
+        self.assertEqual(authorization_md.group_adapters, None)
+        self.assertEqual(authorization_md.permission_adapters, None)
 
 #}
