@@ -5,6 +5,16 @@
 This document describes the releases of :mod:`repoze.what`.
 
 
+.. _repoze.what-1.0rc3:
+
+:mod:`repoze.what` 1.0rc3 (*unreleased*)
+========================================
+
+* Fixed a problem with unicode support in
+  :func:`repoze.what.authorize.check_authorization`, reported by Chen Houwu on
+  TurboGears mailing list.
+
+
 .. _repoze.what-1.0rc2:
 
 :mod:`repoze.what` 1.0rc2 (2008-12-20)

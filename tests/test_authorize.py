@@ -56,6 +56,23 @@ class TestAuthorizationChecker(unittest.TestCase):
             # Testing the logs:
             info = logger.messages['info']
             assert "Authorization denied: Go away!" == info[0]
+    
+    def test_unauthorized_with_unicode_message(self):
+        unicode_msg = u'请登陆'
+        logger = FakeLogger()
+        environ = make_environ('gustavo', permissions=['watch-tv', 'party',
+                                                       'eat'])
+        environ['repoze.who.logger'] = logger
+        p = authorize.has_any_permission('jump', 'scream',
+                                         msg=unicode_msg)
+        try:
+            authorize.check_authorization(p, environ)
+            self.fail('Authorization must have been rejected')
+        except authorize.NotAuthorizedError, e:
+            self.assertEqual(unicode(e), unicode_msg)
+            # Testing the logs:
+            info = logger.messages['info']
+            assert "Authorization denied: %s" % unicode_msg == info[0]
 
 
 class TestNotAuthorizedError(unittest.TestCase):

@@ -56,6 +56,13 @@ class TestPredicate(unittest.TestCase):
         previous_msg = EqualsTwo.message
         p = EqualsTwo()
         self.assertEqual(previous_msg, p.message)
+    
+    def test_unicode_messages(self):
+        unicode_msg = u'请登陆'
+        p = EqualsTwo(msg=unicode_msg)
+        environ = {'test_number': 3}
+        p.eval_with_environ(environ)
+        self.assertEqual(p.error, unicode_msg)
 
 
 class TestCompoundPredicate(unittest.TestCase):
