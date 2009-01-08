@@ -80,8 +80,10 @@ class AuthorizationMetadata(object):
     # IMetadataProvider
     def add_metadata(self, environ, identity):
         """
-        Load the groups and permissions of the authenticated user into the
-        :mod:`repoze.who` and :mod:`repoze.what` identity dictionaries.
+        Load the groups and permissions of the authenticated user.
+        
+        It will load such data into the :mod:`repoze.who` ``identity`` and 
+        the :mod:`repoze.what` ``credentials`` dictionaries.
         
         :param environ: The WSGI environment.
         :param identity: The :mod:`repoze.who`'s identity dictionary.
@@ -94,10 +96,10 @@ class AuthorizationMetadata(object):
         identity['permissions'] = permissions
         # Adding the groups and permissions to the repoze.what identity for
         # forward compatibility:
-        if 'repoze.what.identity' not in environ:
-            environ['repoze.what.identity'] = {}
-        environ['repoze.what.identity']['groups'] = groups
-        environ['repoze.what.identity']['permissions'] = permissions
+        if 'repoze.what.credentials' not in environ:
+            environ['repoze.what.credentials'] = {}
+        environ['repoze.what.credentials']['groups'] = groups
+        environ['repoze.what.credentials']['permissions'] = permissions
         # Logging
         logger and logger.info('User belongs to the following groups: %s' %
                                str(groups))

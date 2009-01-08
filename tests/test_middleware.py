@@ -98,10 +98,10 @@ class TestAuthorizationMetadata(unittest.TestCase):
         self.assertEqual(set(identity['groups']), set(expected_groups))
         self.assertEqual(set(identity['permissions']),
                          set(expected_permissions))
-        # Ensure the repoze.what.identity environ key is set:
-        assert 'repoze.what.identity' in environ, \
+        # Ensure the repoze.what.credentials environ key is set:
+        assert 'repoze.what.credentials' in environ, \
                'The repoze.what identity is not set'
-        what_identity = environ['repoze.what.identity']
+        what_identity = environ['repoze.what.credentials']
         self.assertEqual(set(what_identity['groups']), set(expected_groups))
         self.assertEqual(set(what_identity['permissions']),
                          set(expected_permissions))
