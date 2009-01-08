@@ -92,10 +92,18 @@ class TestAuthorizationMetadata(unittest.TestCase):
     def _check_groups_and_permissions(self, plugin, expected_groups,
                                       expected_permissions):
         identity = {'repoze.who.userid': 'whatever'}
-        plugin.add_metadata(dict(), identity)
+        environ = {}
+        plugin.add_metadata(environ, identity)
         # Using sets to forget about order:
         self.assertEqual(set(identity['groups']), set(expected_groups))
         self.assertEqual(set(identity['permissions']),
+                         set(expected_permissions))
+        # Ensure the repoze.what.identity environ key is set:
+        assert 'repoze.what.identity' in environ, \
+               'The repoze.what identity is not set'
+        what_identity = environ['repoze.what.identity']
+        self.assertEqual(set(what_identity['groups']), set(expected_groups))
+        self.assertEqual(set(what_identity['permissions']),
                          set(expected_permissions))
 
     def test_implements(self):

@@ -13,6 +13,11 @@ This document describes the releases of :mod:`repoze.what`.
 * Fixed a problem with unicode support in
   :func:`repoze.what.authorize.check_authorization`, reported by Chen Houwu on
   TurboGears mailing list.
+* Added the current user's groups and permissions to the newly-created
+  ``environ['repoze.what.identity']`` dictionary for forward compatibility with
+  :mod:`repoze.what` v2. Such values are still defined in the :mod:`repoze.who`
+  identity dictionary, but its use is highly discouraged as of this release.
+  See :mod:`repoze.what.middleware`.
 
 
 .. _repoze.what-1.0rc2:
