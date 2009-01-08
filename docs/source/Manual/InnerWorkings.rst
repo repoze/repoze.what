@@ -24,7 +24,7 @@ authorization-related data in the :mod:`repoze.who` ``identity`` and the
     In :mod:`repoze.what` v2, the groups and permissions will only be loaded
     in the :mod:`repoze.what` ``credentials`` dictionary 
     (``environ['repoze.what.credentials']``). So you are encouraged not to 
-    access this data from the :mod:`repoze.who` ``identity`` -- if you do, 
+    access this data from the :mod:`repoze.who` ``identity`` -- if you do so, 
     you will have to update your code when you want to upgrade to v2.
 
 .. autofunction:: setup_auth
