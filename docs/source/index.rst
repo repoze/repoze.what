@@ -63,6 +63,7 @@ Unless mentioned otherwise, the following features are available in
 * The only requirement is that you use the powerful and extensible 
   :mod:`repoze.who` authentication framework (which can be configured for you 
   with the :mod:`quickstart <repoze.what.plugins.quickstart` plugin).
+* It works with Python 2.4, 2.5 and 2.6.
 * `It's not hard to get started!`
 
 
