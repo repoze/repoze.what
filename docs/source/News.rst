@@ -18,6 +18,7 @@ This document describes the releases of :mod:`repoze.what`.
   with :mod:`repoze.what` v2. Such values are still defined in the 
   :mod:`repoze.who` ``identity`` dictionary, but its use is highly discouraged 
   as of this release. See :mod:`repoze.what.middleware`.
+* Applied work-around to fix Python v2.4 and v2.5 support.
 
 
 .. _repoze.what-1.0rc2:

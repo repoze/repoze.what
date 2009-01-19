@@ -58,6 +58,9 @@ class TestAuthorizationChecker(unittest.TestCase):
             assert "Authorization denied: Go away!" == info[0]
     
     def test_unauthorized_with_unicode_message(self):
+        # This test is broken on Python 2.4 and 2.5 because the unicode()
+        # function doesn't work when converting an exception into an unicode
+        # string (this is, to extract its message).
         unicode_msg = u'请登陆'
         logger = FakeLogger()
         environ = make_environ('gustavo', permissions=['watch-tv', 'party',
