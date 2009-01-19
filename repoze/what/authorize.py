@@ -41,6 +41,6 @@ def check_authorization(predicate, environ):
     logger = environ.get('repoze.who.logger')
     if predicate and not predicate.eval_with_environ(environ):
         exc = NotAuthorizedError(predicate.error)
-        logger and logger.info('Authorization denied: %s' % unicode(exc))
+        logger and logger.info('Authorization denied: %s' % predicate.error)
         raise exc
     logger and logger.info('Authorization granted')
