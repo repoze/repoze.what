@@ -28,10 +28,10 @@ version = open(os.path.join(here, 'VERSION.txt')).readline().rstrip()
 
 setup(name='repoze.what',
       version=version,
-      description=('Authorization for WSGI applications'),
+      description=('Authorization framework for WSGI applications'),
       long_description=README,
       classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "Operating System :: OS Independent",
@@ -41,7 +41,7 @@ setup(name='repoze.what',
         "Topic :: Security",
         "Topic :: Software Development :: Libraries :: Application Frameworks"
         ],
-      keywords='authorization web application server wsgi',
+      keywords='authorization web application server wsgi repoze',
       author="Gustavo Narea",
       author_email="repoze-dev@lists.repoze.org",
       namespace_packages = ['repoze', 'repoze.what', 'repoze.what.plugins'],
