@@ -10,6 +10,10 @@ This document describes the releases of :mod:`repoze.what`.
 :mod:`repoze.what` 1.0 (2009-01-19)
 ===================================
 
+This is the first stable release of :mod:`repoze.what` and it was announced
+on the `Repoze blog 
+<http://blog.repoze.org/repoze-what-1-dot-oh-20090119.html>`_.
+
 * Fixed a problem with unicode support in
   :func:`repoze.what.authorize.check_authorization`, reported by Chen Houwu on
   TurboGears mailing list.
