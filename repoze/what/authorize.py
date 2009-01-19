@@ -23,7 +23,7 @@ from repoze.what.predicates import *
 class NotAuthorizedError(Exception):
     """
     Exception raised by :func:`check_authorization` if the subject is not 
-    allowed to access the request source.
+    allowed to access the requested source.
     
     """
     pass
