@@ -80,6 +80,7 @@ Available :term:`extras plugins <extras plugin>`
              Plugin name                  Description
 ====================================== ===========================================================================================================
 :mod:`repoze.what.plugins.quickstart`   Pre-configured authentication system to get started with :mod:`repoze.who` and :mod:`repoze.what` quickly
+repoze.what.plugins.config [#f2]_       Configure :mod:`repoze.what` from an ``Ini`` file with Paste Deploy.
 ====================================== ===========================================================================================================
 
 
@@ -88,3 +89,8 @@ Available :term:`extras plugins <extras plugin>`
 .. [#f1] `repoze.what Ini plugin 
     <http://github.com/jdinuncio/repoze.what.plugins.ini/wikis>`_, written by 
     José Dinuncio.
+
+.. [#f2] `repoze.what Config plugin 
+    <http://github.com/jdinuncio/repoze.what.plugins.config/tree/master>`_, 
+    written by José Dinuncio.
+    
