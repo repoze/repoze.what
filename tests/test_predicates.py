@@ -179,14 +179,14 @@ class TestAnyPredicate(unittest.TestCase):
 
 class TestIsUserPredicate(unittest.TestCase):
     
-    def test_user_without_identity(self):
+    def test_user_without_credentials(self):
         environ = {}
         p = predicates.is_user('gustavo')
         self.assertFalse(p.eval_with_environ(environ))
         self.assertEqual(p.error, 'The current user must be "gustavo"')
     
     def test_user_without_userid(self):
-        environ = {'repoze.who.identity': {}}
+        environ = {'repoze.what.credentials': {}}
         p = predicates.is_user('gustavo')
         self.assertFalse(p.eval_with_environ(environ))
         self.assertEqual(p.error, 'The current user must be "gustavo"')
@@ -351,14 +351,15 @@ class TestUserHasAnyPermissionsPredicate(unittest.TestCase):
 
 
 def make_environ(user, groups=None, permissions=None):
-    """Make a WSGI enviroment with the identity dict"""
-    identity = {'repoze.who.userid': user}
+    """Make a WSGI enviroment with the credentials dict"""
+    credentials = {'repoze.what.userid': user}
     if groups:
-        identity['groups'] = groups
+        credentials['groups'] = groups
     if permissions:
-        identity['permissions'] = permissions
-    environ = {'repoze.who.identity': identity}
+        credentials['permissions'] = permissions
+    environ = {'repoze.what.credentials': credentials}
     return environ
+
 
 #{ Mock definitions
 

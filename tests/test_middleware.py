@@ -41,17 +41,17 @@ from base import FakeAuthenticator, FakeGroupSourceAdapter, \
 
 
 class FakeGroupFetcher1(object):
-    def find_sections(self, identity):
+    def find_sections(self, credentials):
         return ('directors', 'sysadmins')
 
 
 class FakeGroupFetcher2(object):
-    def find_sections(self, identity):
+    def find_sections(self, credentials):
         return ('webdesigners', 'directors')
 
 
 class FakeGroupFetcher3(object):
-    def find_sections(self, identity):
+    def find_sections(self, credentials):
         return ('graphic-designers', 'sysadmins')
 
 
@@ -82,32 +82,62 @@ class FakePermissionFetcher3(object):
 
 
 class TestAuthorizationMetadata(unittest.TestCase):
-    """Tests for the L{AuthorizationMetadata} IMetadata plugin.
+    """Tests for the ``AuthorizationMetadata`` IMetadata plugin.
     
     All of these tests, except the first one, check the behavior of the plugin
     with random groups and permission fetchers.
     
     """
     
-    def _check_groups_and_permissions(self, plugin, expected_groups,
+    def _check_groups_and_permissions(self, environ, identity, expected_groups,
                                       expected_permissions):
-        identity = {'repoze.who.userid': 'whatever'}
-        environ = {}
-        plugin.add_metadata(environ, identity)
         # Using sets to forget about order:
         self.assertEqual(set(identity['groups']), set(expected_groups))
         self.assertEqual(set(identity['permissions']),
                          set(expected_permissions))
         # Ensure the repoze.what.credentials environ key is set:
         assert 'repoze.what.credentials' in environ, \
-               'The repoze.what identity is not set'
-        what_identity = environ['repoze.what.credentials']
-        self.assertEqual(set(what_identity['groups']), set(expected_groups))
-        self.assertEqual(set(what_identity['permissions']),
+               'The repoze.what credentials were not set'
+        credentials = environ['repoze.what.credentials']
+        self.assertEqual(set(credentials['groups']), set(expected_groups))
+        self.assertEqual(set(credentials['permissions']),
                          set(expected_permissions))
 
     def test_implements(self):
         verifyClass(IMetadataProvider, AuthorizationMetadata, tentative=True)
+    
+    def test_adapters_are_loaded_into_environ(self):
+        """The available adapters must be loaded into the WSGI environ"""
+        environ = {}
+        identity = {'repoze.who.userid': 'someone'}
+        group_adapters = {
+            'tech-team': FakeGroupFetcher1(),
+            'executive': FakeGroupFetcher3()
+            }
+        permission_adapters = {'perms1': FakePermissionFetcher2()}
+        plugin = AuthorizationMetadata(group_adapters, permission_adapters)
+        plugin.add_metadata(environ, identity)
+        # Testing it:
+        adapters = {
+            'groups': group_adapters,
+            'permissions': permission_adapters
+            }
+        self.assertEqual(adapters, environ.get('repoze.what.adapters'))
+    
+    def test_userid_in_credentials(self):
+        """The userid must also be set in the credentials dict"""
+        # For repoze.what 1.X, it's just copied from the repoze.who credentials:
+        environ = {}
+        identity = {'repoze.who.userid': 'someone'}
+        expected_credentials = {
+            'repoze.what.userid': 'someone',
+            'groups': (),
+            'permissions': ()
+            }
+        plugin = AuthorizationMetadata()
+        plugin.add_metadata(environ, identity)
+        self.assertEqual(environ['repoze.what.credentials'],
+                         expected_credentials)
     
     def test_no_groups_and_permissions(self):
         """Groups/permissions-based authorization is optional"""
@@ -119,7 +149,7 @@ class TestAuthorizationMetadata(unittest.TestCase):
         plugin = AuthorizationMetadata()
         plugin.add_metadata(environ, identity)
         # Testing it:
-        self._check_groups_and_permissions(plugin, (), ())
+        self._check_groups_and_permissions(environ, identity, (), ())
     
     def test_logger(self):
         # Setting up logging:
@@ -137,27 +167,35 @@ class TestAuthorizationMetadata(unittest.TestCase):
         assert "upload-images" in messages
     
     def test_add_metadata1(self):
+        identity = {'repoze.who.userid': 'whatever'}
+        environ = {}
         group_adapters = {
             'tech-team': FakeGroupFetcher1(),
             'executive': FakeGroupFetcher3()
             }
         permission_adapters = {'perms1': FakePermissionFetcher2()}
         plugin = AuthorizationMetadata(group_adapters, permission_adapters)
+        plugin.add_metadata(environ, identity)
         expected_groups = ('directors', 'sysadmins', 'graphic-designers')
         expected_permissions = ('hire', 'fire', 'upload-images')
-        self._check_groups_and_permissions(plugin, expected_groups,
+        self._check_groups_and_permissions(environ, identity, expected_groups,
                                            expected_permissions)
     
     def test_add_metadata2(self):
+        identity = {'repoze.who.userid': 'whatever'}
+        environ = {}
         group_adapters = {'a_nice_group': FakeGroupFetcher2()}
         permission_adapters = {'global_perms': FakePermissionFetcher3()}
         plugin = AuthorizationMetadata(group_adapters, permission_adapters)
+        plugin.add_metadata(environ, identity)
         expected_groups = ('webdesigners', 'directors')
         expected_permissions = ('contact', )
-        self._check_groups_and_permissions(plugin, expected_groups,
+        self._check_groups_and_permissions(environ, identity, expected_groups,
                                            expected_permissions)
     
     def test_add_metadata3(self):
+        identity = {'repoze.who.userid': 'whatever'}
+        environ = {}
         group_adapters = {
             'tech-team1': FakeGroupFetcher1(),
             'tech-team2': FakeGroupFetcher2(),
@@ -169,14 +207,17 @@ class TestAuthorizationMetadata(unittest.TestCase):
             'gallery-administration': FakePermissionFetcher3()
             }
         plugin = AuthorizationMetadata(group_adapters, permission_adapters)
+        plugin.add_metadata(environ, identity)
         expected_groups = ('graphic-designers', 'sysadmins', 'webdesigners',
                            'directors')
         expected_permissions = ('view-users', 'edit-users', 'add-users',
                                 'hire', 'fire', 'upload-images', 'contact')
-        self._check_groups_and_permissions(plugin, expected_groups,
+        self._check_groups_and_permissions(environ, identity, expected_groups,
                                            expected_permissions)
     
     def test_add_metadata4(self):
+        identity = {'repoze.who.userid': 'whatever'}
+        environ = {}
         group_adapters = {
             'group1': FakeGroupFetcher1(),
             'group2': FakeGroupFetcher2(),
@@ -184,19 +225,23 @@ class TestAuthorizationMetadata(unittest.TestCase):
             }
         permission_adapters = {'my_perms': FakePermissionFetcher3()}
         plugin = AuthorizationMetadata(group_adapters, permission_adapters)
+        plugin.add_metadata(environ, identity)
         expected_groups = ('graphic-designers', 'sysadmins', 'webdesigners',
                            'directors')
         expected_permissions = ('contact', )
-        self._check_groups_and_permissions(plugin, expected_groups,
+        self._check_groups_and_permissions(environ, identity, expected_groups,
                                            expected_permissions)
     
     def test_add_metadata5(self):
+        identity = {'repoze.who.userid': 'whatever'}
+        environ = {}
         group_adapters = {'my_group': FakeGroupFetcher2()}
         permission_adapters = {'my_perm': FakePermissionFetcher3()}
         plugin = AuthorizationMetadata(group_adapters, permission_adapters)
+        plugin.add_metadata(environ, identity)
         expected_groups = ('webdesigners', 'directors')
         expected_permissions = ('contact', )
-        self._check_groups_and_permissions(plugin, expected_groups,
+        self._check_groups_and_permissions(environ, identity, expected_groups,
                                            expected_permissions)
 
 

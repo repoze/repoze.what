@@ -5,6 +5,17 @@
 This document describes the releases of :mod:`repoze.what`.
 
 
+.. _repoze.what-1.0.1:
+
+:mod:`repoze.what` 1.0.1 (2009-01-21)
+=====================================
+
+* For forward compatibility with :mod:`repoze.what` v2, the user id used in
+  the built-in predicates is that found in 
+  ``environ['repoze.what.credentials']['repoze.what.userid']`` and the adapters
+  loaded are now available at ``environ['repoze.what.adapters']``.
+
+
 .. _repoze.what-1.0:
 
 :mod:`repoze.what` 1.0 (2009-01-19)

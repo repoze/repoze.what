@@ -82,9 +82,9 @@ class TestBaseSourceAdapter(unittest.TestCase):
                          set(items))
     
     def test_getting_sections_by_criteria(self):
-        identity = {'repoze.who.userid': u'sballmer'}
+        credentials = {'repoze.what.userid': u'sballmer'}
         sections = set([u'trolls'])
-        self.assertEqual(self.adapter.find_sections(identity), sections)
+        self.assertEqual(self.adapter.find_sections(credentials), sections)
     
     def test_adding_one_item_to_section(self):
         self.adapter.include_item(u'developers', u'rasmus')

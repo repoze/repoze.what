@@ -430,7 +430,7 @@ class BaseSourceAdapter(object):
         """
         Return the sections that meet a given criteria.
         
-        :param hint: repoze.who's credentials dictionary or a group name.
+        :param hint: repoze.what's credentials dictionary or a group name.
         :type hint: dict or unicode
         :return: The sections that meet the criteria.
         :rtype: tuple
@@ -441,7 +441,7 @@ class BaseSourceAdapter(object):
         
         * If it's a ``group`` source adapter, it returns the groups the 
           authenticated user belongs to. In this case, hint represents
-          repoze.who's credentials dict. Please note that hint is not an 
+          repoze.what's credentials dict. Please note that hint is not an 
           user name because some adapters may need something else to find the 
           groups the authenticated user belongs to. For example, LDAP adapters 
           need the full Distinguished Name (DN) in the credentials dict, or a 

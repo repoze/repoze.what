@@ -86,7 +86,7 @@ class AuthorizationMetadata(object):
         the :mod:`repoze.what` ``credentials`` dictionaries.
         
         :param environ: The WSGI environment.
-        :param identity: The :mod:`repoze.who`'s identity dictionary.
+        :param identity: The :mod:`repoze.who`'s ``identity`` dictionary.
         
         """
         logger = environ.get('repoze.who.logger')
@@ -94,12 +94,20 @@ class AuthorizationMetadata(object):
         groups, permissions = self._find_groups(identity)
         identity['groups'] = groups
         identity['permissions'] = permissions
-        # Adding the groups and permissions to the repoze.what identity for
+        # Adding the groups and permissions to the repoze.what credentials for
         # forward compatibility:
         if 'repoze.what.credentials' not in environ:
             environ['repoze.what.credentials'] = {}
         environ['repoze.what.credentials']['groups'] = groups
         environ['repoze.what.credentials']['permissions'] = permissions
+        # Adding the userid:
+        userid = identity['repoze.who.userid']
+        environ['repoze.what.credentials']['repoze.what.userid'] = userid
+        # Adding the adapters:
+        environ['repoze.what.adapters'] = {
+            'groups': self.group_adapters,
+            'permissions': self.permission_adapters
+            }
         # Logging
         logger and logger.info('User belongs to the following groups: %s' %
                                str(groups))

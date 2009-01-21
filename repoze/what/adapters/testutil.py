@@ -168,25 +168,26 @@ class ReadOnlyGroupsAdapterTester(_ReadOnlyBaseAdapterTester):
             u'php': set()
         }
     
-    def _make_identity(self, userid):
+    def _make_credentials(self, userid):
         """
-        Return a fake repoze.who's dictionary based on the C{userid}.
+        Return a fake :mod:`repoze.what` ``credentials`` dictionary based on 
+        the ``userid``.
         
-        Overwrite this method if its generated identity dictionaries are not
-        suitable for your adapter.
+        Overwrite this method if its generated ``credentials`` dictionaries 
+        are not suitable for your adapter.
         
         """
-        return {'repoze.who.userid': userid}
+        return {'repoze.what.userid': userid}
     
     def test_finding_groups_of_authenticated_user(self):
         for userid in self._get_all_items():
-            identity = self._make_identity(userid)
-            self.assertEqual(self.adapter._find_sections(identity),
+            credentials = self._make_credentials(userid)
+            self.assertEqual(self.adapter._find_sections(credentials),
                              self._get_item_sections(userid))
     
     def test_finding_groups_of_non_existing_user(self):
-        identity = self._make_identity(u'gustavo')
-        self.assertEqual(self.adapter._find_sections(identity), set())
+        credentials = self._make_credentials(u'gustavo')
+        self.assertEqual(self.adapter._find_sections(credentials), set())
 
 
 class GroupsAdapterTester(ReadOnlyGroupsAdapterTester, _BaseAdapterTester):

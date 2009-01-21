@@ -45,19 +45,15 @@ Or to manage the permissions defined in an XML file, you could use::
 
 .. tip::
 
-    You can re-use the same adapters used by :mod:`repoze.what` to control
-    access. You will find them in the WSGI environment::
+    As of v1.0.1, you can re-use the same adapters used by :mod:`repoze.what` 
+    to control access. You will find them in the WSGI environment::
     
-        # This is where repoze.who plugins are kept:
-        repozewho_plugins = environ['repoze.who.plugins']
-        
-        # Extracting the repoze.who metadata plugin provided by repoze.what.
-        # It contains the adapters:
-        repozewhat_md = repozewho_plugins['authorization_md']
+        # This is where repoze.what adapters are kept:
+        adapters = environ['repoze.what.adapters']
         
         # Now let's extract the group and permission adapters:
-        group_adapters = repozewhat_md.group_adapters
-        permission_adapters = repozewhat_md.permission_adapters
+        group_adapters = adapters['groups']
+        permission_adapters = adapters['permissions']
 
 
 Retrieving all the available :term:`sections <section>` from a source
@@ -272,8 +268,8 @@ The following class illustrates how a :term:`group adapter` may look like::
         def _get_section_items(self, section):
             return self.fake_sections[section]
     
-        def _find_sections(self, identity):
-            username = identity['repoze.who.userid']
+        def _find_sections(self, credentials):
+            username = credentials['repoze.what.userid']
             return set([n for (n, g) in self.fake_sections.items()
                         if username in g])
     

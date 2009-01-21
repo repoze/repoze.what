@@ -194,11 +194,11 @@ class is_user(Predicate):
 
     def _eval_with_environ(self, environ):
         user = None
-        identity = environ.get('repoze.who.identity')
-        if identity:
-            userid = identity.get('repoze.who.userid')
+        credentials = environ.get('repoze.what.credentials')
+        if credentials:
+            userid = credentials.get('repoze.what.userid')
 
-        if identity and userid and self.user_name == userid:
+        if credentials and userid and self.user_name == userid:
             return True
 
         return False
@@ -224,8 +224,8 @@ class in_group(Predicate):
         self.group_name = group_name
 
     def _eval_with_environ(self, environ):
-        identity = environ.get('repoze.who.identity')
-        if identity and self.group_name in identity.get('groups'):
+        credentials = environ.get('repoze.what.credentials')
+        if credentials and self.group_name in credentials.get('groups'):
             return True
         return False
 
@@ -283,8 +283,8 @@ class not_anonymous(Predicate):
     message = u"The current user must have been authenticated"
 
     def _eval_with_environ(self, environ):
-        identity = environ.get('repoze.who.identity')
-        if not identity:
+        credentials = environ.get('repoze.what.credentials')
+        if not credentials:
             return False
         return True
 
@@ -309,8 +309,8 @@ class has_permission(Predicate):
 
     def _eval_with_environ(self, environ):
         """Determine whether the visitor has the specified permission."""
-        identity = environ.get('repoze.who.identity')
-        if identity and self.permission_name in identity.get('permissions'):
+        credentials = environ.get('repoze.what.credentials')
+        if credentials and self.permission_name in credentials.get('permissions'):
             return True
         return False
 

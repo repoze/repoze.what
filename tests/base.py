@@ -85,8 +85,8 @@ class FakeGroupSourceAdapter(BaseSourceAdapter):
     def _get_section_items(self, section):
         return self.fake_sections[section]
 
-    def _find_sections(self, identity):
-        username = identity['repoze.who.userid']
+    def _find_sections(self, credentials):
+        username = credentials['repoze.what.userid']
         return set([n for (n, g) in self.fake_sections.items()
                     if username in g])
 

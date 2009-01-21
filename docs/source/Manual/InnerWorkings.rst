@@ -21,10 +21,36 @@ authorization-related data in the :mod:`repoze.who` ``identity`` and the
 
 .. warning::
 
-    In :mod:`repoze.what` v2, the groups and permissions will only be loaded
-    in the :mod:`repoze.what` ``credentials`` dictionary 
+    In :mod:`repoze.what` v2, the ``userid``, groups and permissions will only 
+    be loaded in the :mod:`repoze.what` ``credentials`` dictionary 
     (``environ['repoze.what.credentials']``). So you are encouraged not to 
     access this data from the :mod:`repoze.who` ``identity`` -- if you do so, 
     you will have to update your code when you want to upgrade to v2.
 
 .. autofunction:: setup_auth
+
+
+WSGI environment variables
+==========================
+
+:mod:`repoze.what` defines and uses the following WSGI environment variables:
+
+* ``repoze.what.credentials``: It contains authorization-related data about the
+  current user (it's similar to :mod:`repoze.who`'s ``identity``). It is
+  a dictionary made up of the following items: ``userid`` (the user name of
+  the current user, if not anonymous; copied from
+  ``environ['repoze.who.identity']['repoze.who.userid']`` in :mod:`repoze.what`
+  v1.X), ``groups`` (tuple of groups to which the currrent user belongs) and 
+  ``permissions`` (tuple of permissions granted to such groups).
+* ``repoze.what.adapters``: It contains the available :term:`source adapters
+  <source adapter>`, if any. It's a dictionary made up of the following items:
+  ``groups`` (dictionary of :term:`group adapters <group adapter>`) and 
+  ``permissions`` (dictionary of :term:`permission adapters 
+  <permission adapter>`).
+
+.. warning::
+
+    Because :mod:`repoze.what` 1.X works as a :mod:`repoze.who` metadata
+    provider, the variables above are defined if and only if the current user
+    is not anonymous. This limitation will not exist in :mod:`repoze.what` v2,
+    since it will have its own middleware.
