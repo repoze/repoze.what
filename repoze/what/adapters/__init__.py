@@ -109,12 +109,9 @@ class BaseSourceAdapter(object):
         """
         Return all the sections found in the source.
         
-        This method is like L{BaseSourceAdapter._get_all_sections}, but it uses 
-        the cache to avoid future queries to the source.
-        
-        @return: All the sections found in the source.
-        @rtype: C{dict}
-        @raise SourceError: If there was a problem with the source.
+        :return: All the sections found in the source.
+        :rtype: dict
+        :raise SourceError: If there was a problem with the source.
         
         """
         if not self.all_sections_loaded:
@@ -124,17 +121,14 @@ class BaseSourceAdapter(object):
     
     def get_section_items(self, section):
         """
-        Return the properties of C{section}.
+        Return the properties of ``section``.
         
-        This method is similar to L{BaseSourceAdapter._get_section_items}, but 
-        it uses the cache to avoid future requests to the source.
-        
-        @param section: The name of the section to be fetched.
-        @type section: C{unicode}
-        @return: The C{items} of the section.
-        @rtype: C{tuple}
-        @raise NonExistingSectionError: If the requested section doesn't exist.
-        @raise SourceError: If there was a problem with the source.
+        :param section: The name of the section to be fetched.
+        :type section: unicode
+        :return: The items of the ``section``.
+        :rtype: tuple
+        :raise NonExistingSectionError: If the requested section doesn't exist.
+        :raise SourceError: If there was a problem with the source.
         
         """
         if section not in self.loaded_sections:
@@ -145,10 +139,10 @@ class BaseSourceAdapter(object):
     
     def set_section_items(self, section, items):
         """
-        Set C{items} as the only items of the C{section}.
+        Set ``items`` as the only items of the ``section``.
         
-        @raise NonExistingSectionError: If the section doesn't exist.
-        @raise SourceError: If there was a problem with the source.
+        :raise NonExistingSectionError: If the section doesn't exist.
+        :raise SourceError: If there was a problem with the source.
         
         """
         old_items = self.get_section_items(section)
@@ -166,47 +160,46 @@ class BaseSourceAdapter(object):
         """
         Return the sections that meet a given criteria.
         
-        @param hint: repoze.who's C{identity} dictionary or a group name.
-        @type hint: C{dict} or C{unicode}
-        @return: The sections that meet the criteria.
-        @rtype: C{tuple}
-        @raise SourceError: If there was a problem with the source.
+        :param hint: repoze.what's credentials dictionary or a group name.
+        :type hint: dict or unicode
+        :return: The sections that meet the criteria.
+        :rtype: tuple
+        :raise SourceError: If there was a problem with the source.
         
         """
         return self._find_sections(hint)
     
     def include_item(self, section, item):
         """
-        Include C{item} in C{section}.
+        Include ``item`` in ``section``.
         
-        This is the individual (non-bulk) edition of L{BaseSourceAdapter.
-        include_items}.
+        This is the individual (non-bulk) edition of :meth:`include_items`.
         
-        @param section: The section to contain the item.
-        @type section: C{unicode}
-        @param items: The new item of the C{section}.
-        @type items: C{tuple}
-        @raise NonExistingSectionError: If the section doesn't exist.
-        @raise ItemPresentError: If the item is already included.
-        @raise SourceError: If there was a problem with the source.
+        :param section: The ``section`` to contain the ``item``.
+        :type section: unicode
+        :param item: The new ``item`` of the ``section``.
+        :type item: tuple
+        :raise NonExistingSectionError: If the ``section`` doesn't exist.
+        :raise ItemPresentError: If the ``item`` is already included.
+        :raise SourceError: If there was a problem with the source.
         
         """
         self.include_items(section, (item, ))
     
     def include_items(self, section, items):
         """
-        Include C{items} in C{section}.
+        Include ``items`` in ``section``.
         
-        This is the bulk edition of L{include_item}.
+        This is the bulk edition of :meth:`include_item`.
         
-        @param section: The section to contain the items.
-        @type section: C{unicode}
-        @param items: The new items of the C{section}.
-        @type items: C{tuple}
-        @raise NonExistingSectionError: If the section doesn't exist.
-        @raise ItemPresentError: If at least one of the items is already
+        :param section: The ``section`` to contain the ``items``.
+        :type section: unicode
+        :param items: The new ``items`` of the ``section``.
+        :type items: tuple
+        :raise NonExistingSectionError: If the ``section`` doesn't exist.
+        :raise ItemPresentError: If at least one of the items is already
             present.
-        @raise SourceError: If there was a problem with the source.
+        :raise SourceError: If there was a problem with the source.
         
         """
         # Verifying that the section exists and doesn't already contain the
@@ -225,36 +218,35 @@ class BaseSourceAdapter(object):
     
     def exclude_item(self, section, item):
         """
-        Exclude C{item} from C{section}.
+        Exclude ``item`` from ``section``.
         
-        This is the individual (non-bulk) edition of L{BaseSourceAdapter.
-        exclude_items}.
+        This is the individual (non-bulk) edition of :meth:`exclude_items`.
         
-        @param section: The section that contains the item.
-        @type section: C{unicode}
-        @param items: The item to be removed from C{section}.
-        @type items: C{tuple}
-        @raise NonExistingSectionError: If the section doesn't exist.
-        @raise ItemNotPresentError: If the item is not included in the section.
-        @raise SourceError: If there was a problem with the source.
+        :param section: The ``section`` that contains the ``item``.
+        :type section: unicode
+        :param item: The ``item`` to be removed from ``section``.
+        :type item: tuple
+        :raise NonExistingSectionError: If the ``section`` doesn't exist.
+        :raise ItemNotPresentError: If the item is not included in the section.
+        :raise SourceError: If there was a problem with the source.
         
         """
         self.exclude_items(section, (item, ))
     
     def exclude_items(self, section, items):
         """
-        Exclude C{items} from C{section}.
+        Exclude items from section.
         
-        This is the bulk edition of L{exclude_item}.
+        This is the bulk edition of :meth:`exclude_item`.
         
-        @param section: The section that contains the items.
-        @type section: C{unicode}
-        @param items: The items to be removed from C{section}.
-        @type items: C{tuple}
-        @raise NonExistingSectionError: If the section doesn't exist.
-        @raise ItemNotPresentError: If at least one of the items is not
+        :param section: The ``section`` that contains the ``items``.
+        :type section: unicode
+        :param items: The ``items`` to be removed from ``section``.
+        :type items: tuple
+        :raise NonExistingSectionError: If the ``section`` doesn't exist.
+        :raise ItemNotPresentError: If at least one of the items is not
             included in the section.
-        @raise SourceError: If there was a problem with the source.
+        :raise SourceError: If there was a problem with the source.
         
         """
         # Verifying that the section exists and already contains the items:
@@ -272,12 +264,12 @@ class BaseSourceAdapter(object):
     
     def create_section(self, section):
         """
-        Add C{section} to the source.
+        Add ``section`` to the source.
         
-        @param section: The section name.
-        @type section: C{unicode}
-        @raise ExistingSectionError: If the section name is already in use.
-        @raise SourceError: If there was a problem with the source.
+        :param section: The section name.
+        :type section: unicode
+        :raise ExistingSectionError: If the section name is already in use.
+        :raise SourceError: If there was a problem with the source.
         
         """
         self._check_section_not_existence(section)
@@ -288,14 +280,14 @@ class BaseSourceAdapter(object):
         
     def edit_section(self, section, new_section):
         """
-        Edit C{section}'s properties.
+        Edit ``section``'s properties.
         
-        @param section: The current name of the section.
-        @type section: C{unicode}
-        @param new_section: The new name of the section.
-        @type new_section: C{unicode}
-        @raise NonExistingSectionError: If the section doesn't exist.
-        @raise SourceError: If there was a problem with the source.
+        :param section: The current name of the section.
+        :type section: unicode
+        :param new_section: The new name of the section.
+        :type new_section: unicode
+        :raise NonExistingSectionError: If the section doesn't exist.
+        :raise SourceError: If there was a problem with the source.
         
         """
         self._check_section_existence(section)
@@ -308,15 +300,15 @@ class BaseSourceAdapter(object):
         
     def delete_section(self, section):
         """
-        Delete C{section}.
+        Delete ``section``.
         
-        It removes the C{section} from the source.
+        It removes the ``section`` from the source.
         
-        @param section: The name of the section to be deleted.
-        @type section: C{unicode}
-        @raise NonExistingSectionError: If the section in question doesn't 
+        :param section: The name of the section to be deleted.
+        :type section: unicode
+        :raise NonExistingSectionError: If the section in question doesn't 
             exist.
-        @raise SourceError: If there was a problem with the source.
+        :raise SourceError: If there was a problem with the source.
         
         """
         self._check_section_existence(section)
@@ -330,7 +322,7 @@ class BaseSourceAdapter(object):
         """
         Raise an exception if the source is not writable.
         
-        @raise SourceError: If the source is not writable.
+        :raise SourceError: If the source is not writable.
         
         """
         if not self.is_writable:
@@ -338,12 +330,12 @@ class BaseSourceAdapter(object):
     
     def _check_section_existence(self, section):
         """
-        Raise an exception if C{section} is not defined in the source.
+        Raise an exception if ``section`` is not defined in the source.
         
-        @param section: The name of the section to look for.
-        @type section: C{unicode}
-        @raise NonExistingSectionError: If the section is not defined.
-        @raise SourceError: If there was a problem with the source.
+        :param section: The name of the section to look for.
+        :type section: unicode
+        :raise NonExistingSectionError: If the section is not defined.
+        :raise SourceError: If there was a problem with the source.
         
         """
         if not self._section_exists(section):
@@ -352,12 +344,12 @@ class BaseSourceAdapter(object):
     
     def _check_section_not_existence(self, section):
         """
-        Raise an exception if C{section} is defined in the source.
+        Raise an exception if ``section`` is defined in the source.
         
-        @param section: The name of the section to look for.
-        @type section: C{unicode}
-        @raise ExistingSectionError: If the section is defined.
-        @raise SourceError: If there was a problem with the source.
+        :param section: The name of the section to look for.
+        :type section: unicode
+        :raise ExistingSectionError: If the section is defined.
+        :raise SourceError: If there was a problem with the source.
         
         """
         if self._section_exists(section):
@@ -366,15 +358,15 @@ class BaseSourceAdapter(object):
     
     def _confirm_item_is_present(self, section, item):
         """
-        Raise an exception if C{section} doesn't contain C{item}.
+        Raise an exception if ``section`` doesn't contain ``item``.
         
-        @param section: The name of the section that may contain the item.
-        @type section: C{unicode}
-        @param item: The name of the item to look for.
-        @type item: C{unicode}
-        @raise NonExistingSectionError: If the section doesn't exist.
-        @raise ItemNotPresentError: If the item is not included.
-        @raise SourceError: If there was a problem with the source.
+        :param section: The name of the section that may contain the item.
+        :type section: unicode
+        :param item: The name of the item to look for.
+        :type item: unicode
+        :raise NonExistingSectionError: If the section doesn't exist.
+        :raise ItemNotPresentError: If the item is not included.
+        :raise SourceError: If there was a problem with the source.
         
         """
         self._check_section_existence(section)
@@ -384,15 +376,15 @@ class BaseSourceAdapter(object):
     
     def _confirm_item_not_present(self, section, item):
         """
-        Raise an exception if C{section} already contains C{item}.
+        Raise an exception if ``section`` already contains ``item``.
         
-        @param section: The name of the section that may contain the item.
-        @type section: C{unicode}
-        @param item: The name of the item to look for.
-        @type item: C{unicode}
-        @raise NonExistingSectionError: If the section doesn't exist.
-        @raise ItemPresentError: If the item is already included.
-        @raise SourceError: If there was a problem with the source.
+        :param section: The name of the section that may contain the item.
+        :type section: unicode
+        :param item: The name of the item to look for.
+        :type item: unicode
+        :raise NonExistingSectionError: If the section doesn't exist.
+        :raise ItemPresentError: If the item is already included.
+        :raise SourceError: If there was a problem with the source.
         
         """
         self._check_section_existence(section)
@@ -438,7 +430,7 @@ class BaseSourceAdapter(object):
         """
         Return the sections that meet a given criteria.
         
-        :param hint: repoze.who's identity dictionary or a group name.
+        :param hint: repoze.who's credentials dictionary or a group name.
         :type hint: dict or unicode
         :return: The sections that meet the criteria.
         :rtype: tuple
@@ -449,10 +441,10 @@ class BaseSourceAdapter(object):
         
         * If it's a ``group`` source adapter, it returns the groups the 
           authenticated user belongs to. In this case, hint represents
-          repoze.who's identity dict. Please note that hint is not an 
+          repoze.who's credentials dict. Please note that hint is not an 
           user name because some adapters may need something else to find the 
           groups the authenticated user belongs to. For example, LDAP adapters 
-          need the full Distinguished Name (DN) in the identity dict, or a 
+          need the full Distinguished Name (DN) in the credentials dict, or a 
           given adapter may only need the email address, so the user name alone 
           would be useless in both situations.
         * If it's a ``permission`` source adapter, it returns the name of the
