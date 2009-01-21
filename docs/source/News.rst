@@ -10,10 +10,69 @@ This document describes the releases of :mod:`repoze.what`.
 :mod:`repoze.what` 1.0.1 (2009-01-21)
 =====================================
 
+This release fixes an important bug which *may* affect production Web
+sites depending on how you use the ``All`` predicate or any of its
+derivatives (``has_all_permissions`` and ``in_all_groups``). TurboGears 2 
+applications are all affected, at least by default.
+
+The likelihood that this will affect your application is very high, so 
+upgrading is highly recommended if it's on production.
+
+* Some :mod:`repoze.what` :mod:`predicates <repoze.what.predicates>` were not 
+  thread-safe when they were instantiated in a module and then shared among
+  threads (as used in TurboGears 2). This was found by and solved with the
+  help of `Alberto Valverde <http://albertovalverde.es/>`_ (¡Gracias, 
+  Alberto!).
+  
+  We fixed this by making 
+  :meth:`repoze.what.predicates.Predicate.eval_with_predicate` raise an
+  exception if the predicate is not met, instead of returning a boolean and
+  setting the ``error`` instance attribute of the predicate to the predicate
+  failure message.
+  
+  So if you are using that method directly, instead of using
+  :func:`repoze.what.authorize.check_authorization`, this is a backwards
+  incompatible change for you and thus you should update your code. If you
+  check predicates like this (which is discouraged; see
+  :func:`repoze.what.authorize.check_authorization`)::
+  
+      from repoze.what.predicates import is_user, in_group, All
+      
+      p = All(is_user('someone'), in_group('some-group'))
+      environ = gimme_the_environ()
+      
+      if p.eval_with_environ(environ):
+          print('Authorization is denied: %s' % p.error)
+      else:
+          print('Authorization is granted')
+  
+  Then you should update your code like this::
+  
+      # This way of checking predicates is DISCOURAGED. Use
+      # repoze.what.authorize.check_authorization() instead.
+      from repoze.what.predicates import is_user, in_group, All, PredicateError
+      
+      p = All(is_user('someone'), in_group('some-group'))
+      environ = gimme_the_environ()
+      
+      try:
+          p.eval_with_environ(environ)
+          print('Authorization is granted')
+      except PredicateError, error:
+          print('Authorization is denied: %s' % error)
+  
+  .. note::
+  
+      Because of this, TurboGears 2 users who want to use this release, should 
+      try the latest revision in the TG2 Subversion repository or wait for 
+      TurboGears-2.0b4. But again, there's no hurry if your application is not
+      in production.
+  
 * For forward compatibility with :mod:`repoze.what` v2, the user id used in
   the built-in predicates is that found in 
   ``environ['repoze.what.credentials']['repoze.what.userid']`` and the adapters
-  loaded are now available at ``environ['repoze.what.adapters']``.
+  loaded are now available at ``environ['repoze.what.adapters']``. This is
+  *not* a backwards incompatible change.
 
 
 .. _repoze.what-1.0:

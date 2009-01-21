@@ -26,7 +26,10 @@ original "identity" framework of TurboGears 1, plus others.
 __all__ = ['Predicate', 'CompoundPredicate', 'All', 'Any', 
            'has_all_permissions', 'has_any_permission', 'has_permission', 
            'in_all_groups', 'in_any_group', 'in_group', 'is_user', 
-           'not_anonymous']
+           'not_anonymous', 'PredicateError']
+
+
+#{ Predicates
 
 
 class Predicate(object):
@@ -51,7 +54,6 @@ class Predicate(object):
         """
         if msg:
             self.message = msg
-        self.error = ''
     
     def _eval_with_environ(self, environ):
         """
@@ -73,23 +75,25 @@ class Predicate(object):
     
     def eval_with_environ(self, environ):
         """
-        Evaluate the predicate and add the relevant error to ``errors`` if
-        it's ``False``.
+        Make sure this predicate is met.
         
         :param environ: The WSGI environment.
-        :return: Whether the predicate is met or not.
-        :rtype: bool
+        :raises PredicateError: If the predicate is not met.
+        
+        .. versionchanged:: 1.0.1
+        
+            In :mod:`repoze.what`<1.0.1, this method returned a ``bool`` and
+            set the ``error`` instance attribute of the predicate to the
+            predicate message.
         
         """
-        if self._eval_with_environ(environ):
-            return True
-        else:
-            self._set_error()
-            return False
+        if not self._eval_with_environ(environ):
+            msg = self._get_error()
+            raise PredicateError(msg)
     
-    def _set_error(self):
-        """Set the error message for this predicate when it's not met."""
-        self.error = self.message % self.__dict__
+    def _get_error(self):
+        """Return the error message for this predicate when it's not met."""
+        return self.message % self.__dict__
 
 
 class CompoundPredicate(Predicate):
@@ -135,13 +139,23 @@ class All(CompoundPredicate):
         p = All(is_month(7), in_group('hr'))
     
     """
+    
     def eval_with_environ(self, environ):
-        """Return true if all sub-predicates evaluate to true."""
+        """
+        Evaluate all the predicates it contains.
+        
+        :param environ: The WSGI environment.
+        :raises PredicateError: If one of the predicates is not met.
+        
+        .. versionchanged:: 1.0.1
+        
+            In :mod:`repoze.what`<1.0.1, this method returned a ``bool`` and
+            set the ``error`` instance attribute of the predicate to the
+            predicate message.
+        
+        """
         for p in self.predicates:
-            if not p.eval_with_environ(environ):
-                self.error = p.error
-                return False
-        return True
+            p.eval_with_environ(environ)
 
 
 class Any(CompoundPredicate):
@@ -161,16 +175,28 @@ class Any(CompoundPredicate):
                "%(failed_predicates)s"
 
     def eval_with_environ(self, environ):
-        """Return true if any sub-predicate evaluates to true."""
+        """
+        Evaluate all the predicates it contains.
+        
+        :param environ: The WSGI environment.
+        :raises PredicateError: If none of the predicates is met.
+        
+        .. versionchanged:: 1.0.1
+        
+            In :mod:`repoze.what`<1.0.1, this method returned a ``bool`` and
+            set the ``error`` instance attribute of the predicate to the
+            predicate message.
+        
+        """
         errors = []
         for p in self.predicates:
-            if p.eval_with_environ(environ):
-                return True
-            else:
-                errors.append(p.error)
+            try:
+                p.eval_with_environ(environ)
+                return
+            except PredicateError, exc:
+                errors.append(unicode(exc))
         self.failed_predicates = ', '.join(errors)
-        self._set_error()
-        return False
+        raise PredicateError(self._get_error())
 
 
 class is_user(Predicate):
@@ -331,8 +357,8 @@ class has_all_permissions(All):
     
     def __init__(self, *permissions, **kwargs):
         permission_predicates = [has_permission(p) for p in permissions]
-        super(has_all_permissions,self).__init__(*permission_predicates,
-                                                 **kwargs)
+        super(has_all_permissions, self).__init__(*permission_predicates,
+                                                  **kwargs)
 
 
 class has_any_permission(Any):
@@ -356,3 +382,14 @@ class has_any_permission(Any):
         permission_predicates = [has_permission(p) for p in permissions]
         super(has_any_permission,self).__init__(*permission_predicates,
                                                 **kwargs)
+
+
+#{ Exceptions
+
+
+class PredicateError(Exception):
+    """Exception raised by a :class:`Predicate` it's not met."""
+    pass
+
+
+#}
