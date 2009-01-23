@@ -5,6 +5,23 @@
 This document describes the releases of :mod:`repoze.what`.
 
 
+.. _repoze.what-1.0.2:
+
+:mod:`repoze.what` 1.0.2 (2009-01-23)
+=====================================
+
+For forward compatibility with :mod:`repoze.what` v2.0, :mod:`predicates
+<repoze.what.predicates>` should define the :meth:`evaluate
+<repoze.what.predicates.Predicate.evaluate>` method which deprecates
+:meth:`_eval_with_environ <repoze.what.predicates.Predicate._eval_with_environ>`
+as of this release.
+
+This indirectly fixes a thread-safety bug found by Alberto Valverde on
+:class:`Any <repoze.what.predicates.Any>`-based predicates when used along
+with :class:`All <repoze.what.predicates.All>`-based ones. Thank you very much
+once again, Alberto!
+
+
 .. _repoze.what-1.0.1:
 
 :mod:`repoze.what` 1.0.1 (2009-01-21)
