@@ -78,32 +78,16 @@ class TestDeprecatedPredicate(BasePredicateTester):
     
     """
     
-    def _check_it(self, checker, *args):
-        import warnings
-        try:
-            # On Python 2.6 check that a deprecation warning is issued:
-            with warnings.catch_warnings(record=True) as w:
-                warnings.simplefilter("always")
-                checker(*args)
-                assert len(w) == 1
-                assert isinstance(w[-1].message, DeprecationWarning)
-                msg = str(w[-1].message)
-                assert 'Predicate._eval_with_environ(environ)' in msg
-                assert 'Predicate.evaluate(environ, credentials)' in msg
-        except SyntaxError:
-            # On Python 2.4 and 2.5
-            checker(*args)
-    
     def test_met_predicate(self):
         environ = {}
         p = DeprecatedPredicate(True)
-        self._check_it(self.eval_met_predicate, p, environ)
+        self.eval_met_predicate(p, environ)
     
     def test_unmet_predicate(self):
         environ = {}
         error = 'This is a deprecated predicate'
         p = DeprecatedPredicate(False)
-        self._check_it(self.eval_unmet_predicate, p, environ, error)
+        self.eval_unmet_predicate(p, environ, error)
 
 
 class TestCompoundPredicate(BasePredicateTester):
