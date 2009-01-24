@@ -25,8 +25,8 @@ import unittest
 from repoze.what.authorize import check_authorization, NotAuthorizedError
 from repoze.what.patterns.groups import has_any_permission
 
-from tests.base import FakeLogger
-from tests.predicates import EqualsFour
+from unit_tests.base import FakeLogger
+from unit_tests.predicates import EqualsFour
 
 
 class TestAuthorizationChecker(unittest.TestCase):

@@ -22,7 +22,7 @@ Tests for the predicates.
 
 from repoze.what import predicates
 
-from tests.predicates import BasePredicateTester, make_environ, \
+from unit_tests.predicates import BasePredicateTester, make_environ, \
                                   EqualsTwo, EqualsFour, GreaterThan
 
 

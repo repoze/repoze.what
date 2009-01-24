@@ -23,7 +23,7 @@ from repoze.what.patterns.groups import in_group, has_permission, \
                                         in_all_groups, has_all_permissions, \
                                         in_any_group, has_any_permission
 
-from tests.predicates import BasePredicateTester, make_environ, \
+from unit_tests.predicates import BasePredicateTester, make_environ, \
                                   EqualsTwo, EqualsFour, GreaterThan
 
 
