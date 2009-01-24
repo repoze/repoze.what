@@ -31,4 +31,4 @@ class TestRelease(unittest.TestCase):
     
     def test_major_version(self):
         # I prefer to update this on every major release -- Gustavo
-        self.assertEqual(1, release.major_version)
+        self.assertEqual(2, release.major_version)
