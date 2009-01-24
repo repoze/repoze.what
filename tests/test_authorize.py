@@ -22,10 +22,11 @@ Tests for the authorization mechanisms.
 
 import unittest
 
-from repoze.what import authorize
+from repoze.what.authorize import check_authorization, NotAuthorizedError
+from repoze.what.patterns.groups import has_any_permission
 
-from base import FakeLogger
-from test_predicates import make_environ
+from tests.base import FakeLogger
+from tests.predicates import EqualsFour
 
 
 class TestAuthorizationChecker(unittest.TestCase):
@@ -33,25 +34,22 @@ class TestAuthorizationChecker(unittest.TestCase):
     
     def test_authorized(self):
         logger = FakeLogger()
-        environ = make_environ('gustavo', permissions=['watch-tv', 'party',
-                                                       'eat'])
+        environ = {'test_number': 4}
         environ['repoze.who.logger'] = logger
-        p = authorize.has_any_permission('party', 'scream')
-        authorize.check_authorization(p, environ)
+        p = EqualsFour()
+        check_authorization(p, environ)
         info = logger.messages['info']
         assert "Authorization granted" == info[0]
     
     def test_unauthorized(self):
         logger = FakeLogger()
-        environ = make_environ('gustavo', permissions=['watch-tv', 'party',
-                                                       'eat'])
+        environ = {'test_number': 3}
         environ['repoze.who.logger'] = logger
-        p = authorize.has_any_permission('jump', 'scream',
-                                         msg="Go away!")
+        p = EqualsFour(msg="Go away!")
         try:
-            authorize.check_authorization(p, environ)
+            check_authorization(p, environ)
             self.fail('Authorization must have been rejected')
-        except authorize.NotAuthorizedError, e:
+        except NotAuthorizedError, e:
             self.assertEqual(str(e), "Go away!")
             # Testing the logs:
             info = logger.messages['info']
@@ -63,15 +61,13 @@ class TestAuthorizationChecker(unittest.TestCase):
         # string (this is, to extract its message).
         unicode_msg = u'请登陆'
         logger = FakeLogger()
-        environ = make_environ('gustavo', permissions=['watch-tv', 'party',
-                                                       'eat'])
+        environ = {'test_number': 3}
         environ['repoze.who.logger'] = logger
-        p = authorize.has_any_permission('jump', 'scream',
-                                         msg=unicode_msg)
+        p = EqualsFour(msg=unicode_msg)
         try:
-            authorize.check_authorization(p, environ)
+            check_authorization(p, environ)
             self.fail('Authorization must have been rejected')
-        except authorize.NotAuthorizedError, e:
+        except NotAuthorizedError, e:
             self.assertEqual(unicode(e), unicode_msg)
             # Testing the logs:
             info = logger.messages['info']
@@ -83,5 +79,5 @@ class TestNotAuthorizedError(unittest.TestCase):
     
     def test_string_representation(self):
         msg = 'You are not the master of Universe'
-        exc = authorize.NotAuthorizedError(msg)
+        exc = NotAuthorizedError(msg)
         self.assertEqual(msg, str(exc))

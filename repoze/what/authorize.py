@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2008-2009, Gustavo Narea <me@gustavonarea.net>
+# Copyright (c) 2008-2009, Gustavo Narea <me@gustavonarea.net>.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -15,9 +15,7 @@
 
 """Utilities to restrict access based on predicates."""
 
-# We import the predicates just to make repoze.what backwards compatible
-# with tg.ext.repoze.who, but they are actually useless here:
-from repoze.what.predicates import *
+from repoze.what.predicates import PredicateError
 
 
 class NotAuthorizedError(Exception):

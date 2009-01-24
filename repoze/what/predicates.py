@@ -16,16 +16,11 @@
 ##############################################################################
 
 """
-Built-in predicate checkers.
-
-This is module provides the predicate checkers that were present in the 
-original "identity" framework of TurboGears 1, plus others.
+Base predicate checkers.
 
 """
 
-__all__ = ['Predicate', 'CompoundPredicate', 'All', 'Any', 
-           'has_all_permissions', 'has_any_permission', 'has_permission', 
-           'in_all_groups', 'in_any_group', 'in_group', 'is_user', 
+__all__ = ['Predicate', 'CompoundPredicate', 'Not', 'All', 'Any', 'is_user', 
            'not_anonymous', 'PredicateError']
 
 
@@ -103,48 +98,7 @@ class Predicate(object):
             delete any attribute of the predicate.
         
         """
-        self.eval_with_environ(environ)
-    
-    def _eval_with_environ(self, environ):
-        """
-        Check whether the predicate is met.
-        
-        :param environ: The WSGI environment.
-        :type environ: dict
-        :return: Whether the predicate is met or not.
-        :rtype: bool
-        :raise NotImplementedError: This must be defined by the predicate
-            itself.
-        
-        .. deprecated:: 1.0.2
-            Only :meth:`evaluate` will be used as of :mod:`repoze.what` v2.
-        
-        """
         raise NotImplementedError
-    
-    def eval_with_environ(self, environ):
-        """
-        Make sure this predicate is met.
-        
-        :param environ: The WSGI environment.
-        :raises PredicateError: If the predicate is not met.
-        
-        .. versionchanged:: 1.0.1
-            In :mod:`repoze.what`<1.0.1, this method returned a ``bool`` and
-            set the ``error`` instance attribute of the predicate to the
-            predicate message.
-        
-        .. deprecated:: 1.0.2
-            Define :meth:`evaluate` instead.
-        
-        """
-        from warnings import warn
-        msg = 'Predicate._eval_with_environ(environ) is deprecated ' \
-              'for forward compatibility with repoze.what v2; use ' \
-              'Predicate.evaluate(environ, credentials) instead'
-        warn(msg, DeprecationWarning, stacklevel=2)
-        if not self._eval_with_environ(environ):
-            self.unmet()
     
     def unmet(self, **placeholders):
         """
@@ -306,70 +260,6 @@ class is_user(Predicate):
         self.unmet()
 
 
-class in_group(Predicate):
-    """
-    Check that the user belongs to the specified group.
-    
-    :param group_name: The name of the group to which the user must belong.
-    :type group_name: str
-    
-    Example::
-    
-        p = in_group('customers')
-    
-    """
-    
-    message = u'The current user must belong to the group "%(group_name)s"'
-
-    def __init__(self, group_name, **kwargs):
-        super(in_group, self).__init__(**kwargs)
-        self.group_name = group_name
-
-    def evaluate(self, environ, credentials):
-        if credentials and self.group_name in credentials.get('groups'):
-            return
-        self.unmet()
-
-
-class in_all_groups(All):
-    """
-    Check that the user belongs to all of the specified groups.
-    
-    :param groups: The name of all the groups the user must belong to.
-    
-    Example::
-    
-        p = in_all_groups('developers', 'designers')
-    
-    """
-    
-    
-    def __init__(self, *groups, **kwargs):
-        group_predicates = [in_group(g) for g in groups]
-        super(in_all_groups,self).__init__(*group_predicates, **kwargs)
-
-
-class in_any_group(Any):
-    """
-    Check that the user belongs to at least one of the specified groups.
-    
-    :param groups: The name of any of the groups the user may belong to.
-    
-    Example::
-    
-        p = in_any_group('directors', 'hr')
-    
-    """
-    
-    message = u"The member must belong to at least one of the following " \
-               "groups: %(group_list)s"
-
-    def __init__(self, *groups, **kwargs):
-        self.group_list = ", ".join(groups)
-        group_predicates = [in_group(g) for g in groups]
-        super(in_any_group,self).__init__(*group_predicates, **kwargs)
-
-
 class not_anonymous(Predicate):
     """
     Check that the current user has been authenticated.
@@ -386,74 +276,6 @@ class not_anonymous(Predicate):
     def evaluate(self, environ, credentials):
         if not credentials:
             self.unmet()
-
-
-class has_permission(Predicate):
-    """
-    Check that the current user has the specified permission.
-    
-    :param permission_name: The name of the permission that must be granted to 
-        the user.
-    
-    Example::
-    
-        p = has_permission('hire')
-    
-    """
-    message = u'The user must have the "%(permission_name)s" permission'
-
-    def __init__(self, permission_name, **kwargs):
-        super(has_permission, self).__init__(**kwargs)
-        self.permission_name = permission_name
-
-    def evaluate(self, environ, credentials):
-        if credentials and \
-           self.permission_name in credentials.get('permissions'):
-            return
-        self.unmet()
-
-
-class has_all_permissions(All):
-    """
-    Check that the current user has been granted all of the specified 
-    permissions.
-    
-    :param permissions: The names of all the permissions that must be
-        granted to the user.
-    
-    Example::
-    
-        p = has_all_permissions('view-users', 'edit-users')
-    
-    """
-    
-    def __init__(self, *permissions, **kwargs):
-        permission_predicates = [has_permission(p) for p in permissions]
-        super(has_all_permissions, self).__init__(*permission_predicates,
-                                                  **kwargs)
-
-
-class has_any_permission(Any):
-    """
-    Check that the user has at least one of the specified permissions.
-    
-    :param permissions: The names of any of the permissions that have to be
-        granted to the user.
-    
-    Example::
-    
-        p = has_any_permission('manage-users', 'edit-users')
-    
-    """
-    
-    message = u"The user must have at least one of the following " \
-               "permissions: %(permission_list)s"
-
-    def __init__(self, *permissions, **kwargs):
-        self.permission_list = ", ".join(permissions)
-        permission_predicates = [has_permission(p) for p in permissions]
-        super(has_any_permission,self).__init__(*permission_predicates,
-                                                **kwargs)
 
 
 #{ Exceptions

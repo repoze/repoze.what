@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2007, Agendaless Consulting and Contributors.
-# Copyright (c) 2008, Florent Aide <florent.aide@gmail.com>.
 # Copyright (c) 2008-2009, Gustavo Narea <me@gustavonarea.net>.
 # All Rights Reserved.
 #
@@ -14,7 +12,6 @@
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-
 
 # This is a namespace package. Do NOT put anything here to keep the repoze.what
 # namespace clear for plugins at repoze.what.plugins and repoze.what.patterns
