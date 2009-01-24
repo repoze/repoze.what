@@ -34,7 +34,7 @@ __all__ = ['Predicate', 'CompoundPredicate', 'All', 'Any',
 
 class Predicate(object):
     """
-    Generic base class for testing true or false for a condition.
+    Generic predicate checker.
     
     This is the base predicate class. It won't do anything useful for you, 
     unless you subclass it.
@@ -55,20 +55,69 @@ class Predicate(object):
         if msg:
             self.message = msg
     
-    def _eval_with_environ(self, environ):
+    def evaluate(self, environ, credentials):
         """
-        Determine whether the predicate is True or False for the given
-        object.
+        Raise an exception if the predicate is not met.
         
         :param environ: The WSGI environment.
+        :type environ: dict
+        :param credentials: The :mod:`repoze.what` ``credentials`` dictionary
+            as a short-cut.
+        :type credentials: dict
+        :raise NotImplementedError: When the predicate doesn't define this
+            method.
+        :raises PredicateError: If the predicate is not met (use :meth:`unmet`
+            to raise it).
+        
+        This is the method that must be overridden by any predicate.
+        
+        For example, if your predicate is "The current month is the specified
+        one", you may define the following predicate checker::
+        
+            from datetime import date
+            from repoze.what.predicates import Predicate
+            
+            class is_month(Predicate):
+                message = 'The current month must be %(right_month)s'
+                
+                def __init__(self, right_month, **kwargs):
+                    self.right_month = right_month
+                    super(is_month, self).__init__(**kwargs)
+                
+                def evaluate(self, environ, credentials):
+                    today = date.today()
+                    if today.month != self.right_month:
+                        # Raise an exception because the predicate is not met.
+                        self.unmet()
+        
+        .. attention::
+            Do not evaluate predicates by yourself using this method. See
+            :func:`repoze.what.authorize.check_authorization`.
+
+        .. warning::
+        
+            To make your predicates thread-safe, keep in mind that they may
+            be instantiated at module-level and then shared among many threads,
+            so avoid predicates from being modified after their evaluation. 
+            This is, the ``evaluate()`` method should not add, modify or 
+            delete any attribute of the predicate.
+        
+        """
+        self.eval_with_environ(environ)
+    
+    def _eval_with_environ(self, environ):
+        """
+        Check whether the predicate is met.
+        
+        :param environ: The WSGI environment.
+        :type environ: dict
         :return: Whether the predicate is met or not.
         :rtype: bool
         :raise NotImplementedError: This must be defined by the predicate
             itself.
         
-        .. attention::
-        
-            This is the method that must be overridden by descendant classes.
+        .. deprecated:: 1.0.2
+            Only :meth:`evaluate` will be used as of :mod:`repoze.what` v2.
         
         """
         raise NotImplementedError
@@ -81,19 +130,57 @@ class Predicate(object):
         :raises PredicateError: If the predicate is not met.
         
         .. versionchanged:: 1.0.1
-        
             In :mod:`repoze.what`<1.0.1, this method returned a ``bool`` and
             set the ``error`` instance attribute of the predicate to the
             predicate message.
         
+        .. deprecated:: 1.0.2
+            Define :meth:`evaluate` instead.
+        
         """
+        from warnings import warn
+        msg = 'Predicate._eval_with_environ(environ) is deprecated ' \
+              'for forward compatibility with repoze.what v2; use ' \
+              'Predicate.evaluate(environ, credentials) instead'
+        warn(msg, DeprecationWarning, stacklevel=2)
         if not self._eval_with_environ(environ):
-            msg = self._get_error()
-            raise PredicateError(msg)
+            self.unmet()
     
-    def _get_error(self):
-        """Return the error message for this predicate when it's not met."""
-        return self.message % self.__dict__
+    def unmet(self, **placeholders):
+        """
+        Raise an exception because this predicate is not met.
+        
+        :raises PredicateError: If the predicate is not met.
+        
+        ``placeholders`` represent the placeholders for the predicate message.
+        The predicate's attributes will also be taken into account while
+        creating the message with its placeholders.
+        
+        For example, if you have a predicate that checks that the current
+        month is the specified one, where the predicate message is defined with
+        two placeholders as in::
+        
+            The current month must be %(right_month)s and it is %(this_month)s
+        
+        and the predicate has an attribute called ``right_month`` which
+        represents the expected month, then you can use this method as in::
+        
+            self.unmet(this_month=this_month)
+        
+        Then :meth:`unmet` will build the message using the ``this_month``
+        keyword argument and the ``right_month`` attribute as the placeholders
+        for ``this_month`` and ``right_month``, respectively. So, if
+        ``this_month`` equals ``3`` and ``right_month`` equals ``5``,
+        the message for the exception to be raised will be::
+        
+            The current month must be 5 and it is 3
+        
+        """
+        # Include the predicate attributes in the placeholders:
+        all_placeholders = self.__dict__.copy()
+        all_placeholders.update(placeholders)
+        msg = self.message % all_placeholders
+        raise PredicateError(msg)
 
 
 class CompoundPredicate(Predicate):
@@ -122,8 +209,12 @@ class Not(Predicate):
         super(Not, self).__init__(**kwargs)
         self.predicate = predicate
     
-    def _eval_with_environ(self, environ):
-        return not self.predicate.eval_with_environ(environ)
+    def evaluate(self, environ, credentials):
+        try:
+            self.predicate.evaluate(environ, credentials)
+        except PredicateError, error:
+            return
+        self.unmet()
 
 
 class All(CompoundPredicate):
@@ -140,22 +231,17 @@ class All(CompoundPredicate):
     
     """
     
-    def eval_with_environ(self, environ):
+    def evaluate(self, environ, credentials):
         """
         Evaluate all the predicates it contains.
         
         :param environ: The WSGI environment.
+        :param credentials: The :mod:`repoze.what` ``credentials``.
         :raises PredicateError: If one of the predicates is not met.
-        
-        .. versionchanged:: 1.0.1
-        
-            In :mod:`repoze.what`<1.0.1, this method returned a ``bool`` and
-            set the ``error`` instance attribute of the predicate to the
-            predicate message.
         
         """
         for p in self.predicates:
-            p.eval_with_environ(environ)
+            p.evaluate(environ, credentials)
 
 
 class Any(CompoundPredicate):
@@ -173,30 +259,25 @@ class Any(CompoundPredicate):
     """
     message = u"At least one of the following predicates must be met: " \
                "%(failed_predicates)s"
-
-    def eval_with_environ(self, environ):
+    
+    def evaluate(self, environ, credentials):
         """
         Evaluate all the predicates it contains.
         
         :param environ: The WSGI environment.
+        :param credentials: The :mod:`repoze.what` ``credentials``.
         :raises PredicateError: If none of the predicates is met.
-        
-        .. versionchanged:: 1.0.1
-        
-            In :mod:`repoze.what`<1.0.1, this method returned a ``bool`` and
-            set the ``error`` instance attribute of the predicate to the
-            predicate message.
         
         """
         errors = []
         for p in self.predicates:
             try:
-                p.eval_with_environ(environ)
+                p.evaluate(environ, credentials)
                 return
             except PredicateError, exc:
                 errors.append(unicode(exc))
-        self.failed_predicates = ', '.join(errors)
-        raise PredicateError(self._get_error())
+        failed_predicates = ', '.join(errors)
+        self.unmet(failed_predicates=failed_predicates)
 
 
 class is_user(Predicate):
@@ -218,16 +299,11 @@ class is_user(Predicate):
         super(is_user, self).__init__(**kwargs)
         self.user_name = user_name
 
-    def _eval_with_environ(self, environ):
-        user = None
-        credentials = environ.get('repoze.what.credentials')
-        if credentials:
-            userid = credentials.get('repoze.what.userid')
-
-        if credentials and userid and self.user_name == userid:
-            return True
-
-        return False
+    def evaluate(self, environ, credentials):
+        if credentials and \
+           self.user_name == credentials.get('repoze.what.userid'):
+            return
+        self.unmet()
 
 
 class in_group(Predicate):
@@ -249,11 +325,10 @@ class in_group(Predicate):
         super(in_group, self).__init__(**kwargs)
         self.group_name = group_name
 
-    def _eval_with_environ(self, environ):
-        credentials = environ.get('repoze.what.credentials')
+    def evaluate(self, environ, credentials):
         if credentials and self.group_name in credentials.get('groups'):
-            return True
-        return False
+            return
+        self.unmet()
 
 
 class in_all_groups(All):
@@ -308,11 +383,9 @@ class not_anonymous(Predicate):
     
     message = u"The current user must have been authenticated"
 
-    def _eval_with_environ(self, environ):
-        credentials = environ.get('repoze.what.credentials')
+    def evaluate(self, environ, credentials):
         if not credentials:
-            return False
-        return True
+            self.unmet()
 
 
 class has_permission(Predicate):
@@ -333,12 +406,11 @@ class has_permission(Predicate):
         super(has_permission, self).__init__(**kwargs)
         self.permission_name = permission_name
 
-    def _eval_with_environ(self, environ):
-        """Determine whether the visitor has the specified permission."""
-        credentials = environ.get('repoze.what.credentials')
-        if credentials and self.permission_name in credentials.get('permissions'):
-            return True
-        return False
+    def evaluate(self, environ, credentials):
+        if credentials and \
+           self.permission_name in credentials.get('permissions'):
+            return
+        self.unmet()
 
 
 class has_all_permissions(All):

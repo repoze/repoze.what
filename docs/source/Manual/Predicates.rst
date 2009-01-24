@@ -89,17 +89,28 @@ specified one", your predicate checker may look like this::
     from repoze.what.predicates import Predicate
     
     class is_month(Predicate):
-        message = 'The current month must be %(right_month)s'
+        message = 'The current month must be %(right_month)s and it is ' \
+                  '%(this_month)s'
         
         def __init__(self, right_month, **kwargs):
             self.right_month = right_month
-            self.today = date.today()
             super(is_month, self).__init__(**kwargs)
         
-        def _eval_with_environ(self, environ):
-            return self.today.month == self.right_month
+        def evaluate(self, environ, credentials):
+            # Let's calculate the current day on every evaluation because
+            # the application may be running for many days; hence it's not
+            # defined once in the constructor.
+            today = date.today()
+            if today.month != self.right_month:
+                # Raise an exception because the predicate is not met.
+                self.unmet(this_month=today.month)
 
-.. warning::
+Then you can use your predicate this way::
+
+    # Grant access if the current month is March
+    p = is_month(3)
+
+.. note::
 
     When you create a predicate, don't try to guess/assume the context in
     which the predicate is evaluated when you write the predicate message
@@ -107,11 +118,6 @@ specified one", your predicate checker may look like this::
     
     * Bad: "The software can be released if it's %(right_month)s".
     * Good: "The current month must be %(right_month)s".
-
-Then you can use your predicate this way::
-
-    # Grant access if the current month is March
-    p = is_month(3)
 
 
 Built-in predicate checkers
@@ -121,7 +127,7 @@ These are the predicate checkers that are included with
 :mod:`repoze.what`:
 
 .. autoclass:: Predicate
-    :members: __init__, _eval_with_environ, eval_with_environ
+    :members: __init__, evaluate, unmet, _eval_with_environ
 
 
 Single predicate checkers

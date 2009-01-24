@@ -30,12 +30,16 @@ class BasePredicateTester(unittest.TestCase):
     
     def eval_met_predicate(self, p, environ):
         """Evaluate a predicate that should be met"""
-        self.assertEqual(p.eval_with_environ(environ), None)
+        credentials = environ.get('repoze.what.credentials')
+        self.assertEqual(p.evaluate(environ, credentials), None)
     
     def eval_unmet_predicate(self, p, environ, expected_error):
         """Evaluate a predicate that should not be met"""
+        credentials = environ.get('repoze.what.credentials')
         try:
-            p.eval_with_environ(environ)
+            p.evaluate(environ, credentials)
+            self.fail('Predicate must not be met; expected error: %s' %
+                      expected_error)
         except predicates.PredicateError, error:
             self.assertEqual(unicode(error), expected_error)
 
@@ -45,9 +49,9 @@ class BasePredicateTester(unittest.TestCase):
 
 class TestPredicate(BasePredicateTester):
     
-    def test_eval_with_environ_isnt_implemented(self):
+    def test_evaluate_isnt_implemented(self):
         p = MockPredicate()
-        self.failUnlessRaises(NotImplementedError, p.eval_with_environ, None)
+        self.failUnlessRaises(NotImplementedError, p.evaluate, None, None)
     
     def test_message_is_changeable(self):
         previous_msg = EqualsTwo.message
@@ -67,6 +71,25 @@ class TestPredicate(BasePredicateTester):
         self.eval_unmet_predicate(p, environ, unicode_msg)
 
 
+class TestDeprecatedPredicate(BasePredicateTester):
+    """
+    Test that predicates using the deprecated ``_eval_with_environ()`` are
+    still supported.
+    
+    """
+    
+    def test_met_predicate(self):
+        environ = {}
+        p = DeprecatedPredicate(True)
+        self.eval_met_predicate(p, environ)
+    
+    def test_unmet_predicate(self):
+        environ = {}
+        error = 'This is a deprecated predicate'
+        p = DeprecatedPredicate(False)
+        self.eval_unmet_predicate(p, environ, error)
+
+
 class TestCompoundPredicate(BasePredicateTester):
     
     def test_one_predicate_works(self):
@@ -83,25 +106,25 @@ class TestCompoundPredicate(BasePredicateTester):
 
 class TestNotPredicate(BasePredicateTester):
     
-    def test_success(self):
+    def test_failure(self):
         environ = {'test_number': 4}
         # It must NOT equal 4
         p = predicates.Not(EqualsFour())
         # It equals 4!
         self.eval_unmet_predicate(p, environ, 'The condition must not be met')
     
-    def test_success_with_custom_message(self):
+    def test_failure_with_custom_message(self):
         environ = {'test_number': 4}
         # It must not equal 4
         p = predicates.Not(EqualsFour(), msg='It must not equal four')
         # It equals 4!
         self.eval_unmet_predicate(p, environ, 'It must not equal four')
     
-    def test_failure(self):
-        environ = {'test_number': 4}
-        # It must NOT be greater than 5
-        p = predicates.Not(LessThan(5))
-        # It's less than 5!
+    def test_success(self):
+        environ = {'test_number': 5}
+        # It must not equal 4
+        p = predicates.Not(EqualsFour())
+        # It doesn't equal 4!
         self.eval_met_predicate(p, environ)
 
 
@@ -344,17 +367,20 @@ class MockPredicate(predicates.Predicate):
 class EqualsTwo(predicates.Predicate):
     message = "Number %(number)s doesn't equal 2"
         
-    def _eval_with_environ(self, environ):
-        self.number = environ.get('test_number')
-        return self.number == 2
+    def evaluate(self, environ, credentials):
+        number = environ.get('test_number')
+        if number != 2:
+            self.unmet(number=number)
 
 
 class EqualsFour(predicates.Predicate):
     message = "Number %(number)s doesn't equal 4"
-        
-    def _eval_with_environ(self, environ):
-        self.number = environ.get('test_number')
-        return self.number == 4
+    
+    def evaluate(self, environ, credentials):
+        number = environ.get('test_number')
+        if number == 4:
+            return
+        self.unmet(number=number)
 
 
 class GreaterThan(predicates.Predicate):
@@ -364,9 +390,10 @@ class GreaterThan(predicates.Predicate):
         super(GreaterThan, self).__init__(**kwargs)
         self.compared_number = compared_number
         
-    def _eval_with_environ(self, environ):
-        self.number = environ.get('test_number')
-        return self.number > self.compared_number
+    def evaluate(self, environ, credentials):
+        number = environ.get('test_number')
+        if not number > self.compared_number:
+            self.unmet(number=number, compared_number=self.compared_number)
 
 
 class LessThan(predicates.Predicate):
@@ -376,8 +403,20 @@ class LessThan(predicates.Predicate):
         super(LessThan, self).__init__(**kwargs)
         self.compared_number = compared_number
         
+    def evaluate(self, environ, credentials):
+        number = environ.get('test_number')
+        if not number < self.compared_number:
+            self.unmet(number=number, compared_number=self.compared_number)
+
+
+class DeprecatedPredicate(predicates.Predicate):
+    message = "This is a deprecated predicate"
+    
+    def __init__(self, result, **kwargs):
+        super(DeprecatedPredicate, self).__init__(**kwargs)
+        self.result = result
+    
     def _eval_with_environ(self, environ):
-        self.number = environ.get('test_number')
-        return self.number < self.compared_number
+        return self.result
 
 #}

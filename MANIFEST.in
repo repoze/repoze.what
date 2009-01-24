@@ -8,5 +8,6 @@ prune docs/build
 recursive-include repoze *
 
 recursive-exclude tests *
+recursive-exclude functional_tests *
 
 global-exclude *~ *.pyc *.egg .directory

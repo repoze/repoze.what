@@ -32,15 +32,16 @@ class NotAuthorizedError(Exception):
 def check_authorization(predicate, environ):
     """
     Verify if the current user really can access the requested source.
-
+    
     :param predicate: The predicate to be evaluated.
     :param environ: The WSGI environment.
     :raise NotAuthorizedError: If it the predicate is not met.
     
     """
     logger = environ.get('repoze.who.logger')
+    credentials = environ.get('repoze.what.credentials')
     try:
-        predicate and not predicate.eval_with_environ(environ)
+        predicate and predicate.evaluate(environ, credentials)
     except PredicateError, error:
         logger and logger.info(u'Authorization denied: %s' % error)
         raise NotAuthorizedError(error)
