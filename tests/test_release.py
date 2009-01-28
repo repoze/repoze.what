@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2008-2009, Gustavo Narea <me@gustavonarea.net>.
+# Copyright (c) 2008-2009, Gustavo Narea <me@gustavonarea.net>
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -12,18 +12,23 @@
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
+"""
+Tests for the "release" module.
 
 """
-Source adapters for the groups/permissions-based pattern.
 
-"""
+import unittest, os
 
-from repoze.what.adapters import BaseSourceAdapter
+from repoze.what import release
 
+_here = os.path.abspath(os.path.dirname(__file__))
+_root = os.path.dirname(_here)
+version = open(os.path.join(_root, 'VERSION.txt')).readline().rstrip()
 
-class GroupsAdapter(BaseSourceAdapter):
-    pass
-
-
-class PermissionsAdapter(BaseSourceAdapter):
-    pass
+class TestRelease(unittest.TestCase):
+    def test_version(self):
+        self.assertEqual(version, release.version)
+    
+    def test_major_version(self):
+        # I prefer to update this on every major release -- Gustavo
+        self.assertEqual(1, release.major_version)

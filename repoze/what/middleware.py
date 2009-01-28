@@ -69,9 +69,13 @@ class AuthorizationMetadata(object):
         groups = set()
         permissions = set()
         if self.group_adapters is not None:
+            # repoze.what-2.X group adapters expect to find the
+            # 'repoze.what.userid' key in the credentials
+            credentials = identity.copy()
+            credentials['repoze.what.userid'] = identity['repoze.who.userid']
             # It's using groups/permissions-based authorization
             for grp_fetcher in self.group_adapters.values():
-                groups |= set(grp_fetcher.find_sections(identity))
+                groups |= set(grp_fetcher.find_sections(credentials))
             for group in groups:
                 for perm_fetcher in self.permission_adapters.values():
                     permissions |= set(perm_fetcher.find_sections(group))

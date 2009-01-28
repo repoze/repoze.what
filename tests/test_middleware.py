@@ -233,14 +233,14 @@ class TestAuthorizationMetadata(unittest.TestCase):
                                            expected_permissions)
     
     def test_add_metadata5(self):
-        identity = {'repoze.who.userid': 'whatever'}
+        identity = {'repoze.who.userid': 'rms'}
         environ = {}
-        group_adapters = {'my_group': FakeGroupFetcher2()}
-        permission_adapters = {'my_perm': FakePermissionFetcher3()}
+        group_adapters = {'my_group': FakeGroupSourceAdapter()}
+        permission_adapters = {'my_perm': FakePermissionSourceAdapter()}
         plugin = AuthorizationMetadata(group_adapters, permission_adapters)
         plugin.add_metadata(environ, identity)
-        expected_groups = ('webdesigners', 'directors')
-        expected_permissions = ('contact', )
+        expected_groups = ('admins', 'developers')
+        expected_permissions = ('edit-site', 'commit')
         self._check_groups_and_permissions(environ, identity, expected_groups,
                                            expected_permissions)
 

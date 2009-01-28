@@ -16,9 +16,6 @@
 ##############################################################################
 
 
-# This is a namespace package. Do NOT put anything here to keep the repoze.what
-# namespace clear for plugins at repoze.what.plugins and repoze.what.patterns
-
 # See http://peak.telecommunity.com/DevCenter/setuptools#namespace-packages
 try:
     __import__('pkg_resources').declare_namespace(__name__)
