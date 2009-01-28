@@ -5,6 +5,20 @@
 This document describes the releases of :mod:`repoze.what`.
 
 
+.. _repoze.what-1.0.3:
+
+:mod:`repoze.what` 1.0.3 (2009-01-28)
+=====================================
+
+This is a bug fix release, there is no new feature implemented.
+
+* For forward compatibility with v2, the latest version of the Ini, SQL and
+  XML :term:`group adapters <group adapter>` rely on the ``repoze.what.userid``
+  key in the :mod:`repoze.what` ``credentials`` dictionary. However, 
+  :mod:`repoze.what` was passing the :mod:`repoze.who` ``identity`` to them
+  instead of its ``credentials`` dict.
+
+
 .. _repoze.what-1.0.2:
 
 :mod:`repoze.what` 1.0.2 (2009-01-23)
