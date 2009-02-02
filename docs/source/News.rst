@@ -17,7 +17,8 @@ This document describes the releases of :mod:`repoze.what`.
   :class:`repoze.what.predicates.NotAuthorizedError` instead of
   :meth:`repoze.what.authorize.check_authorization` and
   :class:`repoze.what.authorize.NotAuthorizedError`, respectively.
-* Introduced :meth:`repoze.what.predicates.Predicate.is_met`.
+* Backported :meth:`repoze.what.predicates.Predicate.is_met` from
+  :mod:`repoze.what` v2.
 
 .. attention::
     This is *not* a backwards incompatible release.
