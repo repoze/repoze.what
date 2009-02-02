@@ -143,6 +143,15 @@ class Predicate(object):
         :param environ: The WSGI environment.
         :raise NotAuthorizedError: If it the predicate is not met.
         
+        Example::
+        
+            >>> from repoze.what.predicates import is_user
+            >>> environ = gimme_the_environ()
+            >>> p = is_user('gustavo')
+            >>> p.check_authorization(environ)
+            # ...
+            repoze.what.predicates.NotAuthorizedError: The current user must be "gustavo"
+        
         """
         logger = environ.get('repoze.what.logger')
         credentials = environ.get('repoze.what.credentials')
@@ -152,6 +161,30 @@ class Predicate(object):
             logger and logger.info(u'Authorization denied: %s' % error)
             raise
         logger and logger.info('Authorization granted')
+
+    def is_met(self, environ):
+        """
+        Find whether the predicate is met or not.
+        
+        :param environ: The WSGI environment.
+        :return: Whether the predicate is met or not.
+        :rtype: bool
+        
+        Example::
+        
+            >>> from repoze.what.predicates import is_user
+            >>> environ = gimme_the_environ()
+            >>> p = is_user('gustavo')
+            >>> p.is_met(environ)
+            False
+        
+        """
+        credentials = environ.get('repoze.what.credentials')
+        try:
+            self.evaluate(environ, credentials)
+            return True
+        except NotAuthorizedError, error:
+            return False
 
 
 class CompoundPredicate(Predicate):

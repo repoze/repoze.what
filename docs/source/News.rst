@@ -21,4 +21,5 @@ This document describes the releases of :mod:`repoze.what`.
     is defined as a method of the predicate (the way it should've had been)
     and its ``NotAuthorizedError`` exception is now at 
     :class:`repoze.what.predicates.NotAuthorizedError` (it replaces
-    class:`repoze.what.predicates.PredicateError`).
+    :class:`repoze.what.predicates.PredicateError`).
+* Introduced :meth:`repoze.what.predicates.Predicate.is_met`.

@@ -33,18 +33,21 @@ class BasePredicateTester(unittest.TestCase):
     
     def eval_met_predicate(self, p, environ):
         """Evaluate a predicate that should be met"""
-        credentials = environ.get('repoze.what.credentials')
-        self.assertEqual(p.evaluate(environ, credentials), None)
+        self.assertEqual(p.check_authorization(environ), None)
+        self.assertEqual(p.is_met(environ), True)
     
     def eval_unmet_predicate(self, p, environ, expected_error):
         """Evaluate a predicate that should not be met"""
         credentials = environ.get('repoze.what.credentials')
+        # Testing check_authorization
         try:
             p.evaluate(environ, credentials)
             self.fail('Predicate must not be met; expected error: %s' %
                       expected_error)
         except NotAuthorizedError, error:
             self.assertEqual(unicode(error), expected_error)
+        # Testing is_met:
+        self.assertEqual(p.is_met(environ), False)
 
 
 def make_environ(user, groups=None, permissions=None):
