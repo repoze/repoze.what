@@ -17,3 +17,8 @@ This document describes the releases of :mod:`repoze.what`.
   * Predicates for the groups/permissions-based authorization pattern were
     moved from :mod:`repoze.what.predicates` to 
     :mod:`repoze.what.patterns.groups.predicates`.
+  * :mod:`repoze.what.authorize` is gone. Its ``check_authorization`` function
+    is defined as a method of the predicate (the way it should've had been)
+    and its ``NotAuthorizedError`` exception is now at 
+    :class:`repoze.what.predicates.NotAuthorizedError` (it replaces
+    class:`repoze.what.predicates.PredicateError`).

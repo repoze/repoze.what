@@ -22,7 +22,7 @@ This module also defines utilities and mock objects for the test suite.
 
 import unittest
 
-from repoze.what.predicates import Predicate, PredicateError
+from repoze.what.predicates import Predicate, NotAuthorizedError
 
 
 #{ Utilities
@@ -43,7 +43,7 @@ class BasePredicateTester(unittest.TestCase):
             p.evaluate(environ, credentials)
             self.fail('Predicate must not be met; expected error: %s' %
                       expected_error)
-        except PredicateError, error:
+        except NotAuthorizedError, error:
             self.assertEqual(unicode(error), expected_error)
 
 

@@ -20,8 +20,11 @@ Tests for the predicates.
 
 """
 
+from unittest import TestCase
+
 from repoze.what import predicates
 
+from unit_tests.base import FakeLogger
 from unit_tests.predicates import BasePredicateTester, make_environ, \
                                   EqualsTwo, EqualsFour, GreaterThan
 
@@ -51,6 +54,47 @@ class TestPredicate(BasePredicateTester):
         p = EqualsTwo(msg=unicode_msg)
         environ = {'test_number': 3}
         self.eval_unmet_predicate(p, environ, unicode_msg)
+    
+    def test_authorized(self):
+        logger = FakeLogger()
+        environ = {'test_number': 4}
+        environ['repoze.what.logger'] = logger
+        p = EqualsFour()
+        p.check_authorization(environ)
+        info = logger.messages['info']
+        assert "Authorization granted" == info[0]
+    
+    def test_unauthorized(self):
+        logger = FakeLogger()
+        environ = {'test_number': 3}
+        environ['repoze.what.logger'] = logger
+        p = EqualsFour(msg="Go away!")
+        try:
+            p.check_authorization(environ)
+            self.fail('Authorization must have been rejected')
+        except predicates.NotAuthorizedError, e:
+            self.assertEqual(str(e), "Go away!")
+            # Testing the logs:
+            info = logger.messages['info']
+            assert "Authorization denied: Go away!" == info[0]
+    
+    def test_unauthorized_with_unicode_message(self):
+        # This test is broken on Python 2.4 and 2.5 because the unicode()
+        # function doesn't work when converting an exception into an unicode
+        # string (this is, to extract its message).
+        unicode_msg = u'请登陆'
+        logger = FakeLogger()
+        environ = {'test_number': 3}
+        environ['repoze.what.logger'] = logger
+        p = EqualsFour(msg=unicode_msg)
+        try:
+            p.check_authorization(environ)
+            self.fail('Authorization must have been rejected')
+        except predicates.NotAuthorizedError, e:
+            self.assertEqual(unicode(e), unicode_msg)
+            # Testing the logs:
+            info = logger.messages['info']
+            assert "Authorization denied: %s" % unicode_msg == info[0]
 
 
 class TestCompoundPredicate(BasePredicateTester):
@@ -65,6 +109,15 @@ class TestCompoundPredicate(BasePredicateTester):
         p2 = MockPredicate()
         cp = predicates.CompoundPredicate(p1, p2)
         self.assertEqual(cp.predicates, (p1, p2))
+
+
+class TestNotAuthorizedError(TestCase):
+    """Tests for the NotAuthorizedError exception"""
+    
+    def test_string_representation(self):
+        msg = 'You are not the master of Universe'
+        exc = predicates.NotAuthorizedError(msg)
+        self.assertEqual(msg, str(exc))
 
 
 class TestNotPredicate(BasePredicateTester):

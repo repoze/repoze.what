@@ -27,13 +27,13 @@ from string import ascii_letters
 from unittest import TestCase
 
 from repoze.what.predicates import *
-from repoze.what.authorize import check_authorization, NotAuthorizedError
+from repoze.what.patterns.groups import *
 
 
 #{ The test cases
 
 
-class TestPredicateErrors(TestCase):
+class TestNotAuthorizedErrors(TestCase):
     """
     Test that all the built-in predicates are thread-safe.
     
@@ -244,7 +244,7 @@ class DaPredicateThread(Thread):
             # Create a new environ simulating the fresh environ each request gets
             environ = {'repoze.what.credentials': self.credentials.copy()}
             try:
-                check_authorization(self.shared_predicate, environ)
+                self.shared_predicate.check_authorization(environ)
             except NotAuthorizedError, exc:
                 if unicode(exc) != self.expected_error:
                     self.found_error.set()
