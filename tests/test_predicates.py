@@ -24,24 +24,29 @@ import unittest
 
 from repoze.what import predicates
 
+from tests.base import FakeLogger
+
 
 class BasePredicateTester(unittest.TestCase):
     """Base test case for predicates."""
     
     def eval_met_predicate(self, p, environ):
         """Evaluate a predicate that should be met"""
-        credentials = environ.get('repoze.what.credentials')
-        self.assertEqual(p.evaluate(environ, credentials), None)
+        self.assertEqual(p.check_authorization(environ), None)
+        self.assertEqual(p.is_met(environ), True)
     
     def eval_unmet_predicate(self, p, environ, expected_error):
         """Evaluate a predicate that should not be met"""
         credentials = environ.get('repoze.what.credentials')
+        # Testing check_authorization
         try:
             p.evaluate(environ, credentials)
             self.fail('Predicate must not be met; expected error: %s' %
                       expected_error)
-        except predicates.PredicateError, error:
+        except predicates.NotAuthorizedError, error:
             self.assertEqual(unicode(error), expected_error)
+        # Testing is_met:
+        self.assertEqual(p.is_met(environ), False)
 
 
 #{ The test suite itself
@@ -69,24 +74,65 @@ class TestPredicate(BasePredicateTester):
         p = EqualsTwo(msg=unicode_msg)
         environ = {'test_number': 3}
         self.eval_unmet_predicate(p, environ, unicode_msg)
+    
+    def test_authorized(self):
+        logger = FakeLogger()
+        environ = {'test_number': 4}
+        environ['repoze.who.logger'] = logger
+        p = EqualsFour()
+        p.check_authorization(environ)
+        info = logger.messages['info']
+        assert "Authorization granted" == info[0]
+    
+    def test_unauthorized(self):
+        logger = FakeLogger()
+        environ = {'test_number': 3}
+        environ['repoze.who.logger'] = logger
+        p = EqualsFour(msg="Go away!")
+        try:
+            p.check_authorization(environ)
+            self.fail('Authorization must have been rejected')
+        except predicates.NotAuthorizedError, e:
+            self.assertEqual(str(e), "Go away!")
+            # Testing the logs:
+            info = logger.messages['info']
+            assert "Authorization denied: Go away!" == info[0]
+    
+    def test_unauthorized_with_unicode_message(self):
+        # This test is broken on Python 2.4 and 2.5 because the unicode()
+        # function doesn't work when converting an exception into an unicode
+        # string (this is, to extract its message).
+        unicode_msg = u'请登陆'
+        logger = FakeLogger()
+        environ = {'test_number': 3}
+        environ['repoze.who.logger'] = logger
+        p = EqualsFour(msg=unicode_msg)
+        try:
+            p.check_authorization(environ)
+            self.fail('Authorization must have been rejected')
+        except predicates.NotAuthorizedError, e:
+            self.assertEqual(unicode(e), unicode_msg)
+            # Testing the logs:
+            info = logger.messages['info']
+            assert "Authorization denied: %s" % unicode_msg == info[0]
 
 
 class TestDeprecatedPredicate(BasePredicateTester):
     """
-    Test that predicates using the deprecated ``_eval_with_environ()`` are
-    still supported.
+    Test that predicates using the deprecated ``_eval_with_environ()`` and
+    ``evaluate()`` are still supported.
     
     """
     
-    def test_met_predicate(self):
+    def test_met_eval_with_environ(self):
         environ = {}
-        p = DeprecatedPredicate(True)
+        p = DeprecatedEvalWithEnvironPredicate(True)
         self.eval_met_predicate(p, environ)
     
-    def test_unmet_predicate(self):
+    def test_unmet_eval_with_environ(self):
         environ = {}
         error = 'This is a deprecated predicate'
-        p = DeprecatedPredicate(False)
+        p = DeprecatedEvalWithEnvironPredicate(False)
         self.eval_unmet_predicate(p, environ, error)
 
 
@@ -409,11 +455,11 @@ class LessThan(predicates.Predicate):
             self.unmet(number=number, compared_number=self.compared_number)
 
 
-class DeprecatedPredicate(predicates.Predicate):
+class DeprecatedEvalWithEnvironPredicate(predicates.Predicate):
     message = "This is a deprecated predicate"
     
     def __init__(self, result, **kwargs):
-        super(DeprecatedPredicate, self).__init__(**kwargs)
+        super(DeprecatedEvalWithEnvironPredicate, self).__init__(**kwargs)
         self.result = result
     
     def _eval_with_environ(self, environ):

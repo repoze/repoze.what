@@ -5,6 +5,24 @@
 This document describes the releases of :mod:`repoze.what`.
 
 
+.. _repoze.what-1.0.4:
+
+:mod:`repoze.what` 1.0.4 (*unreleased*)
+=======================================
+
+* For forward compatibility with :mod:`repoze.what` v2, the
+  :mod:`repoze.what.authorize` module is deprecated. If you want to use
+  :mod:`repoze.what` v2, you should start using 
+  :meth:`repoze.what.predicates.Predicate.check_authorization` and
+  :class:`repoze.what.predicates.NotAuthorizedError` instead of
+  :meth:`repoze.what.authorize.check_authorization` and
+  :class:`repoze.what.authorize.NotAuthorizedError`, respectively.
+* Introduced :meth:`repoze.what.predicates.Predicate.is_met`.
+
+.. attention::
+    This is *not* a backwards incompatible release.
+
+
 .. _repoze.what-1.0.3:
 
 :mod:`repoze.what` 1.0.3 (2009-01-28)

@@ -13,20 +13,20 @@
 #
 ##############################################################################
 
-"""Utilities to restrict access based on predicates."""
+"""
+Utilities to restrict access based on predicates.
+
+.. deprecated:: 1.0.4
+    This module won't be available in :mod:`repoze.what` v2. See
+    :meth:`repoze.what.predicates.Predicate.check_authorization`.
+
+"""
+
+from warnings import warn
 
 # We import the predicates just to make repoze.what backwards compatible
 # with tg.ext.repoze.who, but they are actually useless here:
 from repoze.what.predicates import *
-
-
-class NotAuthorizedError(Exception):
-    """
-    Exception raised by :func:`check_authorization` if the subject is not 
-    allowed to access the requested source.
-    
-    """
-    pass
 
 
 def check_authorization(predicate, environ):
@@ -37,12 +37,17 @@ def check_authorization(predicate, environ):
     :param environ: The WSGI environment.
     :raise NotAuthorizedError: If it the predicate is not met.
     
+    .. deprecated:: 1.0.4
+        Use :meth:`repoze.what.predicates.Predicate.check_authorization`
+        instead.
+    
+    .. versionchanged:: 1.0.4
+        :class:`repoze.what.predicates.PredicateError` used to be the exception
+        raised.
+    
     """
-    logger = environ.get('repoze.who.logger')
-    credentials = environ.get('repoze.what.credentials')
-    try:
-        predicate and predicate.evaluate(environ, credentials)
-    except PredicateError, error:
-        logger and logger.info(u'Authorization denied: %s' % error)
-        raise NotAuthorizedError(error)
-    logger and logger.info('Authorization granted')
+    msg = 'repoze.what.authorize is deprecated for forward compatibility '\
+          'with repoze.what v2; use ' \
+          'Predicate.check_authorization(environ) instead'
+    warn(msg, DeprecationWarning, stacklevel=2)
+    predicate and predicate.check_authorization(environ)

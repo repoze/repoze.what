@@ -26,7 +26,7 @@ original "identity" framework of TurboGears 1, plus others.
 __all__ = ['Predicate', 'CompoundPredicate', 'All', 'Any', 
            'has_all_permissions', 'has_any_permission', 'has_permission', 
            'in_all_groups', 'in_any_group', 'in_group', 'is_user', 
-           'not_anonymous', 'PredicateError']
+           'not_anonymous', 'PredicateError', 'NotAuthorizedError']
 
 
 #{ Predicates
@@ -66,8 +66,8 @@ class Predicate(object):
         :type credentials: dict
         :raise NotImplementedError: When the predicate doesn't define this
             method.
-        :raises PredicateError: If the predicate is not met (use :meth:`unmet`
-            to raise it).
+        :raises NotAuthorizedError: If the predicate is not met (use 
+            :meth:`unmet` to raise it).
         
         This is the method that must be overridden by any predicate.
         
@@ -127,7 +127,7 @@ class Predicate(object):
         Make sure this predicate is met.
         
         :param environ: The WSGI environment.
-        :raises PredicateError: If the predicate is not met.
+        :raises NotAuthorizedError: If the predicate is not met.
         
         .. versionchanged:: 1.0.1
             In :mod:`repoze.what`<1.0.1, this method returned a ``bool`` and
@@ -150,7 +150,7 @@ class Predicate(object):
         """
         Raise an exception because this predicate is not met.
         
-        :raises PredicateError: If the predicate is not met.
+        :raises NotAuthorizedError: If the predicate is not met.
         
         ``placeholders`` represent the placeholders for the predicate message.
         The predicate's attributes will also be taken into account while
@@ -180,7 +180,63 @@ class Predicate(object):
         all_placeholders = self.__dict__.copy()
         all_placeholders.update(placeholders)
         msg = self.message % all_placeholders
-        raise PredicateError(msg)
+        raise NotAuthorizedError(msg)
+
+    def check_authorization(self, environ):
+        """
+        Evaluate the predicate and raise an exception if it's not met.
+        
+        :param environ: The WSGI environment.
+        :raise NotAuthorizedError: If it the predicate is not met.
+        
+        Example::
+        
+            >>> from repoze.what.predicates import is_user
+            >>> environ = gimme_the_environ()
+            >>> p = is_user('gustavo')
+            >>> p.check_authorization(environ)
+            # ...
+            repoze.what.predicates.NotAuthorizedError: The current user must be "gustavo"
+        
+        .. versionadded:: 1.0.4
+            Added for backwards compatibility with :mod:`repoze.what` v2.
+        
+        """
+        logger = environ.get('repoze.who.logger')
+        credentials = environ.get('repoze.what.credentials')
+        try:
+            self.evaluate(environ, credentials)
+        except NotAuthorizedError, error:
+            logger and logger.info(u'Authorization denied: %s' % error)
+            raise
+        logger and logger.info('Authorization granted')
+
+    def is_met(self, environ):
+        """
+        Find whether the predicate is met or not.
+        
+        :param environ: The WSGI environment.
+        :return: Whether the predicate is met or not.
+        :rtype: bool
+        
+        Example::
+        
+            >>> from repoze.what.predicates import is_user
+            >>> environ = gimme_the_environ()
+            >>> p = is_user('gustavo')
+            >>> p.is_met(environ)
+            False
+        
+        .. versionadded:: 1.0.4
+            Added for backwards compatibility with :mod:`repoze.what` v2.
+        
+        """
+        credentials = environ.get('repoze.what.credentials')
+        try:
+            self.evaluate(environ, credentials)
+            return True
+        except NotAuthorizedError, error:
+            return False
 
 
 class CompoundPredicate(Predicate):
@@ -212,7 +268,7 @@ class Not(Predicate):
     def evaluate(self, environ, credentials):
         try:
             self.predicate.evaluate(environ, credentials)
-        except PredicateError, error:
+        except NotAuthorizedError, error:
             return
         self.unmet()
 
@@ -237,7 +293,7 @@ class All(CompoundPredicate):
         
         :param environ: The WSGI environment.
         :param credentials: The :mod:`repoze.what` ``credentials``.
-        :raises PredicateError: If one of the predicates is not met.
+        :raises NotAuthorizedError: If one of the predicates is not met.
         
         """
         for p in self.predicates:
@@ -266,7 +322,7 @@ class Any(CompoundPredicate):
         
         :param environ: The WSGI environment.
         :param credentials: The :mod:`repoze.what` ``credentials``.
-        :raises PredicateError: If none of the predicates is met.
+        :raises NotAuthorizedError: If none of the predicates is met.
         
         """
         errors = []
@@ -274,7 +330,7 @@ class Any(CompoundPredicate):
             try:
                 p.evaluate(environ, credentials)
                 return
-            except PredicateError, exc:
+            except NotAuthorizedError, exc:
                 errors.append(unicode(exc))
         failed_predicates = ', '.join(errors)
         self.unmet(failed_predicates=failed_predicates)
@@ -460,7 +516,25 @@ class has_any_permission(Any):
 
 
 class PredicateError(Exception):
-    """Exception raised by a :class:`Predicate` it's not met."""
+    """
+    Former exception raised by a :class:`Predicate` if it's not met.
+    
+    .. deprecated:: 1.0.4
+        Deprecated in favor of :class:`NotAuthorizedError`, for forward
+        compatibility with :mod:`repoze.what` v2.
+    
+    """
+    pass
+
+
+class NotAuthorizedError(PredicateError):
+    """
+    Exception raised by :meth:`Predicate.check_authorization` if the subject 
+    is not allowed to access the requested source.
+    
+    .. versionadded:: 1.0.4
+    
+    """
     pass
 
 

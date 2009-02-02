@@ -22,66 +22,31 @@ Tests for the authorization mechanisms.
 
 import unittest
 
-from repoze.what import authorize
-
 from base import FakeLogger
 from test_predicates import make_environ
 
 
-class TestAuthorizationChecker(unittest.TestCase):
-    """Tests for the check_authorization() function"""
+class TestAuthorize(unittest.TestCase):
+    """Tests for the repoze.what.authorize module"""
     
-    def test_authorized(self):
+    def test_check_authorization(self):
+        from repoze.what.authorize import check_authorization
+        from repoze.what.predicates import has_any_permission
         logger = FakeLogger()
         environ = make_environ('gustavo', permissions=['watch-tv', 'party',
                                                        'eat'])
         environ['repoze.who.logger'] = logger
-        p = authorize.has_any_permission('party', 'scream')
-        authorize.check_authorization(p, environ)
+        p = has_any_permission('party', 'scream')
+        check_authorization(p, environ)
         info = logger.messages['info']
         assert "Authorization granted" == info[0]
     
-    def test_unauthorized(self):
-        logger = FakeLogger()
-        environ = make_environ('gustavo', permissions=['watch-tv', 'party',
-                                                       'eat'])
-        environ['repoze.who.logger'] = logger
-        p = authorize.has_any_permission('jump', 'scream',
-                                         msg="Go away!")
-        try:
-            authorize.check_authorization(p, environ)
-            self.fail('Authorization must have been rejected')
-        except authorize.NotAuthorizedError, e:
-            self.assertEqual(str(e), "Go away!")
-            # Testing the logs:
-            info = logger.messages['info']
-            assert "Authorization denied: Go away!" == info[0]
-    
-    def test_unauthorized_with_unicode_message(self):
-        # This test is broken on Python 2.4 and 2.5 because the unicode()
-        # function doesn't work when converting an exception into an unicode
-        # string (this is, to extract its message).
-        unicode_msg = u'请登陆'
-        logger = FakeLogger()
-        environ = make_environ('gustavo', permissions=['watch-tv', 'party',
-                                                       'eat'])
-        environ['repoze.who.logger'] = logger
-        p = authorize.has_any_permission('jump', 'scream',
-                                         msg=unicode_msg)
-        try:
-            authorize.check_authorization(p, environ)
-            self.fail('Authorization must have been rejected')
-        except authorize.NotAuthorizedError, e:
-            self.assertEqual(unicode(e), unicode_msg)
-            # Testing the logs:
-            info = logger.messages['info']
-            assert "Authorization denied: %s" % unicode_msg == info[0]
-
-
-class TestNotAuthorizedError(unittest.TestCase):
-    """Tests for the NotAuthorizedError exception"""
-    
-    def test_string_representation(self):
-        msg = 'You are not the master of Universe'
-        exc = authorize.NotAuthorizedError(msg)
-        self.assertEqual(msg, str(exc))
+    def test_NotAuthorizedError_is_available(self):
+        """
+        NotAuthorizedError must subclass PredicateError for backwards
+        compatibility.
+        
+        """
+        from repoze.what.authorize import NotAuthorizedError
+        from repoze.what.predicates import PredicateError
+        assert issubclass(NotAuthorizedError, PredicateError)
