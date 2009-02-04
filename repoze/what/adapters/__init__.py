@@ -36,8 +36,6 @@ belong to the "update-site" section.
 
 """
 
-from zope.interface import Interface
-
 __all__ = ['BaseSourceAdapter', 'AdapterError', 'SourceError',
            'ExistingSectionError', 'NonExistingSectionError', 
            'ItemPresentError', 'ItemNotPresentError']
