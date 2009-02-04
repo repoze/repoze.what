@@ -19,8 +19,6 @@
 
 import unittest
 
-from zope.interface import implements
-
 from repoze.what.adapters import *
 
 from base import FakeGroupSourceAdapter
