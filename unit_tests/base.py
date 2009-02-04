@@ -18,41 +18,10 @@ Utilities for the test suite of :mod:`repoze.what`.
 
 """
 
-
-from repoze.what.middleware import setup_auth
 from repoze.what.adapters import BaseSourceAdapter
 
-__all__ = ['FakeAuthenticator', 'FakeGroupSourceAdapter', 
-           'FakePermissionSourceAdapter', 'FakeLogger']
-
-class FakeAuthenticator(object):
-    """
-    Fake :mod:`repoze.who` authenticator plugin.
-    
-    It will authenticate if you use one of the following credentials (username
-    and password):
-    
-    * ``rms``: ``freedom``
-    * ``linus``: ``linux``
-    * ``sballmer``: ``developers``
-    * ``guido``: ``pythonic``
-    * ``rasmus``: ``php``
-    
-    """
-    
-    credentials = {
-        u'rms': u'freedom',
-        u'linus': u'linux',
-        u'sballmer': u'developers',
-        u'guido': u'pythonic',
-        u'rasmus': u'php'
-        }
-
-    def authenticate(self, environ, identity):
-        login = identity['login']
-        pass_ = identity['password']
-        if login in self.credentials and pass_ == self.credentials[login]:
-            return login
+__all__ = ['FakeGroupSourceAdapter', 'FakePermissionSourceAdapter', 
+           'FakeLogger']
 
 
 class FakeGroupSourceAdapter(BaseSourceAdapter):

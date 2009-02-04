@@ -50,8 +50,8 @@ setup(name='repoze.what',
       packages=find_packages(),
       include_package_data=True,
       zip_safe=False,
-      tests_require = ['repoze.who', 'paste', 'coverage', 'nose'],
-      install_requires=['repoze.who', 'paste'],
+      tests_require = ['paste', 'coverage', 'nose'],
+      install_requires=['paste'],
       test_suite="nose.collector",
       entry_points = """\
       """
