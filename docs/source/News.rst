@@ -19,6 +19,8 @@ This document describes the releases of :mod:`repoze.what`.
   :class:`repoze.what.authorize.NotAuthorizedError`, respectively.
 * Backported :meth:`repoze.what.predicates.Predicate.is_met` from
   :mod:`repoze.what` v2.
+* Now :meth:`repoze.what.predicates.Predicate.unmet` receives an optional
+  argument to override the error message. This feature is backported from v2.
 
 .. attention::
     This is *not* a backwards incompatible release.

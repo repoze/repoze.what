@@ -115,6 +115,16 @@ class TestPredicate(BasePredicateTester):
             # Testing the logs:
             info = logger.messages['info']
             assert "Authorization denied: %s" % unicode_msg == info[0]
+    
+    def test_custom_failure_message(self):
+        message = u'This is a custom message whose id is: %(id_number)s'
+        id_number = 23
+        p = EqualsFour(msg=message)
+        try:
+            p.unmet(message, id_number=id_number)
+            self.fail('An exception must have been raised')
+        except predicates.NotAuthorizedError, e:
+            self.assertEqual(unicode(e), message % dict(id_number=id_number))
 
 
 class TestDeprecatedPredicate(BasePredicateTester):

@@ -69,7 +69,7 @@ class Predicate(object):
         :raises NotAuthorizedError: If the predicate is not met (use 
             :meth:`unmet` to raise it).
         
-        This is the method that must be overridden by any predicate.
+        This is the method that must be overridden by any predicate checker.
         
         For example, if your predicate is "The current month is the specified
         one", you may define the following predicate checker::
@@ -90,9 +90,11 @@ class Predicate(object):
                         # Raise an exception because the predicate is not met.
                         self.unmet()
         
+        .. versionadded:: 1.0.2
+        
         .. attention::
             Do not evaluate predicates by yourself using this method. See
-            :func:`repoze.what.authorize.check_authorization`.
+            :meth:`check_authorization` and :meth:`is_met`.
 
         .. warning::
         
@@ -140,16 +142,19 @@ class Predicate(object):
         """
         from warnings import warn
         msg = 'Predicate._eval_with_environ(environ) is deprecated ' \
-              'for forward compatibility with repoze.what v2; use ' \
+              'for forward compatibility with repoze.what v2; define ' \
               'Predicate.evaluate(environ, credentials) instead'
         warn(msg, DeprecationWarning, stacklevel=2)
         if not self._eval_with_environ(environ):
             self.unmet()
     
-    def unmet(self, **placeholders):
+    def unmet(self, msg=None, **placeholders):
         """
         Raise an exception because this predicate is not met.
         
+        :param msg: The error message to be used; overrides the predicate's
+            default one.
+        :type msg: str
         :raises NotAuthorizedError: If the predicate is not met.
         
         ``placeholders`` represent the placeholders for the predicate message.
@@ -175,12 +180,38 @@ class Predicate(object):
         
             The current month must be 5 and it is 3
         
+        If you have a context-sensitive predicate checker and thus you want
+        to change the error message on evaluation, you can call :meth:`unmet`
+        as::
+        
+            self.unmet('%(this_month)s is not a good month',
+                       this_month=this_month)
+        
+        The exception raised would contain the following message::
+        
+            3 is not a good month
+        
+        .. versionadded:: 1.0.2
+        
+        .. versionchanged:: 1.0.4
+            Introduced the ``msg`` argument.
+        
+        .. attention::
+        
+            This method should only be called from :meth:`evaluate`.
+        
         """
+        if msg:
+            message = msg
+        else:
+            message = self.message
+        # Let's convert it into unicode because it may be just a class, as a 
+        # Pylon's "lazy" translation message:
+        message = unicode(message)
         # Include the predicate attributes in the placeholders:
         all_placeholders = self.__dict__.copy()
         all_placeholders.update(placeholders)
-        msg = self.message % all_placeholders
-        raise NotAuthorizedError(msg)
+        raise NotAuthorizedError(message % all_placeholders)
 
     def check_authorization(self, environ):
         """
@@ -199,7 +230,8 @@ class Predicate(object):
             repoze.what.predicates.NotAuthorizedError: The current user must be "gustavo"
         
         .. versionadded:: 1.0.4
-            Added for backwards compatibility with :mod:`repoze.what` v2.
+            Backported from :mod:`repoze.what` v2; deprecates
+            :func:`repoze.what.authorize.check_authorization`.
         
         """
         logger = environ.get('repoze.who.logger')
@@ -228,7 +260,7 @@ class Predicate(object):
             False
         
         .. versionadded:: 1.0.4
-            Added for backwards compatibility with :mod:`repoze.what` v2.
+            Backported from :mod:`repoze.what` v2.
         
         """
         credentials = environ.get('repoze.what.credentials')
@@ -532,7 +564,14 @@ class NotAuthorizedError(PredicateError):
     Exception raised by :meth:`Predicate.check_authorization` if the subject 
     is not allowed to access the requested source.
     
-    .. versionadded:: 1.0.4
+    This exception deprecates :class:`PredicateError` as of v1.0.4, but
+    extends it to avoid breaking backwards compatibility.
+    
+    .. versionchanged:: 1.0.4
+        This exception was defined at :mod:`repoze.what.authorize` until
+        version 1.0.3, but is still imported into that module to keep backwards
+        compatibility with v1.X releases -- but it won't work in
+        :mod:`repoze.what` v2.
     
     """
     pass
