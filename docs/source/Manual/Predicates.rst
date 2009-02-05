@@ -241,7 +241,7 @@ resource, you may want to avoid the exception
 controls that portion is not met. For example, you may want to display a given
 message if the user is not anonymous.
 
-This is where :meth:`Predicate.is_met` would come to play. You can use it as
+This is where :meth:`Predicate.is_met` would come into play. You can use it as
 in the code below::
 
     # ...
