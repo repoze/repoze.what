@@ -64,7 +64,7 @@ class Predicate(object):
         :raises NotAuthorizedError: If the predicate is not met (use :meth:`unmet`
             to raise it).
         
-        This is the method that must be overridden by any predicate.
+        This is the method that must be overridden by any predicate checker.
         
         For example, if your predicate is "The current month is the specified
         one", you may define the following predicate checker::
