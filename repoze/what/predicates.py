@@ -100,10 +100,13 @@ class Predicate(object):
         """
         raise NotImplementedError
     
-    def unmet(self, **placeholders):
+    def unmet(self, msg=None, **placeholders):
         """
         Raise an exception because this predicate is not met.
         
+        :param msg: The error message to be used; overrides the predicate's
+            default one.
+        :type msg: str
         :raises NotAuthorizedError: All the time.
         
         ``placeholders`` represent the placeholders for the predicate message.
@@ -129,12 +132,29 @@ class Predicate(object):
         
             The current month must be 5 and it is 3
         
+        If you have a context-sensitive predicate checker and thus you want
+        to change the error message on evaluation, you can call :meth:`unmet`
+        as::
+        
+            self.unmet('%(this_month)s is not a good month',
+                       this_month=this_month)
+        
+        The exception raised would contain the following message::
+        
+            3 is not a good month
+        
         """
+        if msg:
+            message = msg
+        else:
+            message = self.message
+        # Let's convert it into unicode because it may be just a class, as a 
+        # Pylon's "lazy" translation message:
+        message = unicode(message)
         # Include the predicate attributes in the placeholders:
         all_placeholders = self.__dict__.copy()
         all_placeholders.update(placeholders)
-        msg = self.message % all_placeholders
-        raise NotAuthorizedError(msg)
+        raise NotAuthorizedError(message % all_placeholders)
 
     def check_authorization(self, environ):
         """
