@@ -256,7 +256,7 @@ in the code below::
         new_comment = Comment(post=post_id, comment=comment)
         save(new_comment)
         if in_group('customer').is_met(environ):
-            print_message('Dear customer, thank you for your comment!')
+            print_message('Dear customer, thanks for your comment!')
 
 
 :mod:`repoze.what.authorize`
