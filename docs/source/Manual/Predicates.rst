@@ -139,25 +139,25 @@ parts that make up the context (described above). However, this framework
 mostly helps you control access based on *who* the user is (her credentials),
 while gives you a hand to control access based on *what* is requested and 
 *how* by passing the WSGI environ to the predicate checker
-(:meth:`Predicate.get_variables` exists to help you with the *what* too).
+(:meth:`Predicate.parse_variables` exists to help you with the *what* too).
 Writing predicates based on *when* it is requested and external conditions 
 (if any) is completely up to you.
 
-For example, if to allow users edit posts in a blog you don't only want the 
-predicate "the current user is granted the ``edit-post`` permission" (*who*
-makes the request) to be met, but also "the current user is the author of the 
-post in question" (*what* is requested), you may write the latter as::
+For example, if to allow users edit posts in a blog you don't only want 
+the predicate "the current user is granted the ``edit-posts`` permission" 
+(*who* makes the request) to be met, but also "the current user is the author 
+of the post in question" (*what* is requested), you may write the latter as::
 
     from repoze.what.predicates import Predicate
     # Say you use SQLAlchemy:
     from yourcoolapplication.model import BlogPost, DBSession
     
-    class post_is_edited_by_author(Predicate):
-        message = 'Only %(author)s can edit post %(post_id)s'
+    class post_is_managed_by_author(Predicate):
+        message = 'Only %(author)s can manage post %(post_id)s'
         
         def evaluate(self, environ, credentials):
             # Extracting the post Id from the GET variables
-            vars = self.get_variables(environ)
+            vars = self.parse_variables(environ)
             post_id = vars.get.get('post_id')
             # Loading the post object
             post = DBSession.query(BlogPost).get(post_id)
@@ -165,16 +165,30 @@ post in question" (*what* is requested), you may write the latter as::
             if post.author_userid != credentials.get('repoze.what.userid'):
                 self.unmet(post_id=post_id, author=post.author_userid)
 
-If you don't use the :meth:`Predicate.get_variables` method, you would have
+If you don't use the :meth:`Predicate.parse_variables` method, you would have
 to import and use `Paste <http://pythonpaste.org/>`_'s 
 :func:`paste.request.parse_querystring` and/or 
 :func:`paste.request.parse_formvars` functions whenever authorization depends 
 on *what* is requested.
 
-Finally, you would end up with the following compound predicate::
+Finally, you would end up with the following compound predicates::
 
     from repoze.what.predicates import All, has_permission
-    p = All(has_permission('edit-post'), post_is_edited_by_author())
+    # Can the user edit the post?
+    p = All(has_permission('edit-post'), post_is_managed_by_author())
+    # Can the user delete the post?
+    p2 = All(has_permission('delete-posts'), post_is_managed_by_author())
+
+.. note::
+    
+    If you're using a dispatcher like `Routes <http://routes.groovie.org/>`_ or
+    `Selector <http://lukearno.com/projects/selector/>`_ and the variables you
+    need are not passed in the query string nor as POST variables, you will
+    find them in the dictionary returned by :meth:`Predicate.parse_variables`,
+    either in the ``positional_args`` or ``named_args`` items -- check the
+    `wsgiorg.routing_args specification
+    <http://www.wsgi.org/wsgi/Specifications/routing_args>`_ for more
+    information.
 
 
 Built-in predicate checkers
@@ -184,7 +198,7 @@ These are the predicate checkers that are included with
 :mod:`repoze.what`:
 
 .. autoclass:: Predicate
-    :members: __init__, evaluate, unmet, check_authorization, is_met, get_variables, _eval_with_environ
+    :members: __init__, evaluate, unmet, check_authorization, is_met, parse_variables, _eval_with_environ
 
 
 Single predicate checkers

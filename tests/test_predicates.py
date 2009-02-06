@@ -128,7 +128,8 @@ class TestPredicate(BasePredicateTester):
     
     def test_getting_variables(self):
         """
-        The Predicate.get_variables() method must return POST and GET variables
+        The Predicate.parse_variables() method must return POST and GET
+        variables.
         
         """
         # -- Setting the environ up
@@ -145,9 +146,33 @@ class TestPredicate(BasePredicateTester):
         p = EqualsFour()
         expected_variables = {
             'get': {'getvar1': 'val1', 'getvar2': 'val2'},
-            'post': {'postvar1': 'valA'}
+            'post': {'postvar1': 'valA'},
+            'positional_args': (),
+            'named_args': {},
             }
-        self.assertEqual(p.get_variables(environ), expected_variables)
+        self.assertEqual(p.parse_variables(environ), expected_variables)
+    
+    def test_getting_variables_with_routing_args(self):
+        """
+        The Predicate.parse_variables() method must return wsgiorg.routing_args
+        arguments too.
+        
+        """
+        # -- Setting the environ up
+        routing_args = {
+            'positional_args': (45, 'www.example.com', 'wait@busstop.com'),
+            'named_args': {'language': 'es'}
+            }
+        environ = {'wsgiorg.routing_args': routing_args}
+        # -- Testing it
+        p = EqualsFour()
+        expected_variables = {
+            'get': {},
+            'post': {},
+            'positional_args': routing_args['positional_args'],
+            'named_args': routing_args['named_args'],
+            }
+        self.assertEqual(p.parse_variables(environ), expected_variables)
 
 
 class TestDeprecatedPredicate(BasePredicateTester):

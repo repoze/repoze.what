@@ -7,12 +7,13 @@ This document describes the releases of :mod:`repoze.what`.
 
 .. _repoze.what-1.0.4:
 
-:mod:`repoze.what` 1.0.4 (**unreleased**)
-=========================================
+:mod:`repoze.what` 1.0.4 (2009-02-06)
+=====================================
 
 * Now request-sensitive predicate checkers are easier to write because of the
-  introduction of the :meth:`repoze.what.predicates.Predicate.get_variables`
-  method.
+  introduction of the :meth:`repoze.what.predicates.Predicate.parse_variables`
+  method, which is aware of the `wsgiorg.routing_args specification
+  <http://www.wsgi.org/wsgi/Specifications/routing_args>`_.
 * Now :meth:`repoze.what.predicates.Predicate.unmet` receives an optional
   argument to override the error message. This feature is backported from v2.
 * Backported :meth:`repoze.what.predicates.Predicate.is_met` from
