@@ -212,25 +212,54 @@ class Predicate(object):
         except NotAuthorizedError, error:
             return False
     
-    def get_variables(self, environ):
+    def parse_variables(self, environ):
         """
-        Return the GET and POST variables in the request.
+        Return the GET and POST variables in the request, as well as
+        ``wsgiorg.routing_args`` arguments.
         
         :param environ: The WSGI environ.
-        :return: The GET and POST variables.
+        :return: The GET and POST variables and ``wsgiorg.routing_args``
+            arguments.
         :rtype: dict
         
         This is a handy method for request-sensitive predicate checkers.
         
-        It will return a dictionary for the POST and GET variables in the
-        ``post`` and ``get`` items of the returned dictionary, as in::
+        It will return a dictionary for the POST and GET variables, as well as
+        the `wsgiorg.routing_args 
+        <http://www.wsgi.org/wsgi/Specifications/routing_args>`_'s 
+        ``positional_args`` and ``named_args`` arguments, in the ``post``, 
+        ``get``, ``positional_args`` and ``named_args`` items (respectively) of
+        the returned dictionary.
         
-            {'post': {'postvar1': 'value'}, 'get': {'getvar2': 'val2', 'getvar1': 'val1'}}
+        For example, if the user submits a form using the POST method to
+        ``http://example.com/blog/hello-world/edit_post?wysiwyg_editor=Yes``,
+        this method may return::
+        
+            {
+            'post': {'new_post_contents': 'These are the new contents'},
+            'get': {'wysiwyg_editor': 'Yes'},
+            'named_args': {'post_slug': 'hello-world'},
+            'positional_args': (),
+            }
+        
+        But note that the ``named_args`` and ``positional_args`` items depend
+        completely on how you configured the dispatcher.
         
         """
-        post_vars = parse_formvars(environ, False)
-        get_vars = parse_dict_querystring(environ)
-        return {'post': post_vars, 'get': get_vars}
+        get_vars = parse_dict_querystring(environ) or {}
+        try:
+            post_vars = parse_formvars(environ, False) or {}
+        except KeyError:
+            post_vars = {}
+        routing_args = environ.get('wsgiorg.routing_args', {})
+        positional_args = routing_args.get('positional_args') or ()
+        named_args = routing_args.get('named_args') or {}
+        variables = {
+            'post': post_vars,
+            'get': get_vars,
+            'positional_args': positional_args,
+            'named_args': named_args}
+        return variables
 
 
 class CompoundPredicate(Predicate):
