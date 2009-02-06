@@ -8,7 +8,7 @@ The :mod:`repoze.what` Manual
 Below are the contents for the :mod:`repoze.what` manual:
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
 
     GettingStarted
     Predicates/index
