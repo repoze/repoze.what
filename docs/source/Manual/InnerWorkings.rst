@@ -40,6 +40,13 @@ WSGI environment variables
   ``environ['repoze.who.identity']['repoze.who.userid']`` in :mod:`repoze.what`
   v1.X), ``groups`` (tuple of groups to which the currrent user belongs) and 
   ``permissions`` (tuple of permissions granted to such groups).
+  
+  .. warning::
+  
+      Do **not** access this dictionary directly, use a :term:`predicate
+      checker` instead. **This variable is internal** and the disposal or 
+      availability of its items may change at any time.
+  
 * ``repoze.what.adapters``: It contains the available :term:`source adapters
   <source adapter>`, if any. It's a dictionary made up of the following items:
   ``groups`` (dictionary of :term:`group adapters <group adapter>`) and 
