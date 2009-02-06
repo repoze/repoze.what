@@ -23,6 +23,8 @@ original "identity" framework of TurboGears 1, plus others.
 
 """
 
+from paste.request import parse_formvars, parse_dict_querystring
+
 __all__ = ['Predicate', 'CompoundPredicate', 'All', 'Any', 
            'has_all_permissions', 'has_any_permission', 'has_permission', 
            'in_all_groups', 'in_any_group', 'in_group', 'is_user', 
@@ -269,6 +271,28 @@ class Predicate(object):
             return True
         except NotAuthorizedError, error:
             return False
+    
+    def get_variables(self, environ):
+        """
+        Return the GET and POST variables in the request.
+        
+        :param environ: The WSGI environ.
+        :return: The GET and POST variables.
+        :rtype: dict
+        
+        This is a handy method for request-sensitive predicate checkers.
+        
+        It will return a dictionary for the POST and GET variables in the
+        ``post`` and ``get`` items of the returned dictionary, as in::
+        
+            {'post': {'postvar1': 'value'}, 'get': {'getvar2': 'val2', 'getvar1': 'val1'}}
+        
+        .. versionadded:: 1.0.4
+        
+        """
+        post_vars = parse_formvars(environ, False)
+        get_vars = parse_dict_querystring(environ)
+        return {'post': post_vars, 'get': get_vars}
 
 
 class CompoundPredicate(Predicate):

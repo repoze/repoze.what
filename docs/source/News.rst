@@ -7,9 +7,16 @@ This document describes the releases of :mod:`repoze.what`.
 
 .. _repoze.what-1.0.4:
 
-:mod:`repoze.what` 1.0.4 (*unreleased*)
-=======================================
+:mod:`repoze.what` 1.0.4 (**unreleased**)
+=========================================
 
+* Now request-sensitive predicate checkers are easier to write because of the
+  introduction of the :meth:`repoze.what.predicates.Predicate.get_variables`
+  method.
+* Now :meth:`repoze.what.predicates.Predicate.unmet` receives an optional
+  argument to override the error message. This feature is backported from v2.
+* Backported :meth:`repoze.what.predicates.Predicate.is_met` from
+  :mod:`repoze.what` v2.
 * For forward compatibility with :mod:`repoze.what` v2, the
   :mod:`repoze.what.authorize` module is deprecated. If you want to use
   :mod:`repoze.what` v2, you should start using 
@@ -17,13 +24,6 @@ This document describes the releases of :mod:`repoze.what`.
   :class:`repoze.what.predicates.NotAuthorizedError` instead of
   :meth:`repoze.what.authorize.check_authorization` and
   :class:`repoze.what.authorize.NotAuthorizedError`, respectively.
-* Backported :meth:`repoze.what.predicates.Predicate.is_met` from
-  :mod:`repoze.what` v2.
-* Now :meth:`repoze.what.predicates.Predicate.unmet` receives an optional
-  argument to override the error message. This feature is backported from v2.
-
-.. attention::
-    This is *not* a backwards incompatible release.
 
 
 .. _repoze.what-1.0.3:

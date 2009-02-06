@@ -24,7 +24,7 @@ import unittest
 
 from repoze.what import predicates
 
-from tests.base import FakeLogger
+from tests.base import FakeLogger, encode_multipart_formdata
 
 
 class BasePredicateTester(unittest.TestCase):
@@ -125,6 +125,29 @@ class TestPredicate(BasePredicateTester):
             self.fail('An exception must have been raised')
         except predicates.NotAuthorizedError, e:
             self.assertEqual(unicode(e), message % dict(id_number=id_number))
+    
+    def test_getting_variables(self):
+        """
+        The Predicate.get_variables() method must return POST and GET variables
+        
+        """
+        # -- Setting the environ up
+        from StringIO import StringIO
+        post_vars = [('postvar1', 'valA')]
+        content_type, body = encode_multipart_formdata(post_vars)
+        environ = {
+            'QUERY_STRING': 'getvar1=val1&getvar2=val2',
+            'REQUEST_METHOD':'POST',
+            'wsgi.input': StringIO(body),
+            'CONTENT_TYPE': content_type,
+            'CONTENT_LENGTH': len(body)}
+        # -- Testing it
+        p = EqualsFour()
+        expected_variables = {
+            'get': {'getvar1': 'val1', 'getvar2': 'val2'},
+            'post': {'postvar1': 'valA'}
+            }
+        self.assertEqual(p.get_variables(environ), expected_variables)
 
 
 class TestDeprecatedPredicate(BasePredicateTester):
