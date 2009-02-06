@@ -6,8 +6,6 @@ The inner-workings of :mod:`repoze.what`
     :synopsis: repoze.what WSGI middleware
 .. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
 
-:Status: Official
-
 .. topic:: Overview
 
     :mod:`repoze.what` doesn't provides WSGI middleware per se. Instead, it 

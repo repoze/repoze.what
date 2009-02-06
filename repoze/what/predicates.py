@@ -285,9 +285,11 @@ class Predicate(object):
         This is a handy method for request-sensitive predicate checkers.
         
         It will return a dictionary for the POST and GET variables, as well as
-        the ``wsgiorg.routing_args``'s ``positional_args`` and ``named_args``
-        arguments, in the ``post``, ``get``, ``positional_args`` and
-        ``named_args`` items (respectively) of the returned dictionary.
+        the `wsgiorg.routing_args 
+        <http://www.wsgi.org/wsgi/Specifications/routing_args>`_'s 
+        ``positional_args`` and ``named_args`` arguments, in the ``post``, 
+        ``get``, ``positional_args`` and ``named_args`` items (respectively) of
+        the returned dictionary.
         
         For example, if the user submits a form using the POST method to
         ``http://example.com/blog/hello-world/edit_post?wysiwyg_editor=Yes``,

@@ -2,8 +2,6 @@
 :mod:`repoze.what.plugins` -- Available plugins for :mod:`repoze.what`
 **********************************************************************
 
-:Status: Official
-
 .. module:: repoze.what.plugins
     :synopsis: repoze.what plugins
 .. moduleauthor:: Gustavo Narea <me@gustavonarea.net>

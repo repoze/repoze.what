@@ -18,6 +18,7 @@ This document describes the releases of :mod:`repoze.what`.
   argument to override the error message. This feature is backported from v2.
 * Backported :meth:`repoze.what.predicates.Predicate.is_met` from
   :mod:`repoze.what` v2.
+* Improved the :term:`predicates <predicate checker>` section in the manual.
 * For forward compatibility with :mod:`repoze.what` v2, the
   :mod:`repoze.what.authorize` module is deprecated. If you want to use
   :mod:`repoze.what` v2, you should start using 

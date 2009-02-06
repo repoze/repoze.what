@@ -11,7 +11,7 @@ Below are the contents for the :mod:`repoze.what` manual:
     :maxdepth: 2
 
     GettingStarted
-    Predicates
+    Predicates/index
     ManagingSources
     Plugins/index
     InnerWorkings

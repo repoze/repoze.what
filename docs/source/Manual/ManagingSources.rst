@@ -6,8 +6,6 @@ How to manage groups and permission sources
     :synopsis: repoze.what source adapters
 .. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
 
-:Status: Official
-
 .. topic:: Overview
 
     It's possible for you to manage your groups and permissions under a
