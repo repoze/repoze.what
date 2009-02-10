@@ -83,7 +83,7 @@ of the post in question" (*what* is requested), you may write the latter as::
         def evaluate(self, environ, credentials):
             # Extracting the post Id from the GET variables
             vars = self.parse_variables(environ)
-            post_id = vars.get.get('post_id')
+            post_id = vars['get'].get('post_id')
             # Loading the post object
             post = DBSession.query(BlogPost).get(post_id)
             # Checking if it's the author
