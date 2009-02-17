@@ -78,6 +78,7 @@ Available :term:`extras plugins <extras plugin>`
              Plugin name                  Description
 ====================================== ===========================================================================================================
 :mod:`repoze.what.plugins.quickstart`   Pre-configured authentication system to get started with :mod:`repoze.who` and :mod:`repoze.what` quickly
+:mod:`repoze.what.plugins.pylonshq`    :mod:`repoze.what` utilities for Pylons/TG2 applications
 repoze.what.plugins.config [#f2]_       Configure :mod:`repoze.what` from an ``Ini`` file with Paste Deploy.
 ====================================== ===========================================================================================================
 

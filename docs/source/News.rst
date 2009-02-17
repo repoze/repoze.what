@@ -5,6 +5,14 @@
 This document describes the releases of :mod:`repoze.what`.
 
 
+.. _repoze.what-1.0.5:
+
+:mod:`repoze.what` 1.0.5 (*unreleased*)
+=======================================
+
+* Minor updates in the documentation.
+
+
 .. _repoze.what-1.0.4:
 
 :mod:`repoze.what` 1.0.4 (2009-02-06)
