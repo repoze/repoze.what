@@ -7,9 +7,12 @@ This document describes the releases of :mod:`repoze.what`.
 
 .. _repoze.what-1.0.5:
 
-:mod:`repoze.what` 1.0.5 (*unreleased*)
-=======================================
+:mod:`repoze.what` 1.0.5 (2009-03-02)
+=====================================
 
+* To ease testing, now :func:`repoze.what.middleware.setup_auth` uses
+  :func:`repoze.who.plugins.testutil.make_middleware` instead of calling
+  :class:`repoze.who.middleware.PluggableAuthenticationMiddleware` directly.
 * Minor updates in the documentation.
 
 

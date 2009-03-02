@@ -191,4 +191,5 @@ intersphinx_mapping = {
     'http://code.gustavonarea.net/repoze.what.plugins.sql/': None,
     'http://code.gustavonarea.net/repoze.what.plugins.xml/': None,
     'http://code.gustavonarea.net/repoze.what-pylons/': None,
+    'http://code.gustavonarea.net/repoze.who-testutil/': None,
     }

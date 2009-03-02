@@ -24,7 +24,7 @@ use repoze.what.
 import os
 
 from zope.interface import implements
-from repoze.who.middleware import PluggableAuthenticationMiddleware
+from repoze.who.plugins.testutil import make_middleware
 from repoze.who.classifiers import default_challenge_decider, \
                                    default_request_classifier
 from repoze.who.interfaces import IAuthenticator, IMetadataProvider
@@ -144,7 +144,7 @@ def setup_auth(app, group_adapters=None, permission_adapters=None, **who_args):
     authorization pattern.
     
     Additional keyword arguments will be passed to
-    :class:`repoze.who.middleware.PluggableAuthenticationMiddleware` -- and
+    :func:`repoze.who.plugins.testutil.make_middleware` -- and
     among those keyword arguments, you *must* define at least the identifier(s),
     authenticator(s) and challenger(s) to be used. For example::
         
@@ -184,6 +184,16 @@ def setup_auth(app, group_adapters=None, permission_adapters=None, **who_args):
         Keep in mind that :mod:`repoze.who` must be configured `through`
         :mod:`repoze.what` for authorization to work.
     
+    .. note::
+        If you want to skip authentication while testing your application,
+        you should pass the ``skip_authentication`` keyword argument with a
+        value that evaluates to ``True``.
+    
+    .. versionchanged:: 1.0.5
+        :class:`repoze.who.middleware.PluggableAuthenticationMiddleware`
+        replaced with :func:`repoze.who.plugins.testutil.make_middleware`
+        internally.
+    
     """
     authorization = AuthorizationMetadata(group_adapters,
                                           permission_adapters)
@@ -203,5 +213,6 @@ def setup_auth(app, group_adapters=None, permission_adapters=None, **who_args):
         import sys
         who_args['log_stream'] = sys.stdout
     
-    middleware = PluggableAuthenticationMiddleware(app, **who_args)
+    skip_authn = who_args.pop('skip_authentication', False)
+    middleware = make_middleware(skip_authn, app, **who_args)
     return middleware

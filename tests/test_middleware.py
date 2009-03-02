@@ -23,13 +23,16 @@ Tests for the repoze.what middleware.
 import unittest, os, logging
 
 from zope.interface.verify import verifyClass
+from repoze.who.middleware import PluggableAuthenticationMiddleware
 from repoze.who.classifiers import default_challenge_decider, \
                                    default_request_classifier
+from repoze.who.interfaces import IAuthenticator, IMetadataProvider
 from repoze.who.plugins.form import RedirectingFormPlugin
 from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
 from repoze.who.plugins.basicauth import BasicAuthPlugin
-from repoze.who.interfaces import IAuthenticator, IMetadataProvider
 from repoze.who.tests import Base as BasePluginTester, DummyApp
+from repoze.who.plugins.testutil import AuthenticationForgerPlugin, \
+                                        AuthenticationForgerMiddleware
 
 from repoze.what.middleware import AuthorizationMetadata, setup_auth
 
@@ -300,6 +303,7 @@ class TestSetupAuth(BasePluginTester):
         groups = [FakeGroupSourceAdapter()]
         permissions = [FakePermissionSourceAdapter()]
         app = self._makeApp(groups, permissions)
+        assert isinstance(app, PluggableAuthenticationMiddleware)
         self._in_registry(app, 'main_identifier', RedirectingFormPlugin)
         self._in_registry(app, 'authorization_md', AuthorizationMetadata)
         self._in_registry(app, 'cookie', AuthTktCookiePlugin)
@@ -326,5 +330,18 @@ class TestSetupAuth(BasePluginTester):
         authorization_md = app.name_registry['authorization_md']
         self.assertEqual(authorization_md.group_adapters, None)
         self.assertEqual(authorization_md.permission_adapters, None)
+
+    def test_without_authentication(self):
+        groups = [FakeGroupSourceAdapter()]
+        permissions = [FakePermissionSourceAdapter()]
+        app = self._makeApp(groups, permissions, skip_authentication=True)
+        assert isinstance(app, AuthenticationForgerMiddleware)
+        self._in_registry(app, 'auth_forger', AuthenticationForgerPlugin)
+        self._in_registry(app, 'cookie', AuthTktCookiePlugin)
+        assert isinstance(app.challenge_decider,
+                          default_challenge_decider.__class__)
+        assert isinstance(app.classifier,
+                          default_request_classifier.__class__)
+        assert isinstance(app.logger, logging.Logger)
 
 #}
