@@ -609,7 +609,11 @@ class PredicateError(Exception):
         compatibility with :mod:`repoze.what` v2.
     
     """
-    pass
+    
+    # Ugly workaround for Python < 2.6:
+    if not hasattr(Exception, '__unicode__'):
+        def __unicode__(self):
+            return unicode(self.args and self.args[0] or '')
 
 
 class NotAuthorizedError(PredicateError):

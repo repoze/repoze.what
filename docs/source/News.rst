@@ -13,6 +13,9 @@ This document describes the releases of :mod:`repoze.what`.
 * To ease testing, now :func:`repoze.what.middleware.setup_auth` uses
   :func:`repoze.who.plugins.testutil.make_middleware` instead of calling
   :class:`repoze.who.middleware.PluggableAuthenticationMiddleware` directly.
+* Now non-ASCII messages can be logged without problems in Python < 2.6. Thanks
+  to Christoph Zwerschke (`TG Issue #2250 
+  <http://trac.turbogears.org/ticket/2250>`_).
 * Minor updates in the documentation.
 
 
