@@ -47,7 +47,11 @@ setup(name='repoze.what',
       namespace_packages = ['repoze', 'repoze.what', 'repoze.what.plugins'],
       url="http://static.repoze.org/whatdocs/",
       license="BSD-derived (http://www.repoze.org/LICENSE.txt)",
-      packages=find_packages(),
+      packages=find_packages(exclude=['tests', 'functional_tests']),
+      package_data={
+        '': ['VERSION.txt', 'README.txt'],
+        'docs': ['Makefile', 'source/*']},
+      exclude_package_data={'': ['README.txt', 'docs']},
       include_package_data=True,
       zip_safe=False,
       tests_require = [
@@ -62,4 +66,3 @@ setup(name='repoze.what',
       entry_points = """\
       """
       )
-
