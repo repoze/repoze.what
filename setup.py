@@ -56,12 +56,12 @@ setup(name='repoze.what',
       zip_safe=False,
       tests_require = [
           'repoze.who',
-          'repoze.who-testutil',
+          'repoze.who-testutil >= 1.0b2',
           'paste',
           'coverage',
           'nose',
           ],
-      install_requires=['repoze.who', 'repoze.who-testutil', 'paste'],
+      install_requires=['repoze.who', 'repoze.who-testutil >= 1.0b2', 'Paste'],
       test_suite="nose.collector",
       entry_points = """\
       """
