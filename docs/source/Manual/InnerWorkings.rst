@@ -8,7 +8,7 @@ The inner-workings of :mod:`repoze.what`
 
 .. topic:: Overview
 
-    :mod:`repoze.what` doesn't provides WSGI middleware per se. Instead, it 
+    :mod:`repoze.what` doesn't provide WSGI middleware per se. Instead, it 
     configures and re-uses :mod:`repoze.who`'s.
 
 Middleware-related components are defined in the :mod:`repoze.what.middleware`
