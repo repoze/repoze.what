@@ -453,10 +453,8 @@ class TestUserHasAnyPermissionsPredicate(BasePredicateTester):
 def make_environ(user, groups=None, permissions=None):
     """Make a WSGI enviroment with the credentials dict"""
     credentials = {'repoze.what.userid': user}
-    if groups:
-        credentials['groups'] = groups
-    if permissions:
-        credentials['permissions'] = permissions
+    credentials['groups'] = groups or []
+    credentials['permissions'] = permissions or []
     environ = {'repoze.what.credentials': credentials}
     return environ
 
