@@ -50,4 +50,5 @@ def check_authorization(predicate, environ):
           'with repoze.what v2; use ' \
           'Predicate.check_authorization(environ) instead'
     warn(msg, DeprecationWarning, stacklevel=2)
-    predicate and predicate.check_authorization(environ)
+    if predicate is not None:
+        predicate.check_authorization(environ)

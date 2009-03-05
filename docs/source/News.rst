@@ -5,6 +5,27 @@
 This document describes the releases of :mod:`repoze.what`.
 
 
+.. _repoze.what-1.0.6:
+
+:mod:`repoze.what` 1.0.6 (2009-03-05)
+=====================================
+
+* The deprecated :func:`repoze.what.authorize.check_authorization` didn't
+  evaluate predicates correctly if predicates were :func:`booleanized
+  <repoze.what.plugins.pylonshq.booleanize_predicates>`. Thanks to
+  Michael Brickenstein!
+  
+  .. attention:: **Don't panic!**
+      This can hardly affect somebody on the earth: If you're using
+      :func:`repoze.what.authorize.check_authorization` directly, then you're 
+      not using Pylons, and if you're not using Pylons, then you're not using
+      :mod:`repoze.what-pylons <repoze.what.plugins.pylonshq>`.
+      
+      However, this does affect you if you're not on the earth, use
+      :func:`repoze.what.authorize.check_authorization` and "booleanize
+      predicates" in your non-Pylons-based framework ;-)
+
+
 .. _repoze.what-1.0.5:
 
 :mod:`repoze.what` 1.0.5 (2009-03-02)
