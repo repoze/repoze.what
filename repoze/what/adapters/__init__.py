@@ -583,7 +583,7 @@ class BaseSourceAdapter(object):
 
 class AdapterError(Exception):
     """
-    Base exception for problems the source adapters.
+    Base exception for problems in the source adapters.
     
     It's never raised directly.
     
@@ -614,14 +614,20 @@ class NonExistingSectionError(AdapterError):
 
 
 class ItemPresentError(AdapterError):
-    """Exception raised when trying to add an item to a group that already
-    contains it."""
+    """
+    Exception raised when trying to add an item to a group that already
+    contains it.
+    
+    """
     pass
 
 
 class ItemNotPresentError(AdapterError):
-    """Exception raised when trying to remove an item from a group that doesn't
-    contain it."""
+    """
+    Exception raised when trying to remove an item from a group that doesn't
+    contain it.
+    
+    """
     pass
 
 

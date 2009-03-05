@@ -208,7 +208,7 @@ class Predicate(object):
         else:
             message = self.message
         # Let's convert it into unicode because it may be just a class, as a 
-        # Pylon's "lazy" translation message:
+        # Pylons' "lazy" translation message:
         message = unicode(message)
         # Include the predicate attributes in the placeholders:
         all_placeholders = self.__dict__.copy()
