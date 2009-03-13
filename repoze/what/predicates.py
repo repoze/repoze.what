@@ -28,7 +28,8 @@ from paste.request import parse_formvars, parse_dict_querystring
 __all__ = ['Predicate', 'CompoundPredicate', 'All', 'Any', 
            'has_all_permissions', 'has_any_permission', 'has_permission', 
            'in_all_groups', 'in_any_group', 'in_group', 'is_user', 
-           'not_anonymous', 'PredicateError', 'NotAuthorizedError']
+           'is_anonymous', 'not_anonymous', 'PredicateError',
+           'NotAuthorizedError']
 
 
 #{ Predicates
@@ -509,6 +510,26 @@ class in_any_group(Any):
         self.group_list = ", ".join(groups)
         group_predicates = [in_group(g) for g in groups]
         super(in_any_group,self).__init__(*group_predicates, **kwargs)
+
+
+class is_anonymous(Predicate):
+    """
+    Check that the current user is anonymous.
+    
+    Example::
+    
+        # The user must be anonymous!
+        p = is_anonymous()
+    
+    .. versionadded:: 1.0.7
+    
+    """
+    
+    message = u"The current user must be anonymous"
+
+    def evaluate(self, environ, credentials):
+        if credentials:
+            self.unmet()
 
 
 class not_anonymous(Predicate):

@@ -21,9 +21,11 @@ is described below:
 Single predicate checkers
 =========================
 
+.. autoclass:: is_user
+
 .. autoclass:: not_anonymous
 
-.. autoclass:: is_user
+.. autoclass:: is_anonymous
 
 .. autoclass:: in_group
 

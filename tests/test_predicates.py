@@ -373,6 +373,20 @@ class TestInAnyGroupsPredicate(BasePredicateTester):
         self.eval_met_predicate(p, environ)
 
 
+class TestIsAnonymousPredicate(BasePredicateTester):
+    
+    def test_authenticated_user(self):
+        environ = make_environ('gustavo')
+        p = predicates.is_anonymous()
+        self.eval_unmet_predicate(p, environ,
+                                  'The current user must be anonymous')
+    
+    def test_anonymous_user(self):
+        environ = {}
+        p = predicates.is_anonymous()
+        self.eval_met_predicate(p, environ)
+
+
 class TestNotAnonymousPredicate(BasePredicateTester):
     
     def test_authenticated_user(self):

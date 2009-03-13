@@ -5,6 +5,15 @@
 This document describes the releases of :mod:`repoze.what`.
 
 
+.. _repoze.what-1.0.7:
+
+:mod:`repoze.what` 1.0.7 (2009-03-13)
+=====================================
+
+* Added the :class:`is_anonymous <repoze.what.predicates.is_anonymous>`
+  predicate.
+
+
 .. _repoze.what-1.0.6:
 
 :mod:`repoze.what` 1.0.6 (2009-03-05)
