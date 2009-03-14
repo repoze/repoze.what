@@ -5,6 +5,17 @@
 This document describes the releases of :mod:`repoze.what`.
 
 
+.. _repoze.what-1.0.8:
+
+:mod:`repoze.what` 1.0.8 (2009-03-14)
+=====================================
+
+* Fixed problem with `routing_args 
+  <http://www.wsgi.org/wsgi/Specifications/routing_args>`_ compliance in
+  :meth:`repoze.what.predicates.Predicate.parse_variables`; a wrong structure
+  of that variable was assumed.
+
+
 .. _repoze.what-1.0.7:
 
 :mod:`repoze.what` 1.0.7 (2009-03-13)

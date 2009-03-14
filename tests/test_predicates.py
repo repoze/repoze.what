@@ -159,18 +159,16 @@ class TestPredicate(BasePredicateTester):
         
         """
         # -- Setting the environ up
-        routing_args = {
-            'positional_args': (45, 'www.example.com', 'wait@busstop.com'),
-            'named_args': {'language': 'es'}
-            }
-        environ = {'wsgiorg.routing_args': routing_args}
+        positional_args = (45, 'www.example.com', 'wait@busstop.com')
+        named_args = {'language': 'es'}
+        environ = {'wsgiorg.routing_args': (positional_args, named_args)}
         # -- Testing it
         p = EqualsFour()
         expected_variables = {
             'get': {},
             'post': {},
-            'positional_args': routing_args['positional_args'],
-            'named_args': routing_args['named_args'],
+            'positional_args': positional_args,
+            'named_args': named_args,
             }
         self.assertEqual(p.parse_variables(environ), expected_variables)
 

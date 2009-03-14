@@ -314,9 +314,9 @@ class Predicate(object):
             post_vars = parse_formvars(environ, False) or {}
         except KeyError:
             post_vars = {}
-        routing_args = environ.get('wsgiorg.routing_args', {})
-        positional_args = routing_args.get('positional_args') or ()
-        named_args = routing_args.get('named_args') or {}
+        routing_args = environ.get('wsgiorg.routing_args', ([], {}))
+        positional_args = routing_args[0] or ()
+        named_args = routing_args[1] or {}
         variables = {
             'post': post_vars,
             'get': get_vars,
