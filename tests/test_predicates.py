@@ -171,6 +171,20 @@ class TestPredicate(BasePredicateTester):
             'named_args': named_args,
             }
         self.assertEqual(p.parse_variables(environ), expected_variables)
+    
+    def test_credentials_dict_when_anonymous(self):
+        """The credentials must be a dict even if the user is anonymous"""
+        class CredentialsPredicate(predicates.Predicate):
+            message = "Some text"
+            def evaluate(self, environ, credentials):
+                if 'something' in credentials:
+                    self.unmet()
+        # --- Setting the environ up
+        environ = {}
+        # --- Testing it:
+        p = CredentialsPredicate()
+        self.eval_met_predicate(p, environ)
+        self.assertEqual(True, p.is_met(environ))
 
 
 class TestDeprecatedPredicate(BasePredicateTester):

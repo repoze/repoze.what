@@ -238,7 +238,7 @@ class Predicate(object):
         
         """
         logger = environ.get('repoze.who.logger')
-        credentials = environ.get('repoze.what.credentials')
+        credentials = environ.get('repoze.what.credentials', {})
         try:
             self.evaluate(environ, credentials)
         except NotAuthorizedError, error:
@@ -266,7 +266,7 @@ class Predicate(object):
             Backported from :mod:`repoze.what` v2.
         
         """
-        credentials = environ.get('repoze.what.credentials')
+        credentials = environ.get('repoze.what.credentials', {})
         try:
             self.evaluate(environ, credentials)
             return True

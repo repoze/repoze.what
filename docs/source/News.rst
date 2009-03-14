@@ -14,7 +14,7 @@ This document describes the releases of :mod:`repoze.what`.
   <http://www.wsgi.org/wsgi/Specifications/routing_args>`_ compliance in
   :meth:`repoze.what.predicates.Predicate.parse_variables`; a wrong structure
   of that variable was assumed.
-
+* Fixed small internal problem with the credentials dictionary.
 
 .. _repoze.what-1.0.7:
 
