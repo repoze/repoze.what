@@ -22,7 +22,7 @@ This module also defines utilities and mock objects for the test suite.
 
 import unittest
 
-from repoze.what.predicates import Predicate, NotAuthorizedError
+from repoze.what.predicates.generic import Predicate, NotAuthorizedError
 
 
 #{ Utilities

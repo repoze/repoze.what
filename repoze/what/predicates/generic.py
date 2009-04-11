@@ -16,14 +16,14 @@
 ##############################################################################
 
 """
-Base predicate checkers.
+Generic predicate checkers.
 
 """
 
 from paste.request import parse_formvars, parse_dict_querystring
 
-__all__ = ['Predicate', 'CompoundPredicate', 'Not', 'All', 'Any', 'is_user', 
-           'not_anonymous', 'NotAuthorizedError']
+__all__ = ['Predicate', 'CompoundPredicate', 'Not', 'All', 'Any',
+           'NotAuthorizedError']
 
 
 #{ Predicates
@@ -63,8 +63,8 @@ class Predicate(object):
         :type credentials: dict
         :raise NotImplementedError: When the predicate doesn't define this
             method.
-        :raises NotAuthorizedError: If the predicate is not met (use :meth:`unmet`
-            to raise it).
+        :raises NotAuthorizedError: If the predicate is not met (use 
+            :meth:`unmet` to raise it).
         
         This is the method that must be overridden by any predicate checker.
         
@@ -72,7 +72,7 @@ class Predicate(object):
         one", you may define the following predicate checker::
         
             from datetime import date
-            from repoze.what.predicates import Predicate
+            from repoze.what.predicates.generic import Predicate
             
             class is_month(Predicate):
                 message = 'The current month must be %(right_month)s'
@@ -171,7 +171,7 @@ class Predicate(object):
         
         Example::
         
-            >>> from repoze.what.predicates import is_user
+            >>> from repoze.what.predicates.user import is_user
             >>> environ = gimme_the_environ()
             >>> p = is_user('gustavo')
             >>> p.check_authorization(environ)
@@ -357,50 +357,6 @@ class Any(CompoundPredicate):
                 errors.append(unicode(exc))
         failed_predicates = ', '.join(errors)
         self.unmet(failed_predicates=failed_predicates)
-
-
-class is_user(Predicate):
-    """
-    Check that the authenticated user's username is the specified one.
-    
-    :param user_name: The required user name.
-    :type user_name: str
-    
-    Example::
-    
-        p = is_user('linus')
-    
-    """
-    
-    message = u'The current user must be "%(user_name)s"'
-
-    def __init__(self, user_name, **kwargs):
-        super(is_user, self).__init__(**kwargs)
-        self.user_name = user_name
-
-    def evaluate(self, environ, credentials):
-        if credentials and \
-           self.user_name == credentials.get('repoze.what.userid'):
-            return
-        self.unmet()
-
-
-class not_anonymous(Predicate):
-    """
-    Check that the current user has been authenticated.
-    
-    Example::
-    
-        # The user must have been authenticated!
-        p = not_anonymous()
-    
-    """
-    
-    message = u"The current user must have been authenticated"
-
-    def evaluate(self, environ, credentials):
-        if not credentials:
-            self.unmet()
 
 
 #{ Exceptions

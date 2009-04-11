@@ -21,7 +21,7 @@ Authorization framework for WSGI applications.
 """
 
 # This is a namespace package. Do NOT put anything here to keep the repoze.what
-# namespace clear for plugins at repoze.what.plugins and repoze.what.patterns
+# namespace clear for plugins at repoze.what.plugins and repoze.what.predicates
 
 # See http://peak.telecommunity.com/DevCenter/setuptools#namespace-packages
 try:

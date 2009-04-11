@@ -16,18 +16,14 @@
 ##############################################################################
 
 """
-Predicate checkers for the groups/permissions-based pattern.
+Predicate checkers for the groups.
 
 """
 
-from repoze.what.predicates import Predicate, All, Any
+from repoze.what.predicates.generic import Predicate, All, Any
 
 
-__all__ = ['has_all_permissions', 'has_any_permission', 'has_permission', 
-           'in_all_groups', 'in_any_group', 'in_group']
-
-
-#{ Predicates
+__all__ = ['in_all_groups', 'in_any_group', 'in_group']
 
 
 class in_group(Predicate):
@@ -44,7 +40,7 @@ class in_group(Predicate):
     """
     
     message = u'The current user must belong to the group "%(group_name)s"'
-
+    
     def __init__(self, group_name, **kwargs):
         super(in_group, self).__init__(**kwargs)
         self.group_name = group_name
@@ -86,80 +82,9 @@ class in_any_group(Any):
     
     message = u"The member must belong to at least one of the following " \
                "groups: %(group_list)s"
-
+    
     def __init__(self, *groups, **kwargs):
         self.group_list = ", ".join(groups)
         group_predicates = [in_group(g) for g in groups]
         super(in_any_group,self).__init__(*group_predicates, **kwargs)
 
-
-class has_permission(Predicate):
-    """
-    Check that the current user has the specified permission.
-    
-    :param permission_name: The name of the permission that must be granted to 
-        the user.
-    
-    Example::
-    
-        p = has_permission('hire')
-    
-    """
-    
-    message = u'The user must have the "%(permission_name)s" permission'
-
-    def __init__(self, permission_name, **kwargs):
-        super(has_permission, self).__init__(**kwargs)
-        self.permission_name = permission_name
-
-    def evaluate(self, environ, credentials):
-        if credentials and \
-           self.permission_name in credentials.get('permissions'):
-            return
-        self.unmet()
-
-
-class has_all_permissions(All):
-    """
-    Check that the current user has been granted all of the specified 
-    permissions.
-    
-    :param permissions: The names of all the permissions that must be
-        granted to the user.
-    
-    Example::
-    
-        p = has_all_permissions('view-users', 'edit-users')
-    
-    """
-    
-    def __init__(self, *permissions, **kwargs):
-        permission_predicates = [has_permission(p) for p in permissions]
-        super(has_all_permissions, self).__init__(*permission_predicates,
-                                                  **kwargs)
-
-
-class has_any_permission(Any):
-    """
-    Check that the user has at least one of the specified permissions.
-    
-    :param permissions: The names of any of the permissions that have to be
-        granted to the user.
-    
-    Example::
-    
-        p = has_any_permission('manage-users', 'edit-users')
-    
-    """
-    
-    message = u"The user must have at least one of the following " \
-               "permissions: %(permission_list)s"
-    
-    def __init__(self, *permissions, **kwargs):
-        self.permission_list = ", ".join(permissions)
-        permission_predicates = [has_permission(p) for p in permissions]
-        super(has_any_permission, self).__init__(*permission_predicates,
-                                                **kwargs)
-
-
-#}

@@ -20,16 +20,8 @@ Support for the groups/permissions-based authorization pattern.
 
 from repoze.what.credentials import BaseCredentialProvider
 
-from repoze.what.patterns.groups.predicates import in_group, has_permission, \
-                                                   in_all_groups, \
-                                                   has_all_permissions, \
-                                                   in_any_group, \
-                                                   has_any_permission
 
-
-__all__ = ['in_group', 'has_permission', 'in_all_groups', 
-           'has_all_permissions', 'in_any_group', 'has_any_permission',
-           'GroupCredentialsProvider']
+__all__ = ['GroupCredentialsProvider']
 
 
 class GroupCredentialsProvider(BaseCredentialProvider):

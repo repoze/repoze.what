@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2008-2009, Gustavo Narea <me@gustavonarea.net>.
+# Copyright (c) 2009, Gustavo Narea <me@gustavonarea.net>.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -14,71 +14,15 @@
 ##############################################################################
 
 """
-Test suite for the predicates of the groups/permissions-based authorization
-pattern.
+Test suite for the permission-oriented predicate checkers.
 
 """
 
-from repoze.what.patterns.groups import in_group, has_permission, \
-                                        in_all_groups, has_all_permissions, \
-                                        in_any_group, has_any_permission
+from repoze.what.predicates.permission import has_permission, \
+                                              has_all_permissions, \
+                                              has_any_permission
 
-from unit_tests.predicates import BasePredicateTester, make_environ, \
-                                  EqualsTwo, EqualsFour, GreaterThan
-
-
-class TestInGroupPredicate(BasePredicateTester):
-    
-    def test_user_belongs_to_group(self):
-        environ = make_environ('gustavo', ['developers'])
-        p = in_group('developers')
-        self.eval_met_predicate(p, environ)
-    
-    def test_user_doesnt_belong_to_group(self):
-        environ = make_environ('gustavo', ['developers', 'admins'])
-        p = in_group('designers')
-        self.eval_unmet_predicate(p, environ,
-                    'The current user must belong to the group "designers"')
-
-
-class TestInAllGroupsPredicate(BasePredicateTester):
-    
-    def test_user_belongs_to_groups(self):
-        environ = make_environ('gustavo', ['developers', 'admins'])
-        p = in_all_groups('developers', 'admins')
-        self.eval_met_predicate(p, environ)
-    
-    def test_user_doesnt_belong_to_groups(self):
-        environ = make_environ('gustavo', ['users', 'admins'])
-        p = in_all_groups('developers', 'designers')
-        self.eval_unmet_predicate(p, environ,
-                    'The current user must belong to the group "developers"')
-    
-    def test_user_doesnt_belong_to_one_group(self):
-        environ = make_environ('gustavo', ['developers'])
-        p = in_all_groups('developers', 'designers')
-        self.eval_unmet_predicate(p, environ,
-                    'The current user must belong to the group "designers"')
-
-
-class TestInAnyGroupsPredicate(BasePredicateTester):
-    
-    def test_user_belongs_to_groups(self):
-        environ = make_environ('gustavo', ['developers',' admins'])
-        p = in_any_group('developers', 'admins')
-        self.eval_met_predicate(p, environ)
-    
-    def test_user_doesnt_belong_to_groups(self):
-        environ = make_environ('gustavo', ['users', 'admins'])
-        p = in_any_group('developers', 'designers')
-        self.eval_unmet_predicate(p, environ,
-                         'The member must belong to at least one of the '
-                         'following groups: developers, designers')
-    
-    def test_user_doesnt_belong_to_one_group(self):
-        environ = make_environ('gustavo', ['designers'])
-        p = in_any_group('developers', 'designers')
-        self.eval_met_predicate(p, environ)
+from unit_tests.predicates import BasePredicateTester, make_environ
 
 
 class TestHasPermissionPredicate(BasePredicateTester):

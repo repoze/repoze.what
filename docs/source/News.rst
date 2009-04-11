@@ -10,7 +10,7 @@ This document describes the releases of :mod:`repoze.what`.
 :mod:`repoze.what` 2.0a1 (*unreleased*)
 =======================================
 
-* Removed :mod:`repoze.who` dependencies.
+* Removed :mod:`repoze.who` dependency.
 * Reorganized many modules from v1:
   * Created the :mod:`repoze.what.patterns` namespace package for support
     for the different authorization patterns in :mod:`repoze.what` v2, either
