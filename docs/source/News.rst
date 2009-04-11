@@ -26,3 +26,5 @@ This document describes the releases of :mod:`repoze.what`.
 * Introduced :meth:`repoze.what.predicates.Predicate.is_met`.
 * Now :meth:`repoze.what.predicates.Predicate.unmet` receives an optional
   argument to override the error message.
+* The manual was reorganized and updated accordingly and the API documentation
+  is now available in a separate section.

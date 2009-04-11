@@ -2,10 +2,6 @@
 How to manage groups and permission sources
 *******************************************
 
-.. module:: repoze.what.adapters
-    :synopsis: repoze.what source adapters
-.. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
-
 :Status: Official
 
 .. topic:: Overview
@@ -204,24 +200,6 @@ And to check whether the permission source above is writable::
     >>> permissions.is_writable
     False
 
-Possible problems
-=================
-
-While dealing with an adapter, the following exceptions may be raised if an
-error occurs:
-
-.. autoexception:: AdapterError
-
-.. autoexception:: SourceError
-
-.. autoexception:: ExistingSectionError
-
-.. autoexception:: NonExistingSectionError
-
-.. autoexception:: ItemPresentError
-
-.. autoexception:: ItemNotPresentError
-
 
 Writing your own source adapters
 ================================
@@ -234,12 +212,7 @@ Writing your own source adapters
 
 Both :term:`group <group adapter>` and :term:`permission <permission adapter>` 
 :term:`adapters <source adapter>` must extend the abstract class 
-:class:`BaseSourceAdapter`:
-
-.. autoclass:: BaseSourceAdapter
-    :members: __init__, _get_all_sections, _get_section_items, 
-        _find_sections, _include_items, _exclude_items, _item_is_included,
-        _create_section, _edit_section, _delete_section, _section_exists
+:class:`repoze.what.adapters.BaseSourceAdapter`.
 
 
 Sample :term:`source adapters <source adapter>`

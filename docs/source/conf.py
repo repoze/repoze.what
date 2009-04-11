@@ -44,13 +44,13 @@ master_doc = 'index'
 
 # General substitutions.
 project = u'repoze.what'
-copyright = u'2008, The Repoze Project'
+copyright = u'2009, The Repoze Project'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '1.0'
+version = '2.0'
 # The full version, including alpha/beta/rc tags.
 release = open(os.path.join(root, 'VERSION.txt')).readline().rstrip()
 
@@ -186,8 +186,4 @@ latex_documents = [
 # If false, no module index is generated.
 #latex_use_modindex = True
 
-intersphinx_mapping = {
-    'http://static.repoze.org/whodocs/': None,
-    'http://code.gustavonarea.net/repoze.what.plugins.sql/': None,
-    'http://code.gustavonarea.net/repoze.what.plugins.xml/': None,
-    }
+intersphinx_mapping = {}

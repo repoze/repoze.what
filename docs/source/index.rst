@@ -1,5 +1,6 @@
+*********************************************************
 :mod:`repoze.what` -- Authorization for WSGI applications
-=========================================================
+*********************************************************
 
 .. module:: repoze.what
     :synopsis: Authorization framework for WSGI applications
@@ -10,26 +11,10 @@
 
 .. topic:: Overview
 
-    :mod:`repoze.what` is an `authorization framework` for WSGI applications,
-    based on :mod:`repoze.who` (which deals with `authentication` and
-    `identification`).
+    :mod:`repoze.what` is an extensible **authorization** framework for WSGI
+    arbitrary applications.
     
-    On the one hand, it enables an authorization system based on the groups to 
-    which the `authenticated or anonymous` user belongs and the permissions 
-    granted to such groups by loading these groups and permissions into the 
-    request on the way in to the downstream WSGI application.
-    
-    And on the other hand, it enables you to manage your groups and permissions
-    from the application itself or another program, under a backend-independent 
-    API. For example, it would be easy for you to switch from one back-end to 
-    another, and even use this framework to migrate the data.
-    
-    This is just the authorization pattern it supports out-of-the-box, but you
-    can may it support other authorization patterns with your own
-    :term:`predicates <predicate>`. It's highly extensible, so it's 
-    very unlikely that it will get in your way -- Among other things, you can 
-    extend it to check for many conditions (such as checking that the 
-    user comes from a given country, based on her IP address, for example).
+    TODO: Continue
 
 
 Features
@@ -39,10 +24,7 @@ Unless mentioned otherwise, the following features are available in
 :mod:`repoze.what` and its official plugins:
 
 * ``Web framework independent``. You can use it on any WSGI 
-  application and any WSGI framework (or no framework at all). Web frameworks
-  may provide integration with it (like `TurboGears 2 
-  <http://turbogears.org/2.0/docs/>`_, which features a strong integration with 
-  :mod:`repoze.what`).
+  application and any WSGI framework (or no framework at all).
 * ``Authorization only``. It doesn't try to be an all-in-one auth
   monster -- it will only do `authorization` and nothing else.
 * ``Highly extensible``. It's been created with extensibility in mind, so
@@ -52,17 +34,6 @@ Unless mentioned otherwise, the following features are available in
 * ``Fully documented``. If it's not described in the manual, it doesn't exist.
   Everything is documented along with examples.
 * ``Reliable``. We are committed to keep the code coverage at 100%.
-* ``Control access to any resource``. Although it's only recommended to control
-  authorization on action controllers, you can also use it to restrict access
-  to other things in your package (e.g., only allow access to a database table
-  if the current user is the admin).
-* If you use the groups/permissions-based authorization pattern, your
-  application's `groups` and `permissions` may be stored in an SQLAlchemy
-  or Elixir-managed database, in ``.ini`` files or in XML files (although
-  you may also create your own :mod:`adapters <repoze.what.adapters>`!).
-* The only requirement is that you use the powerful and extensible 
-  :mod:`repoze.who` authentication framework (which can be configured for you 
-  with the :mod:`quickstart <repoze.what.plugins.quickstart` plugin).
 * It works with Python 2.4, 2.5 and 2.6.
 * `It's not hard to get started!`
 
@@ -95,8 +66,7 @@ we *will* have official plugins to:
 How to install
 ==============
 
-The only requirement of :mod:`repoze.what` is :mod:`repoze.who` and you can
-install both by running::
+To install :mod:`repoze.what` v2, run::
 
     easy_install repoze.what
 
@@ -111,10 +81,7 @@ Framework-specific documentation
 The following documents will help you implement :mod:`repoze.what` in your
 framework (if any):
 
-* `TurboGears <http://turbogears.org/2.0/>`_: :mod:`repoze.who` and
-  :mod:`repoze.what` are the default authentication and authorization 
-  frameworks (respectively) in TurboGears 2 applications. `Learn more about 
-  them inside TurboGears <http://www.turbogears.org/2.0/docs/main/Auth/>`_.
+* **Nothing yet**.
 
 If you have written documents to implement :mod:`repoze.what` in a web
 framework, please `let us know <http://lists.repoze.org/listinfo/repoze-dev>`_
@@ -129,13 +96,6 @@ The prefered place to ask questions is the `Repoze mailing list
 requests should be sent to `the issue tracker of the Repoze project 
 <http://bugs.repoze.org/>`_.
 
-If you have problems, please don't forget to include the output of your 
-application with the ``AUTH_LOG`` environment variable set to ``1`` when you
-get in touch with us. For example, if your application is based on TurboGears 
-or Pylons, you may run it with the following command::
-
-    AUTH_LOG=1 paster serve --reload development.ini
-
 
 Contents
 ========
@@ -144,6 +104,7 @@ Contents
     :maxdepth: 2
 
     Manual/index
+    API/index
     News
     Participate
 
