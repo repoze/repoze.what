@@ -20,7 +20,7 @@ Tests for the user predicate checkers.
 
 """
 
-from repoze.what.predicates.user import is_user, not_anonymous
+from repoze.what.predicates.user import is_user, is_anonymous, not_anonymous
 
 from unit_tests.predicates import BasePredicateTester, make_environ
 
@@ -49,6 +49,20 @@ class TestIsUserPredicate(BasePredicateTester):
         p = is_user('gustavo')
         self.eval_unmet_predicate(p, environ,
                                   'The current user must be "gustavo"')
+
+
+class TestIsAnonymousPredicate(BasePredicateTester):
+    
+    def test_authenticated_user(self):
+        environ = make_environ('gustavo')
+        p = is_anonymous()
+        self.eval_unmet_predicate(p, environ,
+                                  'The current user must be anonymous')
+    
+    def test_anonymous_user(self):
+        environ = {}
+        p = is_anonymous()
+        self.eval_met_predicate(p, environ)
 
 
 class TestNotAnonymousPredicate(BasePredicateTester):

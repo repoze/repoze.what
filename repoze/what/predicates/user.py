@@ -22,7 +22,7 @@ Predicate checkers for the current user.
 
 from repoze.what.predicates.generic import Predicate
 
-__all__ = ['is_user', 'not_anonymous']
+__all__ = ['is_user', 'is_anonymous', 'not_anonymous']
 
 
 class is_user(Predicate):
@@ -49,6 +49,24 @@ class is_user(Predicate):
            self.user_name == credentials.get('repoze.what.userid'):
             return
         self.unmet()
+
+
+class is_anonymous(Predicate):
+    """
+    Check that the current user is anonymous.
+    
+    Example::
+    
+        # The user must be anonymous!
+        p = is_anonymous()
+    
+    """
+    
+    message = u"The current user must be anonymous"
+
+    def evaluate(self, environ, credentials):
+        if credentials:
+            self.unmet()
 
 
 class not_anonymous(Predicate):
