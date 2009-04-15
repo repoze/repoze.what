@@ -17,10 +17,12 @@
 
 import os
 
-from ez_setup import use_setuptools
-use_setuptools()
-
-from setuptools import setup, find_packages
+try:
+    from setuptools import setup, find_packages
+except ImportError:
+    from ez_setup import use_setuptools
+    use_setuptools()
+    from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.txt')).read()
@@ -59,8 +61,8 @@ setup(name='repoze.what',
       exclude_package_data={'': ['README.txt', 'docs']},
       include_package_data=True,
       zip_safe=False,
-      tests_require = ['paste', 'coverage', 'nose'],
-      install_requires=['paste'],
+      tests_require = ['coverage', 'nose'],
+      install_requires=['WebOb >= 0.9.6'],
       test_suite="nose.collector",
       entry_points = """\
       """
