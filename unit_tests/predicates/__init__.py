@@ -38,10 +38,9 @@ class BasePredicateTester(unittest.TestCase):
     
     def eval_unmet_predicate(self, p, environ, expected_error):
         """Evaluate a predicate that should not be met"""
-        credentials = environ.get('repoze.what.credentials')
         # Testing check_authorization
         try:
-            p.evaluate(environ, credentials)
+            p.check_authorization(environ)
             self.fail('Predicate must not be met; expected error: %s' %
                       expected_error)
         except NotAuthorizedError, error:
@@ -50,15 +49,15 @@ class BasePredicateTester(unittest.TestCase):
         self.assertEqual(p.is_met(environ), False)
 
 
-def make_environ(user, groups=None, permissions=None):
-    """Make a WSGI enviroment with the ``credentials`` dict"""
+def make_environ(user=None, helpers=[], logger=None, **kwargs):
+    """Make a WSGI enviroment with repoze.what-specific items"""
     
-    credentials = {'repoze.what.userid': user}
-    if groups:
-        credentials['groups'] = groups
-    if permissions:
-        credentials['permissions'] = permissions
-    environ = {'repoze.what.credentials': credentials}
+    environ = {
+        'repoze.what.userid': user,
+        'repoze.what.helpers': helpers,
+        'repoze.what.logger': logger,
+    }
+    environ.update(kwargs)
     return environ
 
 
@@ -68,8 +67,8 @@ def make_environ(user, groups=None, permissions=None):
 class EqualsTwo(Predicate):
     message = "Number %(number)s doesn't equal 2"
     
-    def evaluate(self, environ, credentials):
-        number = environ.get('test_number')
+    def evaluate(self, userid, request, helpers):
+        number = request.environ.get('test_number')
         if number != 2:
             self.unmet(number=number)
 
@@ -77,8 +76,8 @@ class EqualsTwo(Predicate):
 class EqualsFour(Predicate):
     message = "Number %(number)s doesn't equal 4"
     
-    def evaluate(self, environ, credentials):
-        number = environ.get('test_number')
+    def evaluate(self, userid, request, helpers):
+        number = request.environ.get('test_number')
         if number != 4:
             self.unmet(number=number)
 
@@ -90,8 +89,8 @@ class GreaterThan(Predicate):
         super(GreaterThan, self).__init__(**kwargs)
         self.compared_number = compared_number
         
-    def evaluate(self, environ, credentials):
-        number = environ.get('test_number')
+    def evaluate(self, userid, request, helpers):
+        number = request.environ.get('test_number')
         if not number > self.compared_number:
             self.unmet(number=number, compared_number=self.compared_number)
 

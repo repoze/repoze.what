@@ -21,8 +21,14 @@ This document describes the releases of :mod:`repoze.what`.
   * :mod:`repoze.what.authorize` is gone. Its ``check_authorization`` function
     is defined as a method of the predicate (the way it should've had been)
     and its ``NotAuthorizedError`` exception is now at 
-    :class:`repoze.what.predicates.NotAuthorizedError` (it replaces
-    :class:`repoze.what.predicates.PredicateError`).
+    :class:`repoze.what.predicates.base.NotAuthorizedError` (it replaces
+    :class:`repoze.what.predicates.base.PredicateError`).
+* Changed the way predicates are evaluated:
+  * Predicate checkers are now evaluated by passing three positional
+    arguments: The userid, the WebOb ``Request`` object for the current
+    request and the new repoze.what "helpers" dict.
+  * :meth:`repoze.what.predicates.Predicate.parse_variables` is gone because
+    of the use of WebOb.
 * Introduced :meth:`repoze.what.predicates.Predicate.is_met`.
 * Now :meth:`repoze.what.predicates.Predicate.unmet` receives an optional
   argument to override the error message.

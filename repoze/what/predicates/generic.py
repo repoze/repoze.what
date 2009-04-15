@@ -20,254 +20,10 @@ Generic predicate checkers.
 
 """
 
-from paste.request import parse_formvars, parse_dict_querystring
+from repoze.what.predicates.base import Predicate, CompoundPredicate, \
+                                        NotAuthorizedError
 
-__all__ = ['Predicate', 'CompoundPredicate', 'Not', 'All', 'Any',
-           'NotAuthorizedError']
-
-
-#{ Predicates
-
-
-class Predicate(object):
-    """
-    Generic predicate checker.
-    
-    This is the base predicate class. It won't do anything useful for you, 
-    unless you subclass it.
-    
-    """
-    
-    def __init__(self, msg=None):
-        """
-        Create a predicate and use ``msg`` as the error message if it fails.
-        
-        :param msg: The error message, if you want to override the default one
-            defined by the predicate.
-        :type msg: str
-        
-        You may use the ``msg`` keyword argument with any predicate.
-        
-        """
-        if msg:
-            self.message = msg
-    
-    def evaluate(self, environ, credentials):
-        """
-        Raise an exception if the predicate is not met.
-        
-        :param environ: The WSGI environment.
-        :type environ: dict
-        :param credentials: The :mod:`repoze.what` ``credentials`` dictionary
-            as a short-cut.
-        :type credentials: dict
-        :raise NotImplementedError: When the predicate doesn't define this
-            method.
-        :raises NotAuthorizedError: If the predicate is not met (use 
-            :meth:`unmet` to raise it).
-        
-        This is the method that must be overridden by any predicate checker.
-        
-        For example, if your predicate is "The current month is the specified
-        one", you may define the following predicate checker::
-        
-            from datetime import date
-            from repoze.what.predicates.generic import Predicate
-            
-            class is_month(Predicate):
-                message = 'The current month must be %(right_month)s'
-                
-                def __init__(self, right_month, **kwargs):
-                    self.right_month = right_month
-                    super(is_month, self).__init__(**kwargs)
-                
-                def evaluate(self, environ, credentials):
-                    today = date.today()
-                    if today.month != self.right_month:
-                        # Raise an exception because the predicate is not met.
-                        self.unmet()
-        
-        .. attention::
-            Do not evaluate predicates by yourself using this method. See
-            :func:`repoze.what.authorize.check_authorization`.
-
-        .. warning::
-        
-            To make your predicates thread-safe, keep in mind that they may
-            be instantiated at module-level and then shared among many threads,
-            so avoid predicates from being modified after their evaluation. 
-            This is, the ``evaluate()`` method should not add, modify or 
-            delete any attribute of the predicate.
-        
-        """
-        raise NotImplementedError
-    
-    def unmet(self, msg=None, **placeholders):
-        """
-        Raise an exception because this predicate is not met.
-        
-        :param msg: The error message to be used; overrides the predicate's
-            default one.
-        :type msg: str
-        :raises NotAuthorizedError: All the time.
-        
-        ``placeholders`` represent the placeholders for the predicate message.
-        The predicate's attributes will also be taken into account while
-        creating the message with its placeholders.
-        
-        For example, if you have a predicate that checks that the current
-        month is the specified one, where the predicate message is defined with
-        two placeholders as in::
-        
-            The current month must be %(right_month)s and it is %(this_month)s
-        
-        and the predicate has an attribute called ``right_month`` which
-        represents the expected month, then you can use this method as in::
-        
-            self.unmet(this_month=this_month)
-        
-        Then :meth:`unmet` will build the message using the ``this_month``
-        keyword argument and the ``right_month`` attribute as the placeholders
-        for ``this_month`` and ``right_month``, respectively. So, if
-        ``this_month`` equals ``3`` and ``right_month`` equals ``5``,
-        the message for the exception to be raised will be::
-        
-            The current month must be 5 and it is 3
-        
-        If you have a context-sensitive predicate checker and thus you want
-        to change the error message on evaluation, you can call :meth:`unmet`
-        as::
-        
-            self.unmet('%(this_month)s is not a good month',
-                       this_month=this_month)
-        
-        The exception raised would contain the following message::
-        
-            3 is not a good month
-        
-        .. attention::
-        
-            This method should only be called from :meth:`evaluate`.
-        
-        """
-        if msg:
-            message = msg
-        else:
-            message = self.message
-        # Let's convert it into unicode because it may be just a class, as a 
-        # Pylon's "lazy" translation message:
-        message = unicode(message)
-        # Include the predicate attributes in the placeholders:
-        all_placeholders = self.__dict__.copy()
-        all_placeholders.update(placeholders)
-        raise NotAuthorizedError(message % all_placeholders)
-
-    def check_authorization(self, environ):
-        """
-        Evaluate the predicate and raise an exception if it's not met.
-        
-        :param environ: The WSGI environment.
-        :raise NotAuthorizedError: If it the predicate is not met.
-        
-        Example::
-        
-            >>> from repoze.what.predicates.user import is_user
-            >>> environ = gimme_the_environ()
-            >>> p = is_user('gustavo')
-            >>> p.check_authorization(environ)
-            # ...
-            repoze.what.predicates.NotAuthorizedError: The current user must be "gustavo"
-        
-        """
-        logger = environ.get('repoze.what.logger')
-        credentials = environ.get('repoze.what.credentials')
-        try:
-            self.evaluate(environ, credentials)
-        except NotAuthorizedError, error:
-            logger and logger.info(u'Authorization denied: %s' % error)
-            raise
-        logger and logger.info('Authorization granted')
-
-    def is_met(self, environ):
-        """
-        Find whether the predicate is met or not.
-        
-        :param environ: The WSGI environment.
-        :return: Whether the predicate is met or not.
-        :rtype: bool
-        
-        Example::
-        
-            >>> from repoze.what.predicates import is_user
-            >>> environ = gimme_the_environ()
-            >>> p = is_user('gustavo')
-            >>> p.is_met(environ)
-            False
-        
-        """
-        credentials = environ.get('repoze.what.credentials')
-        try:
-            self.evaluate(environ, credentials)
-            return True
-        except NotAuthorizedError, error:
-            return False
-    
-    def parse_variables(self, environ):
-        """
-        Return the GET and POST variables in the request, as well as
-        ``wsgiorg.routing_args`` arguments.
-        
-        :param environ: The WSGI environ.
-        :return: The GET and POST variables and ``wsgiorg.routing_args``
-            arguments.
-        :rtype: dict
-        
-        This is a handy method for request-sensitive predicate checkers.
-        
-        It will return a dictionary for the POST and GET variables, as well as
-        the `wsgiorg.routing_args 
-        <http://www.wsgi.org/wsgi/Specifications/routing_args>`_'s 
-        ``positional_args`` and ``named_args`` arguments, in the ``post``, 
-        ``get``, ``positional_args`` and ``named_args`` items (respectively) of
-        the returned dictionary.
-        
-        For example, if the user submits a form using the POST method to
-        ``http://example.com/blog/hello-world/edit_post?wysiwyg_editor=Yes``,
-        this method may return::
-        
-            {
-            'post': {'new_post_contents': 'These are the new contents'},
-            'get': {'wysiwyg_editor': 'Yes'},
-            'named_args': {'post_slug': 'hello-world'},
-            'positional_args': (),
-            }
-        
-        But note that the ``named_args`` and ``positional_args`` items depend
-        completely on how you configured the dispatcher.
-        
-        """
-        get_vars = parse_dict_querystring(environ) or {}
-        try:
-            post_vars = parse_formvars(environ, False) or {}
-        except KeyError:
-            post_vars = {}
-        routing_args = environ.get('wsgiorg.routing_args', {})
-        positional_args = routing_args.get('positional_args') or ()
-        named_args = routing_args.get('named_args') or {}
-        variables = {
-            'post': post_vars,
-            'get': get_vars,
-            'positional_args': positional_args,
-            'named_args': named_args}
-        return variables
-
-
-class CompoundPredicate(Predicate):
-    """A predicate composed of other predicates."""
-    
-    def __init__(self, *predicates, **kwargs):
-        super(CompoundPredicate, self).__init__(**kwargs)
-        self.predicates = predicates
+__all__ = ['Not', 'All', 'Any']
 
 
 class Not(Predicate):
@@ -288,9 +44,9 @@ class Not(Predicate):
         super(Not, self).__init__(**kwargs)
         self.predicate = predicate
     
-    def evaluate(self, environ, credentials):
+    def evaluate(self, userid, request, helpers):
         try:
-            self.predicate.evaluate(environ, credentials)
+            self.predicate.evaluate(userid, request, helpers)
         except NotAuthorizedError, error:
             return
         self.unmet()
@@ -310,17 +66,10 @@ class All(CompoundPredicate):
     
     """
     
-    def evaluate(self, environ, credentials):
-        """
-        Evaluate all the predicates it contains.
-        
-        :param environ: The WSGI environment.
-        :param credentials: The :mod:`repoze.what` ``credentials``.
-        :raises NotAuthorizedError: If one of the predicates is not met.
-        
-        """
+    def evaluate(self, userid, request, helpers):
+        """Evaluate all the predicates it contains."""
         for p in self.predicates:
-            p.evaluate(environ, credentials)
+            p.evaluate(userid, request, helpers)
 
 
 class Any(CompoundPredicate):
@@ -339,36 +88,14 @@ class Any(CompoundPredicate):
     message = u"At least one of the following predicates must be met: " \
                "%(failed_predicates)s"
     
-    def evaluate(self, environ, credentials):
-        """
-        Evaluate all the predicates it contains.
-        
-        :param environ: The WSGI environment.
-        :param credentials: The :mod:`repoze.what` ``credentials``.
-        :raises NotAuthorizedError: If none of the predicates is met.
-        
-        """
+    def evaluate(self, userid, request, helpers):
+        """Evaluate all the predicates it contains."""
         errors = []
         for p in self.predicates:
             try:
-                p.evaluate(environ, credentials)
+                p.evaluate(userid, request, helpers)
                 return
             except NotAuthorizedError, exc:
                 errors.append(unicode(exc))
         failed_predicates = ', '.join(errors)
         self.unmet(failed_predicates=failed_predicates)
-
-
-#{ Exceptions
-
-
-class NotAuthorizedError(Exception):
-    """
-    Exception raised by :func:`check_authorization` if the subject is not 
-    allowed to access the requested source.
-    
-    """
-    pass
-
-
-#}

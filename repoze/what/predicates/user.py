@@ -20,17 +20,17 @@ Predicate checkers for the current user.
 
 """
 
-from repoze.what.predicates.generic import Predicate
+from repoze.what.predicates.base import Predicate
 
 __all__ = ['is_user', 'is_anonymous', 'not_anonymous']
 
 
 class is_user(Predicate):
     """
-    Check that the authenticated user's username is the specified one.
+    Check that the authenticated user's identifier is the specified one.
     
-    :param user_name: The required user name.
-    :type user_name: str
+    :param userid: The required user identificator.
+    :type userid: basestring
     
     Example::
     
@@ -38,17 +38,15 @@ class is_user(Predicate):
     
     """
     
-    message = u'The current user must be "%(user_name)s"'
-
-    def __init__(self, user_name, **kwargs):
+    message = u'The current user must be "%(userid)s"'
+    
+    def __init__(self, userid, **kwargs):
         super(is_user, self).__init__(**kwargs)
-        self.user_name = user_name
+        self.userid = userid
 
-    def evaluate(self, environ, credentials):
-        if credentials and \
-           self.user_name == credentials.get('repoze.what.userid'):
-            return
-        self.unmet()
+    def evaluate(self, userid, request, helpers):
+        if userid != self.userid:
+            self.unmet()
 
 
 class is_anonymous(Predicate):
@@ -64,8 +62,8 @@ class is_anonymous(Predicate):
     
     message = u"The current user must be anonymous"
 
-    def evaluate(self, environ, credentials):
-        if credentials:
+    def evaluate(self, userid, request, helpers):
+        if userid:
             self.unmet()
 
 
@@ -82,6 +80,6 @@ class not_anonymous(Predicate):
     
     message = u"The current user must have been authenticated"
     
-    def evaluate(self, environ, credentials):
-        if not credentials:
+    def evaluate(self, userid, request, helpers):
+        if not userid:
             self.unmet()

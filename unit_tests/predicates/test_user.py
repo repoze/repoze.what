@@ -27,18 +27,6 @@ from unit_tests.predicates import BasePredicateTester, make_environ
 
 class TestIsUserPredicate(BasePredicateTester):
     
-    def test_user_without_credentials(self):
-        environ = {}
-        p = is_user('gustavo')
-        self.eval_unmet_predicate(p, environ,
-                                  'The current user must be "gustavo"')
-    
-    def test_user_without_userid(self):
-        environ = {'repoze.what.credentials': {}}
-        p = is_user('gustavo')
-        self.eval_unmet_predicate(p, environ,
-                                  'The current user must be "gustavo"')
-    
     def test_right_user(self):
         environ = make_environ('gustavo')
         p = is_user('gustavo')
@@ -60,7 +48,7 @@ class TestIsAnonymousPredicate(BasePredicateTester):
                                   'The current user must be anonymous')
     
     def test_anonymous_user(self):
-        environ = {}
+        environ = make_environ()
         p = is_anonymous()
         self.eval_met_predicate(p, environ)
 
@@ -73,7 +61,7 @@ class TestNotAnonymousPredicate(BasePredicateTester):
         self.eval_met_predicate(p, environ)
     
     def test_anonymous_user(self):
-        environ = {}
+        environ = make_environ()
         p = not_anonymous()
         self.eval_unmet_predicate(p, environ,
                          'The current user must have been authenticated')
