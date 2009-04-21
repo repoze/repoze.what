@@ -20,7 +20,7 @@ Tests for the :mod:`repoze.what` helpers.
 
 from unittest import TestCase
 
-from repoze.what.helpers.base import Helper
+from repoze.what.helpers.base import Helper, HelperCollection
 
 
 #{ The test suite
@@ -41,18 +41,24 @@ class TestHelper(TestCase):
                       "by default")
         except NotImplementedError:
             pass
+
+
+class TestHelperCollection(TestCase):
+    """
+    Test case for the :class:`HelperCollection`.
     
-    def test_helper_organizer_with_no_helper(self):
+    """
+    
+    def test_without_helpers(self):
         """
-        Helper.organize_helpers() should return an empty dictionary when no
-        helper is given.
+        A helper collection must be an empty dictionary when no helper is given.
         
         """
-        self.assertEqual({}, Helper.organize_helpers())
+        self.assertEqual({}, HelperCollection())
     
-    def test_helper_organizer_with_unique_helpers(self):
+    def test_with_unique_helpers(self):
         """
-        Helper.organize_helpers() should organize unique helpers correctly.
+        Unique helpers are organized correctly.
         
         """
         h1 = MockHelper('name1')
@@ -63,17 +69,33 @@ class TestHelper(TestCase):
             'name2': h2,
             'name3': h3,
         }
-        self.assertEqual(helpers_organized, Helper.organize_helpers(h1, h2, h3))
+        self.assertEqual(helpers_organized, HelperCollection(h1, h2, h3))
     
-    def test_helper_organizer_with_duplicate_helpers(self):
+    def test_with_duplicate_helpers(self):
         """
-        Helper.organize_helpers() can't organize duplicate helpers.
+        Duplicate helpers can't be organized.
         
         """
         h1 = MockHelper('name1')
         h2 = MockHelper('name1')
         h3 = MockHelper('name3')
-        self.assertRaises(IndexError, Helper.organize_helpers, h1, h2, h3)
+        self.assertRaises(IndexError, HelperCollection, h1, h2, h3)
+    
+    def test_getting_existing_helper(self):
+        h = MockHelper('something')
+        collection = HelperCollection(h)
+        assert 'something' in collection
+        self.assertEqual(h, collection['something'])
+        self.assertEqual({'something': h}, collection)
+    
+    def test_getting_non_existing_helper(self):
+        collection = HelperCollection(MockHelper('something'))
+        assert 'anything' not in collection
+        try:
+            collection['anything']
+            self.fail('Helper "anything" is not supposed to exist')
+        except KeyError:
+            pass
 
 
 #{ Mock definitions

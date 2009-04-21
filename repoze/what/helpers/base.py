@@ -22,7 +22,7 @@ run only when they're needed.
 
 """
 
-__all__ = ['Helper']
+__all__ = ['Helper', 'HelperCollection']
 
 
 class Helper(object):
@@ -30,35 +30,44 @@ class Helper(object):
     Base class for :mod:`repoze.what` v2 helpers.
     
     Helpers are used by request-to-target mappers and predicate checkers to
-    handle CRUD operations in a given source, to store data or perform **any**
-    other operation they may ever need.
+    handle CRUD operations in a given source, to store constants or perform 
+    **any** external operation they may ever need.
     
     Every helper must subclass this class and set its :attr:`name` attribute
     to the string that will identify the helper. For example::
     
         class MyHelper(Helper):
             name = 'my_helper'
-
+    
     .. attribute:: name
     
         The name of the current helper.
+    
+    .. attention::
+    
+        Helpers are instantiated once and may be used across many threads, so
+        **they must be stateless**.
     
     """
     
     @property
     def name(self):
         raise NotImplementedError
+
+
+class HelperCollection(dict):
+    """
+    Dictionary-like collection of helpers.
     
-    @classmethod
-    def organize_helpers(cls, *helpers):
+    """
+    
+    def __init__(self, *helpers):
         """
-        Return the ``helpers`` organized in a dictionary.
+        Turn the ``helpers`` into a dictionary.
         
         It will return a dictionary whose items are the ``helpers``, where the
         key is the helper name and the value is the helper itself.
         
-        :return: The ``helpers`` organized.
-        :rtype: dict
         :raises IndexError: If the helper is duplicate (i.e., there are at
             least two helpers with the same name).
         
@@ -70,4 +79,4 @@ class Helper(object):
                 raise IndexError('Helper "%s" is already defined' % helper.name)
             helpers_organized[helper.name] = helper
         
-        return helpers_organized
+        super(HelperCollection, self).__init__(**helpers_organized)
