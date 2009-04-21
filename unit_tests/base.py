@@ -18,10 +18,36 @@ Utilities for the test suite of :mod:`repoze.what`.
 
 """
 
+from StringIO import StringIO
+
 from repoze.what.adapters import BaseSourceAdapter
 
-__all__ = ['FakeGroupSourceAdapter', 'FakePermissionSourceAdapter', 
+from webob import Request
+
+__all__ = ['make_environ', 'make_request', 'FakeGroupSourceAdapter', 'FakePermissionSourceAdapter', 
            'FakeLogger']
+
+
+def make_environ(user=None, helpers=[], logger=None, **kwargs):
+    """Make a WSGI enviroment with repoze.what-specific items"""
+    
+    environ = {
+        'repoze.what.userid': user,
+        'repoze.what.helpers': helpers,
+        'repoze.what.logger': logger,
+        'wsgi.url_scheme': 'http',
+        'SERVER_NAME': 'localhost',
+        'SERVER_PORT': 80,
+        'wsgi.input': StringIO()
+    }
+    environ.update(kwargs)
+    return environ
+
+
+def make_request(**environ_vars):
+    """Make a WebOb request in a repoze.what environment"""
+    environ = make_environ(**environ_vars)
+    return Request(environ)
 
 
 class FakeGroupSourceAdapter(BaseSourceAdapter):

@@ -25,7 +25,7 @@ from repoze.what.predicates.base import Predicate, CompoundPredicate, \
 from repoze.what.predicates.generic import All, Any, Not
 from repoze.what.predicates.user import is_user, is_anonymous, not_anonymous
 
-from unit_tests.base import FakeLogger
+from unit_tests.base import make_environ, FakeLogger
 
 
 #{ Utilities
@@ -50,18 +50,6 @@ class BasePredicateTester(TestCase):
             self.assertEqual(unicode(error), expected_error)
         # Testing is_met:
         self.assertEqual(p.is_met(environ), False)
-
-
-def make_environ(user=None, helpers=[], logger=None, **kwargs):
-    """Make a WSGI enviroment with repoze.what-specific items"""
-    
-    environ = {
-        'repoze.what.userid': user,
-        'repoze.what.helpers': helpers,
-        'repoze.what.logger': logger,
-    }
-    environ.update(kwargs)
-    return environ
 
 
 #{ The test suite itself
