@@ -23,6 +23,8 @@ This document describes the releases of :mod:`repoze.what`.
     and its ``NotAuthorizedError`` exception is now at 
     :class:`repoze.what.predicates.base.NotAuthorizedError` (it replaces
     :class:`repoze.what.predicates.base.PredicateError`).
+  * :mod:`repoze.what.adapters.testutil` was been moved to
+    :mod:`repoze.what.testutils.adapters`.
 * Changed the way predicates are evaluated:
   * Predicate checkers are now evaluated by passing three positional
     arguments: The userid, the WebOb ``Request`` object for the current

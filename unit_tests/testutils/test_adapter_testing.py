@@ -19,12 +19,12 @@
 
 import unittest
 
-from repoze.what.adapters.testutil import GroupsAdapterTester, \
-                                          PermissionsAdapterTester, \
-                                          ReadOnlyGroupsAdapterTester, \
-                                          ReadOnlyPermissionsAdapterTester
+from repoze.what.testutils import GroupsAdapterTester, \
+                                  PermissionsAdapterTester, \
+                                  ReadOnlyGroupsAdapterTester, \
+                                  ReadOnlyPermissionsAdapterTester
 
-from base import FakeGroupSourceAdapter, FakePermissionSourceAdapter
+from unit_tests.base import FakeGroupSourceAdapter, FakePermissionSourceAdapter
 
 #{ Read and write adapters
 
