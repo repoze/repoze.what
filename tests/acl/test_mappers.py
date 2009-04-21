@@ -24,7 +24,7 @@ from repoze.what.acl.mappers.base import Mapper, CompoundMapper, Target, \
                                          NoTargetFoundError
 from repoze.what.acl.mappers.pathinfo import PathInfoMapper
 
-from unit_tests.base import make_request, FakeLogger
+from tests.base import make_request, FakeLogger
 
 
 #{ The test suite

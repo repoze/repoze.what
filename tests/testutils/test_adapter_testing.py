@@ -24,7 +24,7 @@ from repoze.what.testutils import GroupsAdapterTester, \
                                   ReadOnlyGroupsAdapterTester, \
                                   ReadOnlyPermissionsAdapterTester
 
-from unit_tests.base import FakeGroupSourceAdapter, FakePermissionSourceAdapter
+from tests.base import FakeGroupSourceAdapter, FakePermissionSourceAdapter
 
 #{ Read and write adapters
 

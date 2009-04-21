@@ -25,7 +25,7 @@ from repoze.what.predicates.base import Predicate, CompoundPredicate, \
 from repoze.what.predicates.generic import All, Any, Not
 from repoze.what.predicates.user import is_user, is_anonymous, not_anonymous
 
-from unit_tests.base import make_environ, FakeLogger
+from tests.base import make_environ, FakeLogger
 
 
 #{ Utilities
