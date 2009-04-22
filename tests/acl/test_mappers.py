@@ -18,7 +18,7 @@ Test suite for request-to-target mappers.
 
 """
 
-from unittest import TestCase
+from nose.tools import eq_, assert_raises
 
 from repoze.what.acl.mappers.base import Mapper, CompoundMapper, Target, \
                                          NoTargetFoundError
@@ -30,7 +30,7 @@ from tests.base import make_request, FakeLogger
 #{ The test suite
 
 
-class TestMapper(TestCase):
+class TestMapper(object):
     """
     Test case for the base :class:`Mapper`.
     
@@ -42,10 +42,10 @@ class TestMapper(TestCase):
         
         """
         m = Mapper()
-        self.assertRaises(NotImplementedError, m.get_target, None)
+        assert_raises(NotImplementedError, m.get_target, None)
 
 
-class TestCompoundMapper(TestCase):
+class TestCompoundMapper(object):
     """
     Test case for the Compound Mapper.
     
@@ -53,8 +53,8 @@ class TestCompoundMapper(TestCase):
     
     def test_with_zero_mappers(self):
         cm = CompoundMapper()
-        self.assertEqual(0, len(cm.mappers))
-        self.assertRaises(NoTargetFoundError, cm.get_target, make_request())
+        eq_(0, len(cm.mappers))
+        assert_raises(NoTargetFoundError, cm.get_target, make_request())
     
     def test_with_mappers_but_no_target(self):
         # Set up:
@@ -63,8 +63,8 @@ class TestCompoundMapper(TestCase):
         m3 = MockMapper()
         cm = CompoundMapper(m1, m2, m3)
         # Verifications:
-        self.assertEqual(3, len(cm.mappers))
-        self.assertRaises(NoTargetFoundError, cm.get_target, make_request())
+        eq_(3, len(cm.mappers))
+        assert_raises(NoTargetFoundError, cm.get_target, make_request())
     
     def test_with_many_mappers_but_first_one_matches(self):
         # Set up:
@@ -72,10 +72,10 @@ class TestCompoundMapper(TestCase):
         m2 = MockMapper()
         cm = CompoundMapper(m1, m2)
         # Verifications:
-        self.assertEqual(2, len(cm.mappers))
+        eq_(2, len(cm.mappers))
         target = cm.get_target(make_request())
-        self.assertEqual(target.resource, '/admin/users')
-        self.assertEqual(target.operation, 'add')
+        eq_(target.resource, '/admin/users')
+        eq_(target.operation, 'add')
     
     def test_with_many_mappers_but_last_one_matches(self):
         # Set up:
@@ -83,10 +83,10 @@ class TestCompoundMapper(TestCase):
         m2 = MockMapper('/admin/users', 'add')
         cm = CompoundMapper(m1, m2)
         # Verifications:
-        self.assertEqual(2, len(cm.mappers))
+        eq_(2, len(cm.mappers))
         target = cm.get_target(make_request())
-        self.assertEqual(target.resource, '/admin/users')
-        self.assertEqual(target.operation, 'add')
+        eq_(target.resource, '/admin/users')
+        eq_(target.operation, 'add')
     
     def test_target_found_with_logger(self):
         # Setup:
@@ -97,13 +97,13 @@ class TestCompoundMapper(TestCase):
         cm.get_target(request)
         # Verifications:
         debug = logger.messages['debug']
-        self.assertEqual(1, len(debug), debug)
+        eq_(1, len(debug), debug)
         assert debug[0].startswith('Target aco:/blog/posts#edit found by '
                                     'mapper')
         assert 'MockMapper' in debug[0]
 
 
-class TestTarget(TestCase):
+class TestTarget(object):
     """
     Test case for the target ACO class.
     
@@ -113,16 +113,16 @@ class TestTarget(TestCase):
         resource = '/myaccount'
         operation = 'logout'
         t = Target(resource, operation)
-        self.assertEqual(resource, t.resource)
-        self.assertEqual(operation, t.operation)
+        eq_(resource, t.resource)
+        eq_(operation, t.operation)
     
     def test_unicode(self):
         t = Target('/myaccount', 'logout')
         t_as_unicode = unicode(t)
-        self.assertEqual(t_as_unicode, 'aco:/myaccount#logout')
+        eq_(t_as_unicode, 'aco:/myaccount#logout')
 
 
-class TestNoTargetFoundError(TestCase):
+class TestNoTargetFoundError(object):
     """
     Test case for the :class:`NoTargetFoundError` exception.
     
@@ -134,7 +134,7 @@ class TestNoTargetFoundError(TestCase):
         assert exc.startswith('No target found for  /myaccount'), exc
 
 
-class TestPathInfoMapper(TestCase):
+class TestPathInfoMapper(object):
     """
     Test case for the built-in PATH_INFO mapper.
     
@@ -144,13 +144,13 @@ class TestPathInfoMapper(TestCase):
     
     def test_constructor_without_default_operation(self):
         mapper = PathInfoMapper(self.default_root_target)
-        self.assertEqual(mapper.root_target, self.default_root_target)
-        self.assertEqual(mapper.trailing_slash_operation, None)
+        eq_(mapper.root_target, self.default_root_target)
+        eq_(mapper.trailing_slash_operation, None)
     
     def test_constructor_with_default_operation(self):
         mapper = PathInfoMapper(self.default_root_target, 'index')
-        self.assertEqual(mapper.root_target, self.default_root_target)
-        self.assertEqual(mapper.trailing_slash_operation, 'index')
+        eq_(mapper.root_target, self.default_root_target)
+        eq_(mapper.trailing_slash_operation, 'index')
     
     def test_root(self):
         """
@@ -164,15 +164,15 @@ class TestPathInfoMapper(TestCase):
         # --- Testing it:
         # With an empty PATH_INFO
         target = mapper.get_target(request)
-        self.assertEqual(target, self.default_root_target)
+        eq_(target, self.default_root_target)
         # With a slash as the PATH_INFO:
         request = make_request(PATH_INFO='/')
         target = mapper.get_target(request)
-        self.assertEqual(target, self.default_root_target)
+        eq_(target, self.default_root_target)
         # With ten slashes as the PATH_INFO:
         request = make_request(PATH_INFO='/'*10)
         target = mapper.get_target(request)
-        self.assertEqual(target, self.default_root_target)
+        eq_(target, self.default_root_target)
     
     def test_default_operation_with_trailing_slash(self):
         # Setup:
@@ -180,8 +180,8 @@ class TestPathInfoMapper(TestCase):
         mapper = PathInfoMapper(self.default_root_target, 'index')
         # Verifications:
         target = mapper.get_target(request)
-        self.assertEqual(target.resource, '/myaccount')
-        self.assertEqual(target.operation, 'index')
+        eq_(target.resource, '/myaccount')
+        eq_(target.operation, 'index')
     
     def test_default_operation_without_trailing_slash(self):
         # Setup:
@@ -189,8 +189,8 @@ class TestPathInfoMapper(TestCase):
         mapper = PathInfoMapper(self.default_root_target, 'index')
         # Verifications:
         target = mapper.get_target(request)
-        self.assertEqual(target.resource, '/')
-        self.assertEqual(target.operation, 'myaccount')
+        eq_(target.resource, '/')
+        eq_(target.operation, 'myaccount')
     
     def test_root_operation_with_trailing_slash(self):
         # Setup:
@@ -198,8 +198,8 @@ class TestPathInfoMapper(TestCase):
         mapper = PathInfoMapper(self.default_root_target)
         # Verifications:
         target = mapper.get_target(request)
-        self.assertEqual(target.resource, '/')
-        self.assertEqual(target.operation, 'view_members')
+        eq_(target.resource, '/')
+        eq_(target.operation, 'view_members')
     
     def test_root_operation_without_trailing_slash(self):
         # Setup:
@@ -207,8 +207,8 @@ class TestPathInfoMapper(TestCase):
         mapper = PathInfoMapper(self.default_root_target)
         # Verifications:
         target = mapper.get_target(request)
-        self.assertEqual(target.resource, '/')
-        self.assertEqual(target.operation, 'view_members')
+        eq_(target.resource, '/')
+        eq_(target.operation, 'view_members')
     
     def test_2nd_level_operation(self):
         # Setup:
@@ -216,8 +216,8 @@ class TestPathInfoMapper(TestCase):
         mapper = PathInfoMapper(self.default_root_target)
         # Verifications:
         target = mapper.get_target(request)
-        self.assertEqual(target.resource, '/admin/accounts')
-        self.assertEqual(target.operation, 'delete')
+        eq_(target.resource, '/admin/accounts')
+        eq_(target.operation, 'delete')
 
 
 #{ Mock definitions
