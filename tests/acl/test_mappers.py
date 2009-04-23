@@ -18,16 +18,20 @@ Test suite for request-to-target mappers.
 
 """
 
-from nose.tools import eq_, assert_raises
+from nose.tools import eq_, assert_raises, raises
 
 from repoze.what.acl.mappers.base import Mapper, CompoundMapper, Target, \
-                                         NoTargetFoundError
+                                         MappingError, NoTargetFoundError
 from repoze.what.acl.mappers.pathinfo import PathInfoMapper
+from repoze.what.acl.mappers.routing_args import PositionalArgsMapper, \
+                                                 NamedArgsMapper, \
+                                                 RoutesMapper, \
+                                                 RoutingArgsMapper
 
 from tests.base import make_request, FakeLogger
 
 
-#{ The test suite
+#{ Tests for generic stuff
 
 
 class TestMapper(object):
@@ -122,16 +126,7 @@ class TestTarget(object):
         eq_(t_as_unicode, 'aco:/myaccount#logout')
 
 
-class TestNoTargetFoundError(object):
-    """
-    Test case for the :class:`NoTargetFoundError` exception.
-    
-    """
-    
-    def test_it(self):
-        request = make_request(PATH_INFO='/myaccount')
-        exc = unicode(NoTargetFoundError(request))
-        assert exc.startswith('No target found for  /myaccount'), exc
+#{ Tests for built-in mappers
 
 
 class TestPathInfoMapper(object):
@@ -218,6 +213,96 @@ class TestPathInfoMapper(object):
         target = mapper.get_target(request)
         eq_(target.resource, '/admin/accounts')
         eq_(target.operation, 'delete')
+
+
+class TestRoutingArgsMapper(object):
+    """
+    Test case for the ``wsgiorg.routing_args`` mappers.
+    
+    """
+    
+    def make_request_with_routing_args(self, positional=(), named={}):
+        request = make_request()
+        request.environ['wsgiorg.routing_args'] = (positional, named)
+        return request
+    
+    #{ Tests for the base mapper
+    
+    def test_constructor(self):
+        m = RoutingArgsMapper(0, 1)
+        eq_(0, m.resource_key)
+        eq_(1, m.operation_key)
+    
+    def test_resource_formatter(self):
+        m = RoutingArgsMapper(None, None)
+        eq_(m.format_resource('something'), '/something')
+    
+    @raises(MappingError)
+    def test_no_routing_args(self):
+        m = RoutingArgsMapper(None, None)
+        m.get_target(make_request())
+    
+    @raises(MappingError)
+    def test_wrong_argument_key_in_mapper(self):
+        class BadMapper(RoutingArgsMapper):
+            arg_key = 4
+        m = BadMapper(None, None)
+        m.get_target(self.make_request_with_routing_args())
+    
+    #{ Tests for the positional and named mappers
+    
+    def test_non_existing_positional_key(self):
+        # With a non-existing resource key:
+        m1 = PositionalArgsMapper(2, 3)
+        request1 = self.make_request_with_routing_args(('foo',))
+        assert_raises(NoTargetFoundError, m1.get_target, request1)
+        # With a non-existing operation key:
+        m2 = PositionalArgsMapper(0, 3)
+        request2 = self.make_request_with_routing_args(('foo', 'bar'))
+        assert_raises(NoTargetFoundError, m2.get_target, request2)
+    
+    def test_non_existing_named_key(self):
+        # With a non-existing resource key:
+        m1 = NamedArgsMapper('resource', 'op')
+        request1 = self.make_request_with_routing_args(named=dict(op='foo'))
+        assert_raises(NoTargetFoundError, m1.get_target, request1)
+        # With a non-existing operation key:
+        m2 = NamedArgsMapper('resource', 'operation')
+        request2 = self.make_request_with_routing_args(named=dict(resource='a'))
+        assert_raises(NoTargetFoundError, m2.get_target, request2)
+    
+    def test_found_positional_keys(self):
+        m = PositionalArgsMapper(1, 3)
+        args = ('zero', 'myaccount/friends', 'two', 'add_friend', 'four')
+        request = self.make_request_with_routing_args(args)
+        target = m.get_target(request)
+        eq_(target.resource, '/myaccount/friends')
+        eq_(target.operation, 'add_friend')
+    
+    def test_found_named_keys(self):
+        m = NamedArgsMapper('object', 'permission')
+        args = dict(object='myaccount/friends', permission='add_friend')
+        request = self.make_request_with_routing_args(named=args)
+        target = m.get_target(request)
+        eq_(target.resource, '/myaccount/friends')
+        eq_(target.operation, 'add_friend')
+    
+    #{ Tests for the Routes mapper
+    
+    def test_routes_mapper_constructor(self):
+        m = RoutesMapper()
+        eq_(m.resource_key, 'controller')
+        eq_(m.operation_key, 'action')
+    
+    def test_routes_found_target(self):
+        m = RoutesMapper()
+        args = dict(controller='myaccount.friends', action='add_friend')
+        request = self.make_request_with_routing_args(named=args)
+        target = m.get_target(request)
+        eq_(target.resource, '/myaccount/friends')
+        eq_(target.operation, 'add_friend')
+    
+    #}
 
 
 #{ Mock definitions

@@ -78,14 +78,12 @@ class CompoundMapper(Mapper):
                 return target
             except NoTargetFoundError:
                 pass
-        raise NoTargetFoundError(request)
+        raise NoTargetFoundError("No mapper found target in %s" % request)
 
 
 class Target(object):
     """
     Represent the target ACO in a request, which may not exist.
-    
-    
     
     """
     
@@ -104,16 +102,22 @@ class Target(object):
 #{ Exceptions
 
 
-class NoTargetFoundError(Exception):
+class MappingError(Exception):
+    """
+    Generic exception used when something goes wrong while mapping a request
+    to an ACO.
+    
+    """
+    pass
+
+
+class NoTargetFoundError(MappingError):
     """
     Exception raised when the request-to-target mapper can't find the target
     from the request.
     
     """
-    
-    def __init__(self, request):
-        super(NoTargetFoundError, self).__init__('No target found for %s' %
-                                                 request)
+    pass
 
 
 #}
