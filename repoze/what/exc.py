@@ -28,6 +28,15 @@ class WhatException(Exception):
     pass
 
 
+class NotAuthorizedError(WhatException):
+    """
+    Exception raised when a subject is not allowed to access the requested 
+    source.
+    
+    """
+    pass
+
+
 #{ ACL-related exceptions
 
 

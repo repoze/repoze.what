@@ -20,8 +20,8 @@ Test suite for repoze.what built-in predicates.
 
 from unittest import TestCase
 
-from repoze.what.predicates.base import Predicate, CompoundPredicate, \
-                                        NotAuthorizedError
+from repoze.what.exc import NotAuthorizedError
+from repoze.what.predicates.base import Predicate, CompoundPredicate
 from repoze.what.predicates.generic import All, Any, Not
 from repoze.what.predicates.user import is_user, is_anonymous, not_anonymous
 

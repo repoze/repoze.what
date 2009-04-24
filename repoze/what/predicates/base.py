@@ -20,10 +20,9 @@ Base definitions for predicate checkers.
 
 from webob import Request
 
-__all__ = ['Predicate', 'CompoundPredicate', 'NotAuthorizedError']
+from repoze.what.exc import NotAuthorizedError
 
-
-#{ Base classes for predicate checkers
+__all__ = ['Predicate', 'CompoundPredicate']
 
 
 class Predicate(object):
@@ -228,18 +227,3 @@ class CompoundPredicate(Predicate):
     def __init__(self, *predicates, **kwargs):
         super(CompoundPredicate, self).__init__(**kwargs)
         self.predicates = predicates
-
-
-#{ Exceptions
-
-
-class NotAuthorizedError(Exception):
-    """
-    Exception raised by :meth:`Predicate.check_authorization` if a
-    subject is not allowed to access the requested source.
-    
-    """
-    pass
-
-
-#}
