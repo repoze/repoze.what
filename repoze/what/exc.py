@@ -49,7 +49,7 @@ class MappingError(WhatException):
     pass
 
 
-class NoTargetFoundError(WhatException):
+class NoTargetFoundError(MappingError):
     """
     Exception raised when the request-to-target mapper can't find the target
     from the request.
