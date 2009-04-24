@@ -216,6 +216,22 @@ class Resource(ACO):
         
         return acos
     
+    def target_exists(self, target):
+        """
+        Check that the ``target`` ACO is defined in this ACO.
+        
+        :param target: The target ACO.
+        :type target: :class:`repoze.what.acl.mappers.base.Target`
+        :return: Whether it exists or not.
+        :rtype: bool
+        
+        """
+        try:
+            self.load_acos(target)
+            return True
+        except NoACOMatchError:
+            return False
+    
     #{ Special methods
     
     def __unicode__(self):

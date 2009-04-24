@@ -206,6 +206,22 @@ class TestResource(object):
         # Testing it:
         assert_raises(NoACOMatchError, contact_resource.load_acos, target)
     
+    def test_checking_existing_sub_aco(self):
+        target = Target('/blog', 'view_posts')
+        op = Operation('view_posts')
+        contact_resource = Resource('blog', op)
+        root_aco = Resource('site', contact_resource)
+        # Testing it:
+        eq_(True, root_aco.target_exists(target))
+    
+    def test_checking_non_existing_sub_aco(self):
+        target = Target('/blog', 'view_posts')
+        op = Operation('index')
+        contact_resource = Resource('blog', op)
+        root_aco = Resource('site', contact_resource)
+        # Testing it:
+        eq_(False, root_aco.target_exists(target))
+    
     def test_unicode_representation(self):
         blog_admin = Resource('admin')
         blog = Resource('blog', blog_admin)
