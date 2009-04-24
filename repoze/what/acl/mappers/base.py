@@ -18,8 +18,9 @@ Base definitions for request-to-target mappers.
 
 """
 
+from repoze.what.exc import NoTargetFoundError
 
-#{ Mapping definitions
+__all__ = ['Mapper', 'CompoundMapper', 'Target']
 
 
 class Mapper(object):
@@ -97,28 +98,4 @@ class Target(object):
         
         """
         return 'aco:%s#%s' % (self.resource, self.operation)
-
-
-#{ Exceptions
-
-
-class MappingError(Exception):
-    """
-    Generic exception used when something goes wrong while mapping a request
-    to an ACO.
-    
-    """
-    pass
-
-
-class NoTargetFoundError(MappingError):
-    """
-    Exception raised when the request-to-target mapper can't find the target
-    from the request.
-    
-    """
-    pass
-
-
-#}
 

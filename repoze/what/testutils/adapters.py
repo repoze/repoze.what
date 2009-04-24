@@ -17,9 +17,9 @@
 
 """Utilities to test source adapters."""
 
-from repoze.what.adapters import SourceError, ExistingSectionError, \
-                                         NonExistingSectionError, \
-                                         ItemPresentError, ItemNotPresentError
+from repoze.what.exc import SourceError, ExistingSectionError, \
+                            NonExistingSectionError, ItemPresentError, \
+                            ItemNotPresentError
 
 __all__ = ['GroupsAdapterTester', 'PermissionsAdapterTester',
            'ReadOnlyGroupsAdapterTester', 'ReadOnlyPermissionsAdapterTester']

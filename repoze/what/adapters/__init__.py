@@ -36,9 +36,11 @@ belong to the "update-site" section.
 
 """
 
-__all__ = ['BaseSourceAdapter', 'AdapterError', 'SourceError',
-           'ExistingSectionError', 'NonExistingSectionError', 
-           'ItemPresentError', 'ItemNotPresentError']
+from repoze.what.exc import (SourceError, ExistingSectionError,
+                             NonExistingSectionError, ItemPresentError,
+                             ItemNotPresentError)
+
+__all__ = ['BaseSourceAdapter']
 
 
 class BaseSourceAdapter(object):
@@ -574,53 +576,3 @@ class BaseSourceAdapter(object):
         raise NotImplementedError()
     
     #}
-
-
-#{ Exceptions
-
-
-class AdapterError(Exception):
-    """
-    Base exception for problems the source adapters.
-    
-    It's never raised directly.
-    
-    """
-    pass
-
-
-class SourceError(AdapterError):
-    """
-    Exception for problems with the source itself.
-    
-    .. attention::
-        If you are creating a :term:`source adapter`, this is the only
-        exception you should raise.
-    
-    """
-    pass
-
-
-class ExistingSectionError(AdapterError):
-    """Exception raised when trying to add an existing group."""
-    pass
-
-
-class NonExistingSectionError(AdapterError):
-    """Exception raised when trying to use a non-existing group."""
-    pass
-
-
-class ItemPresentError(AdapterError):
-    """Exception raised when trying to add an item to a group that already
-    contains it."""
-    pass
-
-
-class ItemNotPresentError(AdapterError):
-    """Exception raised when trying to remove an item from a group that doesn't
-    contain it."""
-    pass
-
-
-#}

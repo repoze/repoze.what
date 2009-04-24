@@ -17,8 +17,8 @@
 The built-in ``wsgiorg.routing_args``-based request-to-target mapper.
 
 """
-
-from repoze.what.acl.mappers.base import *
+from repoze.what.exc import MappingError, NoTargetFoundError
+from repoze.what.acl.mappers.base import Mapper, Target
 
 __all__ = ['PositionalArgsMapper', 'NamedArgsMapper', 'RoutesMapper']
 

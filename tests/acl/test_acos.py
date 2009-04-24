@@ -20,6 +20,7 @@ Test suite for the Access Control Objects.
 
 from nose.tools import eq_, assert_raises, raises
 
+from repoze.what.exc import ExistingChildrenError, NoACOMatchError
 from repoze.what.acl.aco import *
 from repoze.what.acl.mappers.base import Target
 

@@ -20,8 +20,9 @@
 
 import re
 
-__all__ = ['ACO', 'Resource', 'Operation',
-           'ExistingChildrenError', 'NoACOMatchError']
+from repoze.what.exc import ExistingChildrenError, NoACOMatchError
+
+__all__ = ['ACO', 'Resource', 'Operation']
 
 
 class ACO(object):
@@ -247,26 +248,3 @@ class Operation(ACO):
     
     #}
 
-
-#{ Exceptions
-
-
-class ExistingChildrenError(Exception):
-    """
-    Exception raised when trying to add an existing subresource or operation
-    in a resource.
-    
-    """
-    pass
-
-
-class NoACOMatchError(Exception):
-    """
-    Exception raised when a non-existing subresource or operation is requested
-    to a resource.
-    
-    """
-    pass
-
-
-#}

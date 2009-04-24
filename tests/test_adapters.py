@@ -19,7 +19,10 @@
 
 import unittest
 
-from repoze.what.adapters import *
+from repoze.what.adapters import BaseSourceAdapter
+from repoze.what.exc import (SourceError, ExistingSectionError,
+                             NonExistingSectionError, ItemPresentError,
+                             ItemNotPresentError)
 
 from base import FakeGroupSourceAdapter
 
