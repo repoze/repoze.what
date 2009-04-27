@@ -108,25 +108,6 @@ class TestCompoundMapper(object):
         assert 'MockMapper' in debug[0]
 
 
-class TestTarget(object):
-    """
-    Test case for the target ACO class.
-    
-    """
-    
-    def test_constructor(self):
-        resource = '/myaccount'
-        operation = 'logout'
-        t = Target(resource, operation)
-        eq_(resource, t.resource)
-        eq_(operation, t.operation)
-    
-    def test_unicode(self):
-        t = Target('/myaccount', 'logout')
-        t_as_unicode = unicode(t)
-        eq_(t_as_unicode, 'aco:/myaccount#logout')
-
-
 #{ Tests for built-in mappers
 
 
