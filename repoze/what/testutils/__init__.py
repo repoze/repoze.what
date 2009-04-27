@@ -17,8 +17,3 @@
 Test utilities for :mod:`repoze.what` extensions.
 
 """
-
-from repoze.what.testutils.adapters import GroupsAdapterTester, \
-                                           PermissionsAdapterTester, \
-                                           ReadOnlyGroupsAdapterTester, \
-                                           ReadOnlyPermissionsAdapterTester

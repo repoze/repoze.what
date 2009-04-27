@@ -18,9 +18,11 @@ Base definitions for request-to-target mappers.
 
 """
 
+from acl.aco import Target
+
 from repoze.what.exc import NoTargetFoundError
 
-__all__ = ['Mapper', 'CompoundMapper', 'Target']
+__all__ = ['Mapper', 'CompoundMapper']
 
 
 class Mapper(object):
@@ -80,22 +82,4 @@ class CompoundMapper(Mapper):
             except NoTargetFoundError:
                 pass
         raise NoTargetFoundError("No mapper found target in %s" % request)
-
-
-class Target(object):
-    """
-    Represent the target ACO in a request, which may not exist.
-    
-    """
-    
-    def __init__(self, resource, operation):
-        self.resource = resource
-        self.operation = operation
-    
-    def __unicode__(self):
-        """
-        Return the URI for the target ACO.
-        
-        """
-        return 'aco:%s#%s' % (self.resource, self.operation)
 

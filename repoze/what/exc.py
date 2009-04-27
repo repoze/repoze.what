@@ -37,7 +37,7 @@ class NotAuthorizedError(WhatException):
     pass
 
 
-#{ ACL-related exceptions
+#{ Mapping-related exceptions
 
 
 class MappingError(WhatException):
@@ -53,77 +53,6 @@ class NoTargetFoundError(MappingError):
     """
     Exception raised when the request-to-target mapper can't find the target
     from the request.
-    
-    """
-    pass
-
-
-class ExistingChildrenError(WhatException):
-    """
-    Exception raised when trying to add an existing subresource or operation
-    in a resource.
-    
-    """
-    pass
-
-
-class NoACOMatchError(WhatException):
-    """
-    Exception raised when a non-existing subresource or operation is requested
-    to a resource.
-    
-    """
-    pass
-
-
-#{ Source adapters-related exceptions
-
-
-class AdapterError(WhatException):
-    """
-    Base exception for problems the source adapters.
-    
-    It's never raised directly.
-    
-    """
-    pass
-
-
-class SourceError(AdapterError):
-    """
-    Exception for problems with the source itself.
-    
-    .. attention::
-        If you are creating a :term:`source adapter`, this is the only
-        exception you should raise.
-    
-    """
-    pass
-
-
-class ExistingSectionError(AdapterError):
-    """Exception raised when trying to add an existing group."""
-    pass
-
-
-class NonExistingSectionError(AdapterError):
-    """Exception raised when trying to use a non-existing group."""
-    pass
-
-
-class ItemPresentError(AdapterError):
-    """
-    Exception raised when trying to add an item to a group that already
-    contains it.
-    
-    """
-    pass
-
-
-class ItemNotPresentError(AdapterError):
-    """
-    Exception raised when trying to remove an item from a group that doesn't
-    contain it.
     
     """
     pass

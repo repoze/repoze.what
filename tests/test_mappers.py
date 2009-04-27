@@ -20,13 +20,14 @@ Test suite for request-to-target mappers.
 
 from nose.tools import eq_, assert_raises, raises
 
+from acl.aco import Target
+
 from repoze.what.exc import MappingError, NoTargetFoundError
-from repoze.what.acl.mappers.base import Mapper, CompoundMapper, Target
-from repoze.what.acl.mappers.pathinfo import PathInfoMapper
-from repoze.what.acl.mappers.routing_args import PositionalArgsMapper, \
-                                                 NamedArgsMapper, \
-                                                 RoutesMapper, \
-                                                 RoutingArgsMapper
+from repoze.what.mappers.base import Mapper, CompoundMapper
+from repoze.what.mappers.pathinfo import PathInfoMapper
+from repoze.what.mappers.routing_args import (PositionalArgsMapper,
+                                              NamedArgsMapper, RoutesMapper, 
+                                              RoutingArgsMapper)
 
 from tests.base import make_request, FakeLogger
 

@@ -20,7 +20,9 @@ The built-in ``PATH_INFO`` request-to-target mapper.
 
 import re
 
-from repoze.what.acl.mappers.base import Mapper, Target
+from acl.aco import Target
+
+from repoze.what.mappers.base import Mapper
 
 __all__ = ['PathInfoMapper']
 

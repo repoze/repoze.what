@@ -49,7 +49,7 @@ setup(name='repoze.what',
       namespace_packages = [
         'repoze',
         'repoze.what',
-        'repoze.what.predicates',
+        'repoze.what.mappers',
         'repoze.what.plugins',
         ],
       url="http://static.repoze.org/whatdocs/",
@@ -62,7 +62,7 @@ setup(name='repoze.what',
       include_package_data=True,
       zip_safe=False,
       tests_require = ['coverage', 'nose'],
-      install_requires=['WebOb >= 0.9.6'],
+      install_requires=['WebOb >= 0.9.6', 'PyACL >= 1.0dev'],
       test_suite="nose.collector",
       entry_points = """\
       """
