@@ -295,7 +295,7 @@ class PermissionsAdapterTester(ReadOnlyPermissionsAdapterTester,
     
     """
     
-    def test_deying_permisssion_to_many_groups(self):
+    def test_denying_permisssion_to_many_groups(self):
         permission = u'edit-site'
         groups = (u'admins', u'developers')
         self.adapter._exclude_items(permission, groups)
