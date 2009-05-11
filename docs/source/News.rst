@@ -10,8 +10,7 @@ This document describes the releases of :mod:`repoze.what`.
 :mod:`repoze.what` 1.0.9 (*unreleased*)
 =======================================
 
-* Fixed a typo in the documentation. Reported by Jonas (jonas [dot] esp [at]
-  gmail {dot} com).
+* Fixed a typo in the documentation. Reported by Jonás Melián.
 
 
 .. _repoze.what-1.0.8:
