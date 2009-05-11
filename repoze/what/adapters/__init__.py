@@ -36,8 +36,6 @@ belong to the "update-site" section.
 
 """
 
-from zope.interface import Interface
-
 __all__ = ['BaseSourceAdapter', 'AdapterError', 'SourceError',
            'ExistingSectionError', 'NonExistingSectionError', 
            'ItemPresentError', 'ItemNotPresentError']
@@ -163,7 +161,7 @@ class BaseSourceAdapter(object):
         :param hint: repoze.what's credentials dictionary or a group name.
         :type hint: dict or unicode
         :return: The sections that meet the criteria.
-        :rtype: tuple
+        :rtype: set
         :raise SourceError: If there was a problem with the source.
         
         """
@@ -433,7 +431,7 @@ class BaseSourceAdapter(object):
         :param hint: repoze.what's credentials dictionary or a group name.
         :type hint: dict or unicode
         :return: The sections that meet the criteria.
-        :rtype: tuple
+        :rtype: set
         :raise SourceError: If there was a problem with the source while
             retrieving the sections.
         
