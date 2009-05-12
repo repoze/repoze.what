@@ -11,6 +11,9 @@ This document describes the releases of :mod:`repoze.what`.
 =======================================
 
 * Fixed a typo in the documentation. Reported by Jonás Melián.
+* Fixed a typo in a test of the :mod:`repoze.what.adapters.testutil` module,
+  in which a variable is misspelled. It became visible when that test failed.
+  Reported by Jonás Melián.
 
 
 .. _repoze.what-1.0.8:
