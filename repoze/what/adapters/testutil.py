@@ -18,8 +18,8 @@
 """Utilities to test source adapters."""
 
 from repoze.what.adapters import SourceError, ExistingSectionError, \
-                                         NonExistingSectionError, \
-                                         ItemPresentError, ItemNotPresentError
+                                 NonExistingSectionError, \
+                                 ItemPresentError, ItemNotPresentError
 
 __all__ = ['GroupsAdapterTester', 'PermissionsAdapterTester',
            'ReadOnlyGroupsAdapterTester', 'ReadOnlyPermissionsAdapterTester']
@@ -68,7 +68,7 @@ class _ReadOnlyBaseAdapterTester(object):
             assert not self.adapter._item_is_included(section_name,
                                                       excluded_item), \
                    'Item "%s" must not included in section "%s"' % \
-                       (item, section_name)
+                   (excluded_item, section_name)
     
     def test_checking_section_existence(self):
         for section_name in self.all_sections.keys():
