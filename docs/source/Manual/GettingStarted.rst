@@ -20,7 +20,7 @@ terminology when it deals with those sources:
 .. glossary::
 
     source
-        Where authorization data (groups and/or permissions) is stored.
+        Where authorization data (groups and/or permissions) are stored.
         It may be a database or a file (an Htgroups file, an Ini file, etc), for
         example.
     group source
