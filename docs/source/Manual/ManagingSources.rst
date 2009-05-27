@@ -221,6 +221,131 @@ error occurs:
 .. autoexception:: ItemNotPresentError
 
 
+Benchmarking source adapters
+============================
+
+.. module:: repoze.what.adapters.benchmark
+    :synopsis: Benchmark utilities for source adapters
+.. versionadded:: 1.0.9
+
+Which :term:`source adapter` is faster for your system? Can the performance of
+your current adapters be improved? :mod:`repoze.what` ships with easy-to-use
+benchmarking tools to help you find the answers to these questions.
+
+Source adapters are used in all the requests where the user is authenticated,
+so whether they could perform better or not is something many people care about.
+Your software and hardware play a key role here, so optimizing the adapters
+involves finding what's the best (read: faster) setup for your environment.
+
+Whether you're open to switch to another adapter or keep the current ones but
+try to optimize them, in the :mod:`repoze.what.adapters.benchmark` module you'll
+find what you need to get the much needed numbers.
+
+The first thing you have to do is wrap your adapter around an
+:class:`AdapterBenchmark`::
+
+    >>> # Reusing the ``groups`` adapter defined above:
+    >>> benchmark = AdapterBenchmark(groups)
+
+And for the second and last step, you should call the ``.run()`` method of the
+``benchmark`` specifying what action should be performed in the adapter and
+how many times said action must be run. It's that simple.
+
+The action is just a callable which receives the adapter as its only argument;
+possibly the most common action will be groups retrieval in a
+:term:`group adapter` and permissions retrieval in a :term:`permission adapter`,
+and therefore :mod:`repoze.what` ships with such callables:
+:class:`GroupsRetrievalAction` and :class:`PermissionsRetrievalAction`,
+respectively.
+
+This is, if we wanted to check how much time our ``groups`` adapter above spends
+retrieving four times all the groups for a user whose id is ``"gustavo"``,
+you'd use this::
+
+    >>> get_gustavo_groups = GroupsRetrievalAction(u"gustavo")
+    >>> benchmark.run(get_gustavo_groups,  4)
+    0.003644922256
+
+The result is the time (in seconds) the ``groups`` adapter took to retrive all
+the groups for ``"gustavo"`` four times. So, the average would be
+0.003644922256 / 4 = 0.000911230564 seconds.
+
+Comparing two or more adapters
+------------------------------
+
+But, what if you want to *compare* two or more adapters performing *the same
+operation*? You could certainly wrap each adapter around a
+:class:`AdapterBenchmark` and run them individually sharing the same ``action``
+callable, but it'd be so frequently used that there's a function just for that:
+:func:`compare_benchmarks`.
+
+Its job is to make sure that all the adapters are compared on equal terms,
+isolating those routines that are not part of the actual ``action`` to be
+performed on the benchmarked adapters.
+
+The way it's used is similar to that of :class:`AdapterBenchmark`: Each adapter
+is wrapped around a :class:`AdapterBenchmark` instance, but instead of calling
+the ``.run()`` method individually, you pass the benchmarks to this function,
+specifying the iterations and the action(s) you want to perform on such
+benchmarks::
+
+    >>> # Setting up the adapters to be benchmarked:
+    >>> permissions1 = JustAPermissionAdapter()
+    >>> permissions2 = AnotherPermissionAdapter()
+    >>> permissions3 = YetAnotherPermissionAdapter()
+    >>> benchmark1 = AdapterBenchmark(permissions1)
+    >>> benchmark2 = AdapterBenchmark(permissions2)
+    >>> benchmark3 = AdapterBenchmark(permissions3)
+    >>> # Setting up how they will be compared:
+    >>> action1 = PermissionsRetrievalAction(u"admins")
+    >>> action2 = lambda adapter: adapter.add_section(u"delete-post")
+    >>> source = {u'edit-site': [u"admins", u"devels"], u'add-post': [u"admins"]}
+    >>> iterations = 1000
+    >>> # Let's compare them!
+    >>> compare_benchmarks(iterations, source, action1, action2, perm1=benchmark1, perm2=benchmark2, perm3=benchmark3)
+    [{'perm1': 0.911230564123, 'perm2': 0.971230027823, 'perm3': 0.959230592623}, {'perm1': 1.100230837513, 'perm2': 0.997230017423, 'perm3': 1.032230592656}]
+
+The avid reader would have realized that there's a new variable called ``source``
+which had not been mentioned before. It's one of the most important things to
+make a fair comparison: The contents of the :term:`sources <source>` 
+represented by the benchmarked adapters will be **overridden** with the 
+sections and items described by the ``source`` dictionary, right before each
+iteration.
+
+This ``source`` can also be passed directly to :meth:`AdapterBenchmark.run` and
+the behavior would be the same. To avoid this in either callable, it's enough
+to set the ``source`` to ``None``.
+
+Regarding the result of :func:`compare_benchmarks`, it's a list whose elements
+are the results of each action; in the example above, we used two actions, so
+we got two elements. Then the result of the action is a dictionary that
+represents the time spent by the adapters to perform the action in question.
+
+So, the code above shows that the ``permissions1`` adapter is the fastest when
+it comes to retrieving all the permissions for a given group, while
+``permission2`` is the slowest, at least when the underlying :term:`source` has
+the contents described by the ``source`` variable.
+
+When you write benchmarks, it's always good to make the ``source`` variable
+describe the actual scenario, in order for you to get more accurate results --
+In some situations, this may affect the performance of the actions.
+
+
+Utilities available
+-------------------
+
+.. autofunction:: compare_benchmarks
+
+.. autoclass:: AdapterBenchmark
+    :members: __init__, run, reset_source
+
+.. autoclass:: GroupsRetrievalAction
+    :members: __init__
+
+.. autoclass:: PermissionsRetrievalAction
+    :members: __init__
+
+
 Writing your own source adapters
 ================================
 
