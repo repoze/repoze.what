@@ -10,6 +10,8 @@ This document describes the releases of :mod:`repoze.what`.
 :mod:`repoze.what` 1.0.9 (*unreleased*)
 =======================================
 
+* When a section was renamed, the adapter didn't check if the new name was
+  in use. `Bug #68 <http://bugs.repoze.org/issue68>`_.
 * Fixed a typo in the documentation. Reported by Jonás Melián.
 * Fixed a typo in a test of the :mod:`repoze.what.adapters.testutil` module,
   in which a variable is misspelled. It became visible when that test failed.

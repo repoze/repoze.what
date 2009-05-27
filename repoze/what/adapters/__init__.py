@@ -284,11 +284,13 @@ class BaseSourceAdapter(object):
         :type section: unicode
         :param new_section: The new name of the section.
         :type new_section: unicode
-        :raise NonExistingSectionError: If the section doesn't exist.
+        :raise NonExistingSectionError: If the ``section`` doesn't exist.
+        :raise ExistingSectionError: If the ``new_section`` already exists.
         :raise SourceError: If there was a problem with the source.
         
         """
         self._check_section_existence(section)
+        self._check_section_not_existence(new_section)
         self._check_writable()
         self._edit_section(section, new_section)
         # Updating the cache too, if loaded:

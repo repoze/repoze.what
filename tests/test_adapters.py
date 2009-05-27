@@ -148,6 +148,12 @@ class TestBaseSourceAdapter(unittest.TestCase):
         self.assertRaises(NonExistingSectionError, self.adapter.edit_section,
                           u'this_section_doesnt_exit', u'new_name')
     
+    def test_renaming_section_to_existing_name(self):
+        """The adapter must check that that target name doesn't exist."""
+        # Bug #68 (http://bugs.repoze.org/issue68)
+        self.assertRaises(ExistingSectionError, self.adapter.edit_section,
+                          u"developers", u"admins")
+    
     def test_cache_is_updated_after_editing_section(self):
         # Loading for the first time:
         self.adapter.get_section_items('developers')
