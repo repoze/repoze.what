@@ -110,33 +110,43 @@ class AdapterBenchmark(object):
         self.adapter.all_sections_loaded = False
 
 
-def compare_benchmarks(iterations, source, *actions, **benchmarks):
+def compare_benchmarks(iterations, source, *actions, **adapters):
     """
-    Compare all the ``benchmarks`` using the same criteria.
+    Compare all the ``adapters`` using the same benchmarks.
     
     :param iterations: How many times should each action in ``actions`` be
         executed.
     :type iterations: int
     :param source: The contents all the source adapters must have.
     :type source: dict
-    :return: The results for each benchmark, organized by actions.
+    :return: The results for each adapter, organized by actions.
     :rtype: list
     :raises AssertionError: If there are no ``actions`` and/or less than 2
-        ``benchmarks``.
+        ``adapters``.
     
     ``actions`` represent all the actions to be executed on each adapter.
     
+    Adapters in ``adapters`` can be passed as :class:`AdapterBenchmark`
+    instances if desired. This will be useful when you need to control the
+    reset of the source for such adapters in
+    :meth:`AdapterBenchmark.reset_source`.
+    
     """
-    assert len(actions) > 0, "At least one action must be run"
-    assert len(benchmarks) > 1, "At least one benchmark must be specified"
+    assert len(actions) >= 1, "At least one action must be run"
+    assert len(adapters) >= 2, "At least two adapters must be compared"
+    
+    # Turning those adapters into benchmarks if required:
+    for (adapter_name, adapter) in adapters.items():
+        if not isinstance(adapter, AdapterBenchmark):
+            adapters[adapter_name] = AdapterBenchmark(adapter)
     
     results = []
     
     for action in actions:
         action_results = {}
-        for (benchmark_name, benchmark) in benchmarks.items():
-            time_slapsed = benchmark.run(action, iterations, source)
-            action_results[benchmark_name] = time_slapsed
+        for (adapter_name, adapter) in adapters.items():
+            time_slapsed = adapter.run(action, iterations, source)
+            action_results[adapter_name] = time_slapsed
         results.append(action_results)
     
     return results

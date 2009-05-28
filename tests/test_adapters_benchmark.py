@@ -105,7 +105,8 @@ class TestBenchmarkComparison(TestCase):
         assert_raises(AssertionError, compare_benchmarks, 2, None,
                       mock_adapter=benchmark)
     
-    def test_comparing(self):
+    def test_comparing_with_benchmarks(self):
+        """Comparisons should work when given benchmarks instead of adapters."""
         adapter1 = MockAdapter()
         adapter2 = MockAdapter()
         benchmark1 = MockBenchmark(adapter1)
@@ -138,6 +139,36 @@ class TestBenchmarkComparison(TestCase):
         eq_(adapter2.resets, adapter2.resets)
         eq_(adapter1.resets, adapter2.resets)
         eq_(adapter1.resets, iterations * len(results))
+    
+    def test_comparing_with_adapters(self):
+        """When given adapters, they must be turned into benchmarks."""
+        adapter1 = MockAdapter()
+        adapter2 = MockAdapter()
+        action1 = DelayingAction(0.1)
+        action2 = DelayingAction(0.07)
+        action3 = DelayingAction(0.05)
+        iterations = 4
+        source = {'section1': set([u"item1"]), 'section2': set()}
+        # Running the benchmark:
+        results = compare_benchmarks(iterations, source, action1, action2,
+                                     action3, adapter1=adapter1,
+                                     adapter2=adapter2)
+        eq_(len(results), 3)
+        result1, result2, result3 = results
+        ok_(result1.keys() == result2.keys() == result3.keys() \
+            == ["adapter2", "adapter1"])
+        # Checking the results for the first action:
+        action1.check_elapsed_time(result1['adapter1'], iterations)
+        action1.check_elapsed_time(result1['adapter2'], iterations)
+        # Checking the results for the second action:
+        action2.check_elapsed_time(result2['adapter1'], iterations)
+        action2.check_elapsed_time(result2['adapter2'], iterations)
+        # Checking the results for the third action:
+        action3.check_elapsed_time(result3['adapter1'], iterations)
+        action3.check_elapsed_time(result3['adapter2'], iterations)
+        # Finally, some general tests to make sure the benchmarks were used
+        # equally
+        eq_(adapter1.actions, adapter2.actions)
 
 
 class TestBuiltinActions(TestCase):
