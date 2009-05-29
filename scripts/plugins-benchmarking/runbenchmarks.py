@@ -13,14 +13,18 @@
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-from sys import exit
+from time import clock, time
+from sys import exit, platform
+
 from plugins_setup import group_adapters, permission_adapters
 from config import iterations_per_action, groups, permissions, group_actions, \
                    permission_actions, mock_items_per_section, mock_sections
 
 from repoze.what.adapters.benchmark import compare_benchmarks
 
+
 # --- Confirming that the user really wants to override the existing data:
+
 
 print "***** WARNING *****"
 print "The users, groups and permissions in the sources, if any, will be removed!"
@@ -30,7 +34,14 @@ if confirmation.lower() != "yes":
     print "Aborted."
     exit()
 
+
 # --- Running the benchmarks:
+
+
+if platform == "win32":
+    timer = clock
+else:
+    timer = time
 
 # Filling the sources with mock data:
 for section_number in range(mock_sections):
@@ -44,18 +55,72 @@ for group in groups.keys():
 for permission in permissions.keys():
     permissions[permission].extend(mock_items)
 
-print "The benchmarks are going to start with the following settings:"
-print "Groups:", groups
-print "Permissions:", permissions
+# Reporting how the benchmark will be run:
+group_adapters_names = ", ".join([name for name in group_adapters.keys()])
+perms_adapters_names = ", ".join([name for name in permission_adapters.keys()])
+benchmarks_amount = len(group_adapters) * len(group_actions) + \
+                    len(permission_adapters) * len(permission_actions)
+
 print
-print "Starting the benchmarks!"
+print "The benchmarks are going to start with the following settings:"
+print " * %s groups, with %s mock users per group." % (len(groups),
+                                                       mock_items_per_section)
+print " * %s permissions, with %s mock groups per permission." % (
+      len(permissions), mock_items_per_section)
+print " * %s group adapters: %s." % (len(group_adapters), group_adapters_names)
+print " * %s permission adapters: %s." % (len(permission_adapters),
+                                         perms_adapters_names)
+print " * %s and %s actions to be performed on the group and permission " \
+      "adapters above, respectively, %s times each." % (len(group_actions),
+                                                        len(permission_actions),
+                                                        iterations_per_action)
+print
+print "Starting %s benchmarks!" % benchmarks_amount
+
+start_time = timer()
 
 group_results = compare_benchmarks(iterations_per_action, groups,
                                    *group_actions, **group_adapters)
 
 permission_results = compare_benchmarks(iterations_per_action, permissions,
-                                        *permission_actions, **permission_adapters)
+                                        *permission_actions,
+                                        **permission_adapters)
+
+end_time = timer()
+elapsed_time = end_time - start_time
+
+print "End of benchmarks (%s minutes)." % (elapsed_time/60)
+print
+
 
 # --- Presenting the results:
 
-print group_results, permission_results
+
+def sort_fastest(results):
+    """Sort the ``results``, from the fastest to the slowest."""
+    sorted_results = sorted(results.iteritems(), key=lambda (k, v):(v, k))
+    return sorted_results
+
+def print_action_results(results):
+    results = sort_fastest(results)
+    counter = 1
+    for (adapter, result) in results:
+        average = result / iterations_per_action
+        print "   %s.- %s: %s seconds average; total: %s seconds." % (
+              counter, adapter, average, result)
+        counter += 1
+
+def print_results(results):
+    for action_number in range(len(results)):
+        action_results = results[action_number]
+        print " * Results for action #%s, starting by the fastest adapters:" \
+              % (action_number + 1)
+        print_action_results(action_results)
+
+print "***** Benchmark results *****"
+
+print "Group results:"
+print_results(group_results)
+print
+print "Permission results:"
+print_results(permission_results)
