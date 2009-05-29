@@ -19,6 +19,7 @@ Ready-to-use adapters.
 from redis import Redis
 
 from repoze.what.plugins.redis import RedisGroupAdapter, RedisPermissionAdapter
+from repoze.what.plugins.xml import XMLGroupsAdapter, XMLPermissionsAdapter
 
 from sa_model import make_benchmarks
 
@@ -28,6 +29,10 @@ group_adapters = {}
 permission_adapters = {}
 
 #{ Adapters setup
+
+# XML:
+group_adapters['xml'] = XMLGroupsAdapter("groups.xml")
+permission_adapters['xml'] = XMLPermissionsAdapter("permissions.xml")
 
 # Redis:
 group_adapters['redis"'] = RedisGroupAdapter(Redis())
