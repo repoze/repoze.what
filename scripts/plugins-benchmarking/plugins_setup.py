@@ -35,7 +35,7 @@ group_adapters['xml'] = XMLGroupsAdapter("groups.xml")
 permission_adapters['xml'] = XMLPermissionsAdapter("permissions.xml")
 
 # Redis:
-group_adapters['redis"'] = RedisGroupAdapter(Redis())
+group_adapters['redis'] = RedisGroupAdapter(Redis())
 permission_adapters['redis'] = RedisPermissionAdapter(Redis())
 
 # SQLAlchemy + SQLite (memory backend):
