@@ -12,11 +12,15 @@
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
+"""
+Configuration file for the benchmarks.
+
+"""
 from repoze.what.adapters.benchmark import (GroupsRetrievalAction,
                                             PermissionsRetrievalAction)
 
 
-iterations_per_action = 5
+iterations_per_action = 10
 
 mock_items_per_section = 10
 mock_sections = 5
