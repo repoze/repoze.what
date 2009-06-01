@@ -632,7 +632,7 @@ class PredicateError(Exception):
     """
     
     # Ugly workaround for Python < 2.6:
-    if not hasattr(Exception, '__unicode__'):
+    if not hasattr(Exception, '__unicode__'): #pragma: no cover
         def __unicode__(self):
             return unicode(self.args and self.args[0] or '')
 

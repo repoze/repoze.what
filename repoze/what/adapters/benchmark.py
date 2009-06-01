@@ -24,7 +24,7 @@ __all__ = ["AdapterBenchmark", "compare_benchmarks", "GroupsRetrievalAction",
 
 
 # http://coreygoldberg.blogspot.com/2008/09/python-timing-timeclock-vs-timetime.html
-if platform == "win32":
+if platform == "win32": #pragma: no cover
     timer = clock
 else:
     timer = time
