@@ -15,14 +15,31 @@
 
 """Test suite for the adapters' benchmark utilities."""
 
+from sys import getcheckinterval, setcheckinterval
 from time import sleep
 from unittest import TestCase
+
 from nose.tools import eq_, ok_, assert_raises
 
-from repoze.what.adapters.benchmark import (AdapterBenchmark,
+from repoze.what.adapters.benchmark import (timer, AdapterBenchmark,
     compare_benchmarks, GroupsRetrievalAction, PermissionsRetrievalAction)
 
 from base import FakeGroupSourceAdapter, FakePermissionSourceAdapter
+
+# Nose multiprocessing stuff:
+_multiprocess_can_split_ = False
+_multiprocess_shared_ = False
+
+
+# We need to set the check interval at 0, otherwise the thread-based tests will
+# fail randomly:
+original_check_interval = getcheckinterval()
+
+def setup():
+    setcheckinterval(0)
+
+def teardown():
+    setcheckinterval(original_check_interval)
 
 
 class TestAdapterBenchmark(TestCase):
@@ -46,7 +63,7 @@ class TestAdapterBenchmark(TestCase):
     def test_resetting_without_source(self):
         """
         When the source is reset, it should be overriden with new contents
-        unless aked otherwise.
+        unless asked otherwise.
         
         """
         adapter = FakeGroupSourceAdapter()
@@ -68,22 +85,78 @@ class TestAdapterBenchmark(TestCase):
         eq_(len(adapter.loaded_sections), 0)
         eq_(adapter.all_sections_loaded, False)
     
-    def test_running_benchmark(self):
+    def test_running_benchmark_in_one_thread(self):
+        adapter = MockAdapter()
+        benchmark = MockBenchmark(adapter)
+        action = DelayingAction(0.05)
+        iterations = 5
+        # Running the benchmark overriding the source:
+        elapsed_time = benchmark.run(action, iterations, {'a': set()})
+        action.check_elapsed_time(elapsed_time)
+        eq_(adapter.resets, iterations)
+        eq_(adapter.actions, iterations)
+        eq_(adapter.get_all_sections(), {'a': set()})
+    
+    def test_running_readonly_benchmark_in_one_thread(self):
         adapter = MockAdapter()
         benchmark = MockBenchmark(adapter)
         action = DelayingAction(0.05)
         iterations = 5
         # Running the benchmark without overriding the source:
         elapsed_time = benchmark.run(action, iterations)
-        action.check_elapsed_time(elapsed_time, iterations)
+        action.check_elapsed_time(elapsed_time)
         eq_(adapter.resets, iterations)
         eq_(adapter.actions, iterations)
+    
+    def test_running_benchmark_in_two_threads(self):
+        adapter = MockAdapter()
+        benchmark = MockBenchmark(adapter)
+        action = DelayingAction(0.05)
+        iterations = 5
+        threads = 2
         # Running the benchmark overriding the source:
-        elapsed_time = benchmark.run(action, iterations, {'a': set()})
-        action.check_elapsed_time(elapsed_time, iterations)
-        eq_(adapter.resets, iterations * 2)
-        eq_(adapter.actions, iterations * 2)
+        elapsed_time = benchmark.run(action, iterations, {'a': set()}, threads)
+        action.check_elapsed_time(elapsed_time)
+        eq_(adapter.resets - 1, iterations * threads)
+        eq_(adapter.actions, iterations * threads)
         eq_(adapter.get_all_sections(), {'a': set()})
+    
+    def test_running_readonly_benchmark_in_two_threads(self):
+        adapter = MockAdapter()
+        benchmark = MockBenchmark(adapter)
+        action = DelayingAction(0.05)
+        iterations = 5
+        threads = 2
+        # Running the benchmark without overriding the source:
+        elapsed_time = benchmark.run(action, iterations, threads=threads)
+        action.check_elapsed_time(elapsed_time)
+        eq_(adapter.resets - 1, iterations * threads)
+        eq_(adapter.actions, iterations * threads)
+    
+    def test_running_benchmark_in_three_threads(self):
+        adapter = MockAdapter()
+        benchmark = MockBenchmark(adapter)
+        action = DelayingAction(0.05)
+        iterations = 5
+        threads = 3
+        # Running the benchmark overriding the source:
+        elapsed_time = benchmark.run(action, iterations, {'a': set()}, threads)
+        action.check_elapsed_time(elapsed_time)
+        eq_(adapter.resets - 1, iterations * threads)
+        eq_(adapter.actions, iterations * threads)
+        eq_(adapter.get_all_sections(), {'a': set()})
+    
+    def test_running_readonly_benchmark_in_three_threads(self):
+        adapter = MockAdapter()
+        benchmark = MockBenchmark(adapter)
+        action = DelayingAction(0.05)
+        iterations = 5
+        threads = 3
+        # Running the benchmark without overriding the source:
+        elapsed_time = benchmark.run(action, iterations, threads=threads)
+        action.check_elapsed_time(elapsed_time)
+        eq_(adapter.resets - 1, iterations * threads)
+        eq_(adapter.actions, iterations * threads)
 
 
 class TestBenchmarkComparison(TestCase):
@@ -114,25 +187,26 @@ class TestBenchmarkComparison(TestCase):
         action1 = DelayingAction(0.1)
         action2 = DelayingAction(0.07)
         action3 = DelayingAction(0.05)
+        threads = 1
         iterations = 4
         source = {'section1': set([u"item1"]), 'section2': set()}
         # Running the benchmark:
-        results = compare_benchmarks(iterations, source, action1, action2,
-                                     action3, adapter1=benchmark1,
+        results = compare_benchmarks(iterations, source, threads, action1,
+                                     action2, action3, adapter1=benchmark1,
                                      adapter2=benchmark2)
         eq_(len(results), 3)
         result1, result2, result3 = results
         ok_(result1.keys() == result2.keys() == result3.keys() \
             == ["adapter2", "adapter1"])
         # Checking the results for the first action:
-        action1.check_elapsed_time(result1['adapter1'], iterations)
-        action1.check_elapsed_time(result1['adapter2'], iterations)
+        action1.check_elapsed_time(result1['adapter1'])
+        action1.check_elapsed_time(result1['adapter2'])
         # Checking the results for the second action:
-        action2.check_elapsed_time(result2['adapter1'], iterations)
-        action2.check_elapsed_time(result2['adapter2'], iterations)
+        action2.check_elapsed_time(result2['adapter1'])
+        action2.check_elapsed_time(result2['adapter2'])
         # Checking the results for the third action:
-        action3.check_elapsed_time(result3['adapter1'], iterations)
-        action3.check_elapsed_time(result3['adapter2'], iterations)
+        action3.check_elapsed_time(result3['adapter1'])
+        action3.check_elapsed_time(result3['adapter2'])
         # Finally, some general tests to make sure the benchmarks were used
         # equally
         eq_(adapter1.resets, adapter1.actions)
@@ -148,24 +222,25 @@ class TestBenchmarkComparison(TestCase):
         action2 = DelayingAction(0.07)
         action3 = DelayingAction(0.05)
         iterations = 4
+        threads = 1
         source = {'section1': set([u"item1"]), 'section2': set()}
         # Running the benchmark:
-        results = compare_benchmarks(iterations, source, action1, action2,
-                                     action3, adapter1=adapter1,
+        results = compare_benchmarks(iterations, source, threads, action1,
+                                     action2, action3, adapter1=adapter1,
                                      adapter2=adapter2)
         eq_(len(results), 3)
         result1, result2, result3 = results
         ok_(result1.keys() == result2.keys() == result3.keys() \
             == ["adapter2", "adapter1"])
         # Checking the results for the first action:
-        action1.check_elapsed_time(result1['adapter1'], iterations)
-        action1.check_elapsed_time(result1['adapter2'], iterations)
+        action1.check_elapsed_time(result1['adapter1'])
+        action1.check_elapsed_time(result1['adapter2'])
         # Checking the results for the second action:
-        action2.check_elapsed_time(result2['adapter1'], iterations)
-        action2.check_elapsed_time(result2['adapter2'], iterations)
+        action2.check_elapsed_time(result2['adapter1'])
+        action2.check_elapsed_time(result2['adapter2'])
         # Checking the results for the third action:
-        action3.check_elapsed_time(result3['adapter1'], iterations)
-        action3.check_elapsed_time(result3['adapter2'], iterations)
+        action3.check_elapsed_time(result3['adapter1'])
+        action3.check_elapsed_time(result3['adapter2'])
         # Finally, some general tests to make sure the benchmarks were used
         # equally
         eq_(adapter1.actions, adapter2.actions)
@@ -233,20 +308,22 @@ class MockBenchmark(AdapterBenchmark):
 class DelayingAction(object):
     def __init__(self, seconds):
         self.seconds = seconds
+        self.margin_of_error = seconds * 1.0
     
     def __call__(self, adapter):
         adapter.actions += 1
-        sleep(self.seconds)
+        #sleep(self.seconds)
+        end = timer() + self.seconds
+        while timer() < end:
+            continue
     
-    def check_elapsed_time(self, elapsed_time, iterations):
-        exact_time = self.seconds * iterations
-        margin_of_error = self.seconds / 10
+    def check_elapsed_time(self, elapsed_time):
         # Taking into account the margin of error:
-        more_time = exact_time + margin_of_error
-        less_time = exact_time - margin_of_error
+        more_time = self.seconds + self.margin_of_error
+        less_time = self.seconds - self.margin_of_error
         ok_(elapsed_time < more_time and elapsed_time > less_time,
-            "The benchmark took %s seconds, which is out of the valid range" %
-            elapsed_time)
+            "The benchmark took %s seconds, which is out of the valid range "
+            "(%s-%s seconds)" % (elapsed_time, less_time, more_time))
 
 
 #}

@@ -18,6 +18,7 @@ Benchmark utilities for source adapters.
 """
 from sys import platform
 from time import clock, time
+from threading import Thread
 
 __all__ = ["AdapterBenchmark", "compare_benchmarks", "GroupsRetrievalAction",
            "PermissionsRetrievalAction"]
@@ -53,7 +54,70 @@ class AdapterBenchmark(object):
         """
         self.adapter = adapter
     
-    def run(self, action, iterations, source=None):
+    def run(self, action, iterations, source=None, threads=None):
+        """
+        Run read-only ``action`` on the source adapter ``iteration`` times,
+        possibly in different threads.
+        
+        :param action: The action to run on the adapter.
+        :param threads: How many threads should run the benchmark independently;
+            one by default.
+        :type threads: int
+        :param iterations: The amount of times ``actions`` must be run.
+        :type iterations: int
+        :param source: The sections and items the source must contain.
+        :type source: dict
+        :return: The average time elapsed, in seconds.
+        :rtype: float
+        
+        This method will run the benchmark in different threads (this amount
+        is set via ``threads``).
+        
+        The ``action`` is a callable that receives the adapter as the only
+        argument. If ``source`` is ``None``, the source used by the adapter
+        won't ever be reset.
+        
+        The result is the average of the benchmarks' elapsed time in the
+        different threads.
+        
+        .. warning::
+        
+            When the benchmark is going to be run in two or more threads,
+            the ``action`` **must** be a read-only operation. Its source will be
+            reset to ``source`` *once*, before running the benchmarks in
+            different threads, to avoid modifying the source shared among many
+            threads.
+            
+            When the benchmark is run in a single thread, the ``action`` can
+            write on the source because such a source will be reset to
+            ``source`` right before each iteration.
+        
+        """
+        if not threads or threads == 1:
+            # It's just one thread, then run it in this thread!
+            return self._run(action, iterations, source)
+        
+        self.reset_source(source)
+        
+        thread_container = []
+        for thread_num in range(threads):
+            thread_container.append(_BenchmarkThread(self, iterations, action))
+        map(_BenchmarkThread.start, thread_container)
+        
+        # Wait until all the benchmarks are finished:
+        while _BenchmarkThread.threads_alive(thread_container):
+            continue
+        
+        # Finding the results:
+        time_elapsed = 0
+        for thread in thread_container:
+            time_elapsed += thread.elapsed_time
+        
+        average_time = time_elapsed / threads
+        
+        return average_time
+    
+    def _run(self, action, iterations, source=None):
         """
         Return the time elapsed when ``action`` is run on the source adapter
         ``iterations`` times, with the adapter's source being reset to
@@ -64,7 +128,7 @@ class AdapterBenchmark(object):
         :type iterations: int
         :param source: The sections and items the source must contain.
         :type source: dict
-        :return: The time elapsed, in seconds.
+        :return: The average time elapsed, in seconds.
         :rtype: float
         
         The ``action`` is a callable that receives the adapter as the only
@@ -83,8 +147,10 @@ class AdapterBenchmark(object):
             action(self.adapter)
             end_time = timer()
             elapsed_time += end_time - start_time
-            
-        return elapsed_time
+        
+        average_time = elapsed_time / iterations
+        
+        return average_time
     
     def reset_source(self, source):
         """
@@ -110,7 +176,7 @@ class AdapterBenchmark(object):
         self.adapter.all_sections_loaded = False
 
 
-def compare_benchmarks(iterations, source, *actions, **adapters):
+def compare_benchmarks(iterations, source, threads=None, *actions, **adapters):
     """
     Compare all the ``adapters`` using the same benchmarks.
     
@@ -119,6 +185,7 @@ def compare_benchmarks(iterations, source, *actions, **adapters):
     :type iterations: int
     :param source: The contents all the source adapters must have.
     :type source: dict
+    :param threads: How many threads should run the benchmarks? One by default.
     :return: The results for each adapter, organized by actions.
     :rtype: list
     :raises AssertionError: If there are no ``actions`` and/or less than 2
@@ -145,8 +212,8 @@ def compare_benchmarks(iterations, source, *actions, **adapters):
     for action in actions:
         action_results = {}
         for (adapter_name, adapter) in adapters.items():
-            time_slapsed = adapter.run(action, iterations, source)
-            action_results[adapter_name] = time_slapsed
+            time_elapsed = adapter.run(action, iterations, source, threads)
+            action_results[adapter_name] = time_elapsed
         results.append(action_results)
     
     return results
@@ -183,6 +250,48 @@ class PermissionsRetrievalAction(object):
     
     def __call__(self, adapter):
         adapter.find_sections(self.group_id)
+
+
+#{ Internal utilities
+
+
+class _BenchmarkThread(Thread):
+    """
+    Thread to run a read-only benchmark.
+    
+    """
+    
+    def __init__(self, benchmark, iterations, action, *args, **kwargs):
+        """
+        Run the ``benchmark`` ``iterations`` times in an individual thread.
+        
+        :param benchmark: The benchmark to be run.
+        :type benchmark: AdapterBenchmark
+        :param iterations: How many times the benchmark should be run.
+        :type iterations: int
+        :param action: The action to be performed on the adapter.
+        
+        """
+        self.benchmark = benchmark
+        self.iterations = iterations
+        self.action = action
+        self.elapsed_time = None
+        super(_BenchmarkThread, self).__init__(*args, **kwargs)
+    
+    def run(self): # pragma: no cover
+        """
+        Run the benchmark in a separate thread and store the elapsed time.
+        
+        """
+        self.elapsed_time = self.benchmark._run(self.action, self.iterations)
+    
+    @classmethod
+    def threads_alive(cls, threads):
+        """Checks if at least one of the ``threads`` is alive."""
+        for thread in threads:
+            if thread.isAlive():
+                return True
+        return False
 
 
 #}
