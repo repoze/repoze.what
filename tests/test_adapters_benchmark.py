@@ -69,7 +69,7 @@ class TestAdapterBenchmark(TestCase):
         adapter = FakeGroupSourceAdapter()
         original_source = adapter.fake_sections
         benchmark = AdapterBenchmark(adapter)
-        benchmark.reset_source(None)
+        benchmark.reset_source()
         eq_(benchmark.adapter.get_all_sections(), original_source)
     
     def test_resetting_resets_adapter_cache(self):

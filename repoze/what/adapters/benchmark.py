@@ -152,7 +152,7 @@ class AdapterBenchmark(object):
         
         return average_time
     
-    def reset_source(self, source):
+    def reset_source(self, source=None):
         """
         Reset the source used by the adapter to ``source`` if it's defined.
         
