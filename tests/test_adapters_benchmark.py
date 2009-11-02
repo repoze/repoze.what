@@ -312,10 +312,7 @@ class DelayingAction(object):
     
     def __call__(self, adapter):
         adapter.actions += 1
-        #sleep(self.seconds)
-        end = timer() + self.seconds
-        while timer() < end:
-            continue
+        sleep(self.seconds)
     
     def check_elapsed_time(self, elapsed_time):
         # Taking into account the margin of error:
