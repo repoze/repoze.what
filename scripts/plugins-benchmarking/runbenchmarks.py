@@ -18,10 +18,10 @@ from sys import exit, platform
 
 from plugins_setup import group_adapters, permission_adapters
 from config import iterations_per_action, groups, permissions, group_actions, \
-                   permission_actions, mock_items_per_section, mock_sections
+                   permission_actions, mock_items_per_section, mock_sections, \
+                   threads_per_benchmark
 
 from repoze.what.adapters.benchmark import compare_benchmarks
-
 
 # --- Confirming that the user really wants to override the existing data:
 
@@ -75,14 +75,17 @@ print " * %s and %s actions to be performed on the group and permission " \
                                                         len(permission_actions),
                                                         iterations_per_action)
 print
-print "Starting %s benchmarks!" % benchmarks_amount
+print "Starting %s benchmarks in %s threads!" % (benchmarks_amount,
+                                                 threads_per_benchmark)
 
 start_time = timer()
 
 group_results = compare_benchmarks(iterations_per_action, groups,
-                                   *group_actions, **group_adapters)
+                                   threads_per_benchmark, *group_actions,
+                                   **group_adapters)
 
 permission_results = compare_benchmarks(iterations_per_action, permissions,
+                                        threads_per_benchmark,
                                         *permission_actions,
                                         **permission_adapters)
 
@@ -104,10 +107,9 @@ def sort_fastest(results):
 def print_action_results(results):
     results = sort_fastest(results)
     counter = 1
-    for (adapter, result) in results:
-        average = result / iterations_per_action
-        print "   %s.- %s: %s seconds average; total: %s seconds." % (
-              counter, adapter, average, result)
+    for (adapter, average) in results:
+        print "   %s.- %s: %s seconds average." % (
+              counter, adapter, average)
         counter += 1
 
 def print_results(results):

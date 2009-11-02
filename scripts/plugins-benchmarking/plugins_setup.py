@@ -16,9 +16,9 @@
 Ready-to-use adapters.
 
 """
-from redis import Redis
+#from redis import Redis
 
-from repoze.what.plugins.redis import RedisGroupAdapter, RedisPermissionAdapter
+#from repoze.what.plugins.redis import RedisGroupAdapter, RedisPermissionAdapter
 from repoze.what.plugins.xml import XMLGroupsAdapter, XMLPermissionsAdapter
 
 from sa_model import make_benchmarks
@@ -35,8 +35,8 @@ group_adapters['xml'] = XMLGroupsAdapter("groups.xml")
 permission_adapters['xml'] = XMLPermissionsAdapter("permissions.xml")
 
 # Redis:
-group_adapters['redis'] = RedisGroupAdapter(Redis())
-permission_adapters['redis'] = RedisPermissionAdapter(Redis())
+#group_adapters['redis'] = RedisGroupAdapter(Redis())
+#permission_adapters['redis'] = RedisPermissionAdapter(Redis())
 
 # SQLAlchemy + SQLite (memory backend):
 sqlite_mem_groups, sqlite_mem_permissions = make_benchmarks("sqlite://")
