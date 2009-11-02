@@ -21,7 +21,7 @@ from unittest import TestCase
 
 from nose.tools import eq_, ok_, assert_raises
 
-from repoze.what.adapters.benchmark import (timer, AdapterBenchmark,
+from repoze.what.adapters.benchmark import (AdapterBenchmark,
     compare_benchmarks, GroupsRetrievalAction, PermissionsRetrievalAction)
 
 from base import FakeGroupSourceAdapter, FakePermissionSourceAdapter
