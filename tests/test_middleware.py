@@ -26,15 +26,14 @@ from zope.interface.verify import verifyClass
 from repoze.who.middleware import PluggableAuthenticationMiddleware
 from repoze.who.classifiers import default_challenge_decider, \
                                    default_request_classifier
-from repoze.who.interfaces import IAuthenticator, IMetadataProvider
+from repoze.who.interfaces import IMetadataProvider
 from repoze.who.plugins.form import RedirectingFormPlugin
 from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
-from repoze.who.plugins.basicauth import BasicAuthPlugin
-from repoze.who.tests import Base as BasePluginTester, DummyApp
 from repoze.who.plugins.testutil import AuthenticationForgerPlugin, \
                                         AuthenticationForgerMiddleware
 
-from repoze.what.middleware import AuthorizationMetadata, setup_auth
+from repoze.what.middleware import (EmbeddedAuthorization,
+                                    AuthorizationMetadata, setup_auth)
 
 from base import FakeAuthenticator, FakeGroupSourceAdapter, \
                  FakePermissionSourceAdapter, FakeLogger
@@ -79,6 +78,19 @@ class FakePermissionFetcher2(object):
 class FakePermissionFetcher3(object):
     def find_sections(self, group):
         return ('contact', )
+
+
+#{ Miscellaneous mock objects
+
+
+class MockApp(object):
+    """Mock WSGI application."""
+    
+    environ = None
+    
+    def __call__(self, environ, start_response):
+        self.environ = environ
+        return []
 
 
 #{ The tests themselves
@@ -147,8 +159,6 @@ class TestAuthorizationMetadata(unittest.TestCase):
         environ = {}
         identity = {'repoze.who.userid': 'whatever'}
         # Configuring the plugin:
-        group_adapters = {'executive': FakeGroupFetcher3()}
-        permission_adapters = {'perms1': FakePermissionFetcher2()}
         plugin = AuthorizationMetadata()
         plugin.add_metadata(environ, identity)
         # Testing it:
@@ -248,7 +258,7 @@ class TestAuthorizationMetadata(unittest.TestCase):
                                            expected_permissions)
 
 
-class TestSetupAuth(BasePluginTester):
+class TestSetupAuth(unittest.TestCase):
     """Tests for the setup_auth() function"""
     
     def setUp(self):
@@ -281,7 +291,7 @@ class TestSetupAuth(BasePluginTester):
         
         if groups is None:
             app_with_auth = setup_auth(
-                DummyApp(),
+                MockApp(),
                 identifiers=identifiers,
                 authenticators=authenticators,
                 challengers=challengers,
@@ -289,7 +299,7 @@ class TestSetupAuth(BasePluginTester):
                 )
         else:
             app_with_auth = setup_auth(
-                DummyApp(),
+                MockApp(),
                 groups,
                 permissions,
                 identifiers=identifiers,
