@@ -135,17 +135,18 @@ class RelationalIntegrityBenchmark(AdapterBenchmark):
     
     def reset_source(self, source):
         self.adapter.dbsession.remove()
-        self.metadata.drop_all()
-        self.metadata.create_all()
-        # Adding the required items:
-        new_items = set()
-        for (section, items) in source.items():
-            new_items |= set(items)
-        for item_name in new_items:
-            item = self.adapter.children_class()
-            setattr(item, self.adapter.translations['item_name'], item_name)
-            self.adapter.dbsession.add(item)
-        self.adapter.dbsession.commit()
+        if source:
+            self.metadata.drop_all()
+            self.metadata.create_all()
+            # Adding the required items:
+            new_items = set()
+            for (section, items) in source.items():
+                new_items |= set(items)
+            for item_name in new_items:
+                item = self.adapter.children_class()
+                setattr(item, self.adapter.translations['item_name'], item_name)
+                self.adapter.dbsession.add(item)
+            self.adapter.dbsession.commit()
         super(RelationalIntegrityBenchmark, self).reset_source(source)
         self.adapter.dbsession.remove()
 

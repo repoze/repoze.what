@@ -19,7 +19,7 @@ Configuration file for the benchmarks.
 from repoze.what.adapters.benchmark import (GroupsRetrievalAction,
                                             PermissionsRetrievalAction)
 
-threads_per_benchmark = 1
+threads_per_benchmark = 2
 
 iterations_per_action = 10
 
