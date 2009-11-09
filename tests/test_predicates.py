@@ -4,6 +4,7 @@
 # Copyright (c) 2007, Agendaless Consulting and Contributors.
 # Copyright (c) 2008, Florent Aide <florent.aide@gmail.com>.
 # Copyright (c) 2008-2009, Gustavo Narea <me@gustavonarea.net>.
+# Copyright (c) 2009, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -68,6 +69,19 @@ class TestPredicate(BasePredicateTester):
         previous_msg = EqualsTwo.message
         p = EqualsTwo()
         self.assertEqual(previous_msg, p.message)
+    
+    def test_copying_with_new_message(self):
+        """
+        Calling a predicate should return a copy of that predicate but with a
+        new message.
+        
+        """
+        original_predicate = EqualsTwo(msg="Foo")
+        new_predicate = original_predicate(msg="Bar")
+        self.assertEqual(original_predicate.message, "Foo")
+        self.assertEqual(new_predicate.message, "Bar")
+        self.assertEqual(original_predicate.__class__, new_predicate.__class__)
+        
     
     def test_unicode_messages(self):
         unicode_msg = u'请登陆'

@@ -4,6 +4,7 @@
 # Copyright (c) 2007, Agendaless Consulting and Contributors.
 # Copyright (c) 2008, Florent Aide <florent.aide@gmail.com>.
 # Copyright (c) 2008-2009, Gustavo Narea <me@gustavonarea.net>.
+# Copyright (c) 2009, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -22,6 +23,8 @@ This is module provides the predicate checkers that were present in the
 original "identity" framework of TurboGears 1, plus others.
 
 """
+
+from copy import copy
 
 from paste.request import parse_formvars, parse_dict_querystring
 
@@ -57,6 +60,22 @@ class Predicate(object):
         """
         if msg:
             self.message = msg
+    
+    def __call__(self, msg):
+        """
+        Return a copy of this predicate, but use ``msg`` as the message.
+        
+        :param msg: The new message.
+        :type msg: :class:`basestring`
+        :return: A copy of the current predicate.
+        :rtype: :class:`Predicate`
+        
+        .. versionadded:: 1.1
+        
+        """
+        new_predicate = copy(self)
+        new_predicate.message = msg
+        return new_predicate
     
     def evaluate(self, environ, credentials):
         """

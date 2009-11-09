@@ -12,6 +12,8 @@ This document describes the releases of :mod:`repoze.what`.
 
 * Added :mod:`benchmarking utilities for the source adapters
   <repoze.what.adapters.benchmark>`.
+* Added the ability to duplicate a predicate, getting the new one with a
+  different name. See :meth:`repoze.what.predicates.Predicate.__call__`.
 * When a section was renamed, the adapter didn't check if the new name was
   in use. `Bug #68 <http://bugs.repoze.org/issue68>`_.
 * Fixed a typo in the documentation. Reported by Jonás Melián.
