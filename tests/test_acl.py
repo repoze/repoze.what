@@ -139,6 +139,15 @@ class TestACL(TestCase):
         ok_(ace.allow)
         eq_(ace.predicate, None)
     
+    def test_allow_with_custom_message(self):
+        acl = ACL()
+        acl.allow("/blog", msg="Everyone can access the blog")
+        # Checking the new ACE:
+        eq_(len(acl._aces), 1)
+        ace = acl._aces[0][1]
+        ok_(ace.allow)
+        eq_(ace.message, "Everyone can access the blog")
+    
     #{ Testing denials
     
     def test_deny_path_in_global_acl_without_arguments(self):
@@ -262,6 +271,15 @@ class TestACL(TestCase):
         ace = acl._aces[0][1]
         assert_false(ace.allow)
         eq_(ace.predicate, None)
+    
+    def test_deny_with_custom_message(self):
+        acl = ACL()
+        acl.deny("/blog", msg="Noone can access the blog")
+        # Checking the new ACE:
+        eq_(len(acl._aces), 1)
+        ace = acl._aces[0][1]
+        assert_false(ace.allow)
+        eq_(ace.message, "Noone can access the blog")
     
     #{ Testing decisions
     
@@ -613,6 +631,50 @@ class TestACL(TestCase):
         assert_false(decision4.allow)
         eq_(decision4.message, "Titletale predicate")
     
+    def test_authorization_with_custom_messages(self):
+        acl = ACL("/blog", allow_by_default=True)
+        acl.deny("/add-user", msg="Noone can add users")
+        acl.allow("/add-user/tomorrow", msg="Everybody can add users tomorrow")
+        acl.deny("/add-post", TitletalePredicate(), msg="Noone can add posts")
+        acl.allow("/add-post/tomorrow", TitletalePredicate(),
+                  msg="Everybody can add posts tomorrow")
+        # Checking the message the authz is denied without a predicate:
+        environ1 = {
+            'PATH_INFO': "/blog/add-user",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision1 = acl.decide_authorization(environ1)
+        assert_false(decision1.allow)
+        eq_(decision1.message, "Noone can add users")
+        # Checking the message the authz is denied with a predicate:
+        environ2 = {
+            'PATH_INFO': "/blog/add-post",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision2 = acl.decide_authorization(environ2)
+        assert_false(decision2.allow)
+        eq_(decision2.message, "Noone can add posts")
+        # Checking the message the authz is granted without a predicate:
+        environ3 = {
+            'PATH_INFO': "/blog/add-user/tomorrow",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision3 = acl.decide_authorization(environ3)
+        ok_(decision3.allow)
+        eq_(decision3.message, "Everybody can add users tomorrow")
+        # Checking the message the authz is granted with a predicate:
+        environ4 = {
+            'PATH_INFO': "/blog/add-post/tomorrow",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision4 = acl.decide_authorization(environ4)
+        ok_(decision4.allow)
+        eq_(decision4.message, "Everybody can add posts tomorrow")
+    
     #}
 
 
@@ -815,11 +877,12 @@ class TestAces(TestCase):
     
     def test_constructor_with_args(self):
         predicate = is_user("foo")
-        ace = _ACE(predicate, True, ("arg1", "arg2"), 3)
+        ace = _ACE(predicate, True, ("arg1", "arg2"), 3, "Here's a message")
         eq_(ace.predicate, predicate)
         eq_(ace.allow, True)
         eq_(ace.named_args, set(["arg1", "arg2"]))
         eq_(ace.positional_args, 3)
+        eq_(ace.message, "Here's a message")
     
     def test_denial_ace(self):
         predicate = is_user("foo")
@@ -836,7 +899,20 @@ class TestAces(TestCase):
             'repoze.what.named_args': set(),
             'repoze.what.positional_args': 0,
             }
-        ok_(ace.can_participate(environ))
+        (participation, message) = ace.can_participate(environ)
+        ok_(participation)
+        eq_(message, None)
+    
+    def test_denial_ace_without_and_custom_message(self):
+        ace = _ACE(None, False, message="Foo Bar")
+        eq_(ace.predicate, None)
+        environ = {
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        (participation, message) = ace.can_participate(environ)
+        ok_(participation)
+        eq_(message, "Foo Bar")
     
     def test_can_participate_without_minimum_args(self):
         """
@@ -974,6 +1050,46 @@ class TestAces(TestCase):
         (participation, message) = ace.can_participate(environ)
         eq_(participation, True)
         eq_(message, None)
+        ok_(predicate.evaluated)
+    
+    def test_predicate_met_and_authz_denied_with_custom_message(self):
+        """
+        The ACE must participate with a custom message if the predicate is met
+        and authz is denied.
+        
+        """
+        # Ready:
+        predicate = TitletalePredicate()
+        environ = {
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        # Set:
+        ace = _ACE(predicate, False, message="ABC XYZ")
+        # Go!:
+        (participation, message) = ace.can_participate(environ)
+        eq_(participation, True)
+        eq_(message, "ABC XYZ")
+        ok_(predicate.evaluated)
+    
+    def test_predicate_met_and_authz_granted_with_custom_message(self):
+        """
+        The ACE must participate with a custom message if the predicate is met
+        and authz is granted.
+        
+        """
+        # Ready:
+        predicate = TitletalePredicate()
+        environ = {
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        # Set:
+        ace = _ACE(predicate, True, message="ABC XYZ")
+        # Go!:
+        (participation, message) = ace.can_participate(environ)
+        eq_(participation, True)
+        eq_(message, "ABC XYZ")
         ok_(predicate.evaluated)
     
     def test_predicate_unmet_and_authz_denied(self):

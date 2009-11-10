@@ -106,7 +106,7 @@ class ACL(_BaseAuthorizationControl):
     #{ ACE management
     
     def allow(self, path_or_object, predicate=None, named_args=(),
-              positional_args=0):
+              positional_args=0, msg=None):
         """
         Grant access on ``path_or_object`` if the ``predicate`` is met, all the
         named arguments in ``named_args`` are set and there are at least
@@ -122,16 +122,18 @@ class ACL(_BaseAuthorizationControl):
         :param positional_args: The minimum amount of positional arguments that
             must be present.
         :type positional_args: :class:`int`
+        :param msg: The reason why authorization is granted.
+        :type msg: :class:`basestring`
         
         If no ``predicate`` is set, then the ACE will always be taken into
         account.
         
         """
         self._add_ace(path_or_object, predicate, True, named_args,
-                      positional_args, None)
+                      positional_args, None, msg)
     
     def deny(self, path_or_object, predicate=None, named_args=(),
-             positional_args=0, denial_handler=None):
+             positional_args=0, denial_handler=None, msg=None):
         """
         Deny access on ``path_or_object`` if the ``predicate`` is met, all the
         named arguments in ``named_args`` are set and there are at least
@@ -149,22 +151,24 @@ class ACL(_BaseAuthorizationControl):
         :type positional_args: :class:`int`
         :param denial_handler: The denial handler to be used if this is the
             final ACE (i.e., authorization is to be denied).
+        :param msg: The reason why authorization is granted.
+        :type msg: :class:`basestring`
         
         If no ``predicate`` is set, then the ACE will always be taken into
         account.
         
         """
         self._add_ace(path_or_object, predicate, False, named_args,
-                      positional_args, denial_handler)
+                      positional_args, denial_handler, msg)
     
     def _add_ace(self, path_or_object, predicate, allow, named_args,
-                 positional_args, denial_handler):
+                 positional_args, denial_handler, msg):
         is_path = isinstance(path_or_object, basestring)
         if is_path:
             # We're protecting a path, so we must preppend the base path:
             path_or_object = self._base_path + path_or_object
         # Adding this ACE:
-        ace = _ACE(predicate, allow, named_args, positional_args)
+        ace = _ACE(predicate, allow, named_args, positional_args, msg)
         self._aces.append((path_or_object, ace, is_path, denial_handler))
     
     #}
@@ -349,7 +353,8 @@ class _ACE(object):
     
     """
     
-    def __init__(self, predicate, allow, named_args=(), positional_args=0):
+    def __init__(self, predicate, allow, named_args=(), positional_args=0,
+                 message=None):
         if not allow and predicate is not None:
             # Let's negate the predicate so we can get the denial message when
             # it IS met:
@@ -358,6 +363,7 @@ class _ACE(object):
         self.allow = allow
         self.named_args = set(named_args)
         self.positional_args = positional_args
+        self.message = message
     
     def can_participate(self, environ):
         """
@@ -374,7 +380,7 @@ class _ACE(object):
         """
         # If there's no predicate, then this ACE should always participate:
         if self.predicate is None:
-            return (True, None)
+            return (True, self.message)
         
         # Let's extract the request arguments. We shouldn't evaluate the
         # predicate until we know the minimum arguments are present:
@@ -405,12 +411,14 @@ class _ACE(object):
         #   message when it IS met, so that it *apparently* is unmet actually
         #   means that it IS met and thus this ACE must be taken into account.
         predicate_met = True
-        message = None
+        message = self.message
         try:
             self.predicate.check_authorization(environ)
         except NotAuthorizedError, denial_exception:
             predicate_met = False
-            message = unicode(denial_exception)
+            if not message:
+                # If we already have a custom message, we must keep it.
+                message = unicode(denial_exception)
         
         # Finally, let's decide whether this ACE must be taken into account,
         # based on the table above:
