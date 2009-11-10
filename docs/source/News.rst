@@ -10,6 +10,7 @@ This document describes the releases of :mod:`repoze.what`.
 :mod:`repoze.what` 1.0.9 (*unreleased*)
 =======================================
 
+* Added support for Access Control Lists.
 * Added :mod:`benchmarking utilities for the source adapters
   <repoze.what.adapters.benchmark>`.
 * Added the ability to duplicate a predicate, getting the new one with a
