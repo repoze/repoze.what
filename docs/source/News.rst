@@ -5,9 +5,9 @@
 This document describes the releases of :mod:`repoze.what`.
 
 
-.. _repoze.what-1.0.9:
+.. _repoze.what-1.1.0:
 
-:mod:`repoze.what` 1.0.9 (*unreleased*)
+:mod:`repoze.what` 1.1.0 (*unreleased*)
 =======================================
 
 * Added support for Access Control Lists.
