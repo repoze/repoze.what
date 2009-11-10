@@ -14,10 +14,6 @@
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""
-Authorization framework for WSGI applications.
-
-"""
 
 # This is a package. Do NOT put anything here to keep the repoze.what
 # namespace clear for plugins at repoze.what.plugins
