@@ -130,6 +130,15 @@ class TestACL(TestCase):
         eq_(ace.named_args, set(["post_id", "comment_id"]))
         eq_(ace.positional_args, 2)
     
+    def test_allow_without_predicate(self):
+        acl = ACL()
+        acl.allow("/blog")
+        # Checking the new ACE:
+        eq_(len(acl._aces), 1)
+        ace = acl._aces[0][1]
+        ok_(ace.allow)
+        eq_(ace.predicate, None)
+    
     #{ Testing denials
     
     def test_deny_path_in_global_acl_without_arguments(self):
@@ -244,6 +253,15 @@ class TestACL(TestCase):
         eq_(denial_handler, custom_denial_handler)
         assert_false(ace.allow)
         eq_(ace.predicate.predicate, predicate)
+    
+    def test_deny_without_predicate(self):
+        acl = ACL()
+        acl.deny("/blog")
+        # Checking the new ACE:
+        eq_(len(acl._aces), 1)
+        ace = acl._aces[0][1]
+        assert_false(ace.allow)
+        eq_(ace.predicate, None)
     
     #{ Testing decisions
     
@@ -553,6 +571,48 @@ class TestACL(TestCase):
         assert_false(decision.allow)
         eq_(decision.denial_handler, denial_handler)
     
+    def test_authorization_without_predicates(self):
+        """ACEs which don't have predicates must always be taken into account"""
+        acl = ACL()
+        acl.allow("/blog")
+        acl.deny("/blog/post-new", TitletalePredicate())
+        acl.deny("/blog/repository")
+        acl.allow("/blog/repository/download")
+        # ----- Checking just one ACE without predicate:
+        environ1 = {
+            'PATH_INFO': "/blog/",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision1 = acl.decide_authorization(environ1)
+        ok_(decision1.allow)
+        # ----- Checking two ACEs without predicates:
+        environ2 = {
+            'PATH_INFO': "/blog/repository",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision2 = acl.decide_authorization(environ2)
+        assert_false(decision2.allow)
+        # ----- Checking three ACEs without predicates:
+        environ3 = {
+            'PATH_INFO': "/blog/repository/download",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision3 = acl.decide_authorization(environ3)
+        ok_(decision3.allow)
+        # ----- Checking an ACE without predicate, overridden with one which
+        # ----- does have a predicate:
+        environ4 = {
+            'PATH_INFO': "/blog/post-new",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision4 = acl.decide_authorization(environ4)
+        assert_false(decision4.allow)
+        eq_(decision4.message, "Titletale predicate")
+    
     #}
 
 
@@ -768,6 +828,15 @@ class TestAces(TestCase):
         eq_(ace.allow, False)
         eq_(ace.named_args, set())
         eq_(ace.positional_args, 0)
+    
+    def test_denial_ace_without_predicate(self):
+        ace = _ACE(None, False)
+        eq_(ace.predicate, None)
+        environ = {
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        ok_(ace.can_participate(environ))
     
     def test_can_participate_without_minimum_args(self):
         """

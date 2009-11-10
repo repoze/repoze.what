@@ -105,7 +105,8 @@ class ACL(_BaseAuthorizationControl):
     
     #{ ACE management
     
-    def allow(self, path_or_object, predicate, named_args=(), positional_args=0):
+    def allow(self, path_or_object, predicate=None, named_args=(),
+              positional_args=0):
         """
         Grant access on ``path_or_object`` if the ``predicate`` is met, all the
         named arguments in ``named_args`` are set and there are at least
@@ -122,12 +123,15 @@ class ACL(_BaseAuthorizationControl):
             must be present.
         :type positional_args: :class:`int`
         
+        If no ``predicate`` is set, then the ACE will always be taken into
+        account.
+        
         """
         self._add_ace(path_or_object, predicate, True, named_args,
                       positional_args, None)
     
-    def deny(self, path_or_object, predicate, named_args=(), positional_args=0,
-             denial_handler=None):
+    def deny(self, path_or_object, predicate=None, named_args=(),
+             positional_args=0, denial_handler=None):
         """
         Deny access on ``path_or_object`` if the ``predicate`` is met, all the
         named arguments in ``named_args`` are set and there are at least
@@ -145,6 +149,9 @@ class ACL(_BaseAuthorizationControl):
         :type positional_args: :class:`int`
         :param denial_handler: The denial handler to be used if this is the
             final ACE (i.e., authorization is to be denied).
+        
+        If no ``predicate`` is set, then the ACE will always be taken into
+        account.
         
         """
         self._add_ace(path_or_object, predicate, False, named_args,
@@ -343,7 +350,7 @@ class _ACE(object):
     """
     
     def __init__(self, predicate, allow, named_args=(), positional_args=0):
-        if not allow:
+        if not allow and predicate is not None:
             # Let's negate the predicate so we can get the denial message when
             # it IS met:
             predicate = Not(predicate, msg=predicate.message)
@@ -365,9 +372,12 @@ class _ACE(object):
         :rtype: (:class:`bool`, :class:`basestring`)
         
         """
-        # First of all, let's extract the request arguments. We shouldn't
-        # evaluate the predicate until we know the minimum arguments are
-        # present:
+        # If there's no predicate, then this ACE should always participate:
+        if self.predicate is None:
+            return (True, None)
+        
+        # Let's extract the request arguments. We shouldn't evaluate the
+        # predicate until we know the minimum arguments are present:
         named_args = environ['repoze.what.named_args']
         positional_args = environ['repoze.what.positional_args']
         
