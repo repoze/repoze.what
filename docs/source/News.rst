@@ -11,6 +11,8 @@ This document describes the releases of :mod:`repoze.what`.
 =======================================
 
 * Added support for Access Control Lists.
+* Now groups and permissions are loaded on demand, as long as you use the new
+  :mod:`repoze.who` independent middleware.
 * Added :mod:`benchmarking utilities for the source adapters
   <repoze.what.adapters.benchmark>`.
 * Added the ability to duplicate a predicate, getting the new one with a

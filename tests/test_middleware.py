@@ -32,8 +32,7 @@ from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
 from repoze.who.plugins.testutil import AuthenticationForgerPlugin, \
                                         AuthenticationForgerMiddleware
 
-from repoze.what.middleware import (EmbeddedAuthorization,
-                                    AuthorizationMetadata, setup_auth)
+from repoze.what.middleware import (AuthorizationMetadata, setup_auth, _Credentials)
 
 from base import FakeAuthenticator, FakeGroupSourceAdapter, \
                  FakePermissionSourceAdapter, FakeLogger
@@ -146,8 +145,8 @@ class TestAuthorizationMetadata(unittest.TestCase):
         identity = {'repoze.who.userid': 'someone'}
         expected_credentials = {
             'repoze.what.userid': 'someone',
-            'groups': (),
-            'permissions': ()
+            'groups': set(),
+            'permissions': set(),
             }
         plugin = AuthorizationMetadata()
         plugin.add_metadata(environ, identity)
@@ -353,5 +352,52 @@ class TestSetupAuth(unittest.TestCase):
         assert isinstance(app.classifier,
                           default_request_classifier.__class__)
         assert isinstance(app.logger, logging.Logger)
+
+
+class TestCredentials(unittest.TestCase):
+    """Tests for the repoze.what credentials dict."""
+    
+    def test_constructor(self):
+        # Setup:
+        group_adapters = object()
+        permission_adapters = object()
+        credentials = _Credentials("foo", group_adapters, permission_adapters)
+        # Tests:
+        assert len(credentials) == 3
+        assert credentials['repoze.what.userid'] == "foo"
+        assert "groups" in credentials
+        assert "permissions" in credentials
+        assert not credentials._groups_loaded
+        assert not credentials._permissions_loaded
+    
+    def test_setting_groups_and_permissions(self):
+        # Setup:
+        group_adapters = object()
+        permission_adapters = object()
+        credentials = _Credentials("foo", group_adapters, permission_adapters)
+        # Tests:
+        groups = ("g1", "g2", "g3")
+        permissions = ("p1", "p2")
+        credentials['groups'] = groups
+        credentials['permissions'] = permissions
+        assert credentials._groups_loaded
+        assert credentials._permissions_loaded
+    
+    def test_getting_groups_and_permissions(self):
+        group_adapters = {'my_group': FakeGroupSourceAdapter()}
+        permission_adapters = {'my_perm': FakePermissionSourceAdapter()}
+        credentials = _Credentials("rms", group_adapters, permission_adapters)
+        assert credentials['groups'] == set(["admins", "developers"])
+        assert credentials['permissions'] == set(["edit-site", "commit"])
+        assert credentials._groups_loaded
+        assert credentials._permissions_loaded
+    
+    def test_getting_groups_and_permissions_for_non_existing_user(self):
+        credentials = _Credentials("foo", None, None)
+        assert credentials['groups'] == set()
+        assert credentials['permissions'] == set()
+        assert credentials._groups_loaded
+        assert credentials._permissions_loaded
+
 
 #}

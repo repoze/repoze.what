@@ -27,9 +27,9 @@ from zope.interface import implements
 from repoze.who.plugins.testutil import make_middleware
 from repoze.who.classifiers import default_challenge_decider, \
                                    default_request_classifier
-from repoze.who.interfaces import IAuthenticator, IMetadataProvider
+from repoze.who.interfaces import IMetadataProvider
 
-__all__ = ['AuthorizationMetadata', 'setup_auth']
+__all__ = ["setup_auth"]
 
 
 class AuthorizationMetadata(object):
@@ -38,7 +38,7 @@ class AuthorizationMetadata(object):
     the current user.
     
     There's no need to include this class in the end-user documentation,
-    as there's no reason why they may ever need it... It's only by
+    as there's no reason why they may ever need it... It's only used by
     :func:`setup_auth`.
     
     """
@@ -60,27 +60,6 @@ class AuthorizationMetadata(object):
         self.group_adapters = group_adapters
         self.permission_adapters = permission_adapters
     
-    def _find_groups(self, identity):
-        """
-        Return the groups to which the authenticated user belongs, as well as
-        the permissions granted to such groups.
-        
-        """
-        groups = set()
-        permissions = set()
-        if self.group_adapters is not None:
-            # repoze.what-2.X group adapters expect to find the
-            # 'repoze.what.userid' key in the credentials
-            credentials = identity.copy()
-            credentials['repoze.what.userid'] = identity['repoze.who.userid']
-            # It's using groups/permissions-based authorization
-            for grp_fetcher in self.group_adapters.values():
-                groups |= set(grp_fetcher.find_sections(credentials))
-            for group in groups:
-                for perm_fetcher in self.permission_adapters.values():
-                    permissions |= set(perm_fetcher.find_sections(group))
-        return tuple(groups), tuple(permissions)
-    
     # IMetadataProvider
     def add_metadata(self, environ, identity):
         """
@@ -94,19 +73,19 @@ class AuthorizationMetadata(object):
         
         """
         logger = environ.get('repoze.who.logger')
-        # Finding the groups and permissions:
-        groups, permissions = self._find_groups(identity)
-        identity['groups'] = groups
-        identity['permissions'] = permissions
-        # Adding the groups and permissions to the repoze.what credentials for
-        # forward compatibility:
-        if 'repoze.what.credentials' not in environ:
-            environ['repoze.what.credentials'] = {}
-        environ['repoze.what.credentials']['groups'] = groups
-        environ['repoze.what.credentials']['permissions'] = permissions
-        # Adding the userid:
+        
+        # Adding the repoze.what credentials dict to the environ:
         userid = identity['repoze.who.userid']
-        environ['repoze.what.credentials']['repoze.what.userid'] = userid
+        credentials = _Credentials(userid, self.group_adapters,
+                                   self.permission_adapters)
+        environ['repoze.what.credentials'] = credentials
+        # Loading the groups and permissions in the repoze.who identity dict.
+        # That's horribly nasty, but still some people insisted on accessing
+        # this kind of information directly through repoze.who. But the fact
+        # that it's silly is not a reason to break their applications:
+        identity['groups'] = credentials['groups']
+        identity['permissions'] = credentials['permissions']
+        
         # Adding the adapters:
         environ['repoze.what.adapters'] = {
             'groups': self.group_adapters,
@@ -114,9 +93,9 @@ class AuthorizationMetadata(object):
             }
         # Logging
         logger and logger.info('User belongs to the following groups: %s' %
-                               str(groups))
+                               str(credentials['groups']))
         logger and logger.info('User has the following permissions: %s' %
-                               str(permissions))
+                               str(credentials['permissions']))
 
 
 def setup_auth(app, group_adapters=None, permission_adapters=None, **who_args):
@@ -216,3 +195,56 @@ def setup_auth(app, group_adapters=None, permission_adapters=None, **who_args):
     skip_authn = who_args.pop('skip_authentication', False)
     middleware = make_middleware(skip_authn, app, **who_args)
     return middleware
+
+
+class _Credentials(dict):
+    """
+    The :mod:`repoze.what` credentials dict.
+    
+    With this kind of objects we'll load the groups and/or permissions only
+    when they are necessary, not on every request.
+    
+    """
+    
+    def __init__(self, userid, group_adapters, permission_adapters):
+        self._group_adapters = group_adapters
+        self._permission_adapters = permission_adapters
+        initial_credentials = {
+            'repoze.what.userid': userid,
+            'groups': set(),
+            'permissions': set(),
+            }
+        super(_Credentials, self).__init__(**initial_credentials)
+        # Keeping track of what has been loaded:
+        self._groups_loaded = False
+        self._permissions_loaded = False
+    
+    def __getitem__(self, key):
+        if key == "groups" and not self._groups_loaded:
+            self._load_groups()
+        elif key == "permissions" and not self._permissions_loaded:
+            self._load_permissions()
+        return super(_Credentials, self).__getitem__(key)
+    
+    def __setitem__(self, key, value):
+        super(_Credentials, self).__setitem__(key, value)
+        if key == "groups":
+            self._groups_loaded = True
+        elif key == "permissions":
+            self._permissions_loaded = True
+    
+    def _load_groups(self):
+        groups = set()
+        if self._group_adapters:
+            for grp_fetcher in self._group_adapters.values():
+                groups |= set(grp_fetcher.find_sections(self))
+        self['groups'] = groups
+    
+    def _load_permissions(self):
+        permissions = set()
+        if self._permission_adapters:
+            for group in self['groups']:
+                for perm_fetcher in self._permission_adapters.values():
+                    permissions |= set(perm_fetcher.find_sections(group))
+        self['permissions'] = permissions
+
