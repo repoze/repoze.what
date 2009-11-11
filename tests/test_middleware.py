@@ -4,6 +4,7 @@
 # Copyright (c) 2007, Agendaless Consulting and Contributors.
 # Copyright (c) 2008, Florent Aide <florent.aide@gmail.com>.
 # Copyright (c) 2008-2009, Gustavo Narea <me@gustavonarea.net>.
+# Copyright (c) 2009, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -22,6 +23,7 @@ Tests for the repoze.what middleware.
 
 import unittest, os, logging
 
+from webob import Request
 from zope.interface.verify import verifyClass
 from repoze.who.middleware import PluggableAuthenticationMiddleware
 from repoze.who.classifiers import default_challenge_decider, \
@@ -32,7 +34,8 @@ from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
 from repoze.who.plugins.testutil import AuthenticationForgerPlugin, \
                                         AuthenticationForgerMiddleware
 
-from repoze.what.middleware import (AuthorizationMetadata, setup_auth, _Credentials)
+from repoze.what.middleware import (AuthorizationMiddleware,
+    AuthorizationMetadata, setup_auth, setup_request, _Credentials)
 
 from base import FakeAuthenticator, FakeGroupSourceAdapter, \
                  FakePermissionSourceAdapter, FakeLogger
@@ -257,6 +260,13 @@ class TestAuthorizationMetadata(unittest.TestCase):
                                            expected_permissions)
 
 
+class TestAuthorizationMiddleware(unittest.TestCase):
+    """Tests for the AuthorizationMiddleware middleware."""
+    
+    def test_only_app(self):
+        mw = AuthorizationMiddleware(MockApp())
+
+
 class TestSetupAuth(unittest.TestCase):
     """Tests for the setup_auth() function"""
     
@@ -352,6 +362,94 @@ class TestSetupAuth(unittest.TestCase):
         assert isinstance(app.classifier,
                           default_request_classifier.__class__)
         assert isinstance(app.logger, logging.Logger)
+
+
+class TestSettingUpRequest(unittest.TestCase):
+    """Tests for the setup_request() function."""
+    
+    def test_no_userid_and_no_adapters(self):
+        environ = {}
+        req = setup_request(environ, None, None, None)
+        assert len(req.environ) >= 4
+        assert "repoze.what.positional_args" in req.environ
+        assert "repoze.what.named_args" in req.environ
+        # Checking the credentials:
+        assert len(req.environ['repoze.what.credentials']) == 3
+        assert req.environ['repoze.what.credentials']['repoze.what.userid'] is None
+        assert len(req.environ['repoze.what.credentials']['groups']) == 0
+        assert len(req.environ['repoze.what.credentials']['permissions']) == 0
+        # Checking the adapters:
+        assert len(req.environ['repoze.what.adapters']) == 2
+        assert req.environ['repoze.what.adapters']['groups'] is None
+        assert req.environ['repoze.what.adapters']['permissions'] is None
+    
+    def test_with_userid_and_adapters(self):
+        group_adapters = {'my_group': FakeGroupSourceAdapter()}
+        permission_adapters = {'my_perm': FakePermissionSourceAdapter()}
+        environ = {}
+        req = setup_request(environ, "rms", group_adapters, permission_adapters)
+        assert len(req.environ) >= 4
+        assert "repoze.what.positional_args" in req.environ
+        assert "repoze.what.named_args" in req.environ
+        # Checking the credentials:
+        assert len(req.environ['repoze.what.credentials']) == 3
+        assert req.environ['repoze.what.credentials']['repoze.what.userid'] == "rms"
+        assert len(req.environ['repoze.what.credentials']['groups']) == 2
+        assert len(req.environ['repoze.what.credentials']['permissions']) == 2
+        # Checking the adapters:
+        assert len(req.environ['repoze.what.adapters']) == 2
+        assert req.environ['repoze.what.adapters']['groups'] is group_adapters
+        assert req.environ['repoze.what.adapters']['permissions'] is permission_adapters
+    
+    def test_with_get_arguments(self):
+        # Forging the GET params:
+        environ = Request.blank("/blog/view.php?id=3&session=ABC123").environ
+        req = setup_request(environ, None, None, None)
+        assert req.environ['repoze.what.positional_args'] == 0
+        assert req.environ['repoze.what.named_args'] == set(["id", "session"])
+    
+    def test_with_post_arguments(self):
+        # Forging the POST params:
+        mock_req = Request.blank("/blog/view-post.php")
+        mock_req.method = "POST"
+        mock_req.body = "id=3&session=ABC123"
+        # Testing it:
+        environ = mock_req.environ
+        req = setup_request(environ, None, None, None)
+        assert req.environ['repoze.what.positional_args'] == 0
+        assert req.environ['repoze.what.named_args'] == set(["id", "session"])
+    
+    def test_named_arguments(self):
+        environ = {
+            'wsgiorg.routing_args': ((), {'foo': "bar", 'baz': "foo"}),
+        }
+        req = setup_request(environ, None, None, None)
+        assert req.environ['repoze.what.positional_args'] == 0
+        assert req.environ['repoze.what.named_args'] == set(["foo", "baz"])
+    
+    def test_with_named_positional_post_and_get_arguments(self):
+        # Forging all the params:
+        mock_req = Request.blank("/blog/view-post.php?foo=bar")
+        mock_req.method = "POST"
+        mock_req.body = "id=3&session=ABC123"
+        mock_req.environ['wsgiorg.routing_args'] = (
+            ("a", "b", "c", "1", "2", "3"),
+            {'baz': "bar"}
+            )
+        # Testing it:
+        environ = mock_req.environ
+        req = setup_request(environ, None, None, None)
+        assert req.environ['repoze.what.positional_args'] == 6
+        assert req.environ['repoze.what.named_args'] == set(["id", "session",
+                                                             "foo", "baz"])
+    
+    def test_with_positional_args(self):
+        environ = {
+            'wsgiorg.routing_args': (("foo", "bar", "baz"), {}),
+        }
+        req = setup_request(environ, None, None, None)
+        assert req.environ['repoze.what.positional_args'] == 3
+        assert req.environ['repoze.what.named_args'] == set()
 
 
 class TestCredentials(unittest.TestCase):
