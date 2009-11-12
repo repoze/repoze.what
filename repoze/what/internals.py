@@ -25,7 +25,8 @@ from webob import Request
 __all__ = ("setup_request", "forge_request")
 
 
-def setup_request(environ, userid, group_adapters, permission_adapters):
+def setup_request(environ, userid, group_adapters, permission_adapters,
+                  global_control=None):
     """
     Update the WSGI ``environ`` with the :mod:`repoze.what`-required items.
     
@@ -37,6 +38,9 @@ def setup_request(environ, userid, group_adapters, permission_adapters):
     :type group_adapters: :class:`dict` or ``None``
     :param permission_adapters: The permissions adapters, if any.
     :type permission_adapters: :class:`dict` or ``None``
+    :param global_control: The global authorization control (e.g., an ACL
+        collection).
+    :type global_control: :class:`repoze.what.acl._BaseAuthorizationControl`
     
     .. attention::
         This function should only be used in :mod:`repoze.what` itself or
@@ -58,6 +62,8 @@ def setup_request(environ, userid, group_adapters, permission_adapters):
     named_args = set(request.urlvars.keys() + request.params.keys())
     request.environ['repoze.what.positional_args'] = positional_args
     request.environ['repoze.what.named_args'] = named_args
+    # Injecting the global authorization control, so it can be used by plugins:
+    request.environ['repoze.what.global_control'] = global_control
     # Adding a clear request so it can be used to check whether authorization
     # would be granted for a given request, without buiding it from scratch:
     clear_request = request.copy_get()

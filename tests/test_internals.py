@@ -57,13 +57,26 @@ class TestSettingUpRequest(unittest.TestCase):
         assert "repoze.what.named_args" in req.environ
         # Checking the credentials:
         assert len(req.environ['repoze.what.credentials']) == 3
-        assert req.environ['repoze.what.credentials']['repoze.what.userid'] == "rms"
+        assert (req.environ['repoze.what.credentials']['repoze.what.userid'] ==
+                "rms")
         assert len(req.environ['repoze.what.credentials']['groups']) == 2
         assert len(req.environ['repoze.what.credentials']['permissions']) == 2
         # Checking the adapters:
         assert len(req.environ['repoze.what.adapters']) == 2
         assert req.environ['repoze.what.adapters']['groups'] is group_adapters
-        assert req.environ['repoze.what.adapters']['permissions'] is permission_adapters
+        assert (req.environ['repoze.what.adapters']['permissions'] is
+                permission_adapters)
+    
+    def test_with_global_authz_control(self):
+        global_authz_control = object()
+        req = setup_request({}, None, None, None, global_authz_control)
+        assert "repoze.what.global_control" in req.environ
+        assert req.environ['repoze.what.global_control'] == global_authz_control
+    
+    def test_without_global_authz_control(self):
+        req = setup_request({}, None, None, None, None)
+        assert "repoze.what.global_control" in req.environ
+        assert req.environ['repoze.what.global_control'] is None
     
     def test_with_get_arguments(self):
         # Forging the GET params:
