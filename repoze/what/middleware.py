@@ -262,9 +262,8 @@ def setup_request(environ, userid, group_adapters, permission_adapters):
         'permissions': permission_adapters,
         }
     # Setting the arguments:
-    routing_args = request.environ.get("wsgiorg.routing_args", ((), {}))
-    positional_args = len(routing_args[0])
-    named_args = set(routing_args[1].keys() + request.params.keys())
+    positional_args = len(request.urlargs)
+    named_args = set(request.urlvars.keys() + request.params.keys())
     request.environ['repoze.what.positional_args'] = positional_args
     request.environ['repoze.what.named_args'] = named_args
     
