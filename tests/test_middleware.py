@@ -36,7 +36,8 @@ from repoze.who.plugins.testutil import AuthenticationForgerPlugin, \
                                         AuthenticationForgerMiddleware
 
 from repoze.what.middleware import (AuthorizationMiddleware,
-    AuthorizationMetadata, setup_auth, setup_request, _Credentials)
+    AuthorizationMetadata, setup_auth, setup_request, _Credentials,
+    forge_request)
 
 from base import FakeAuthenticator, FakeGroupSourceAdapter, \
                  FakePermissionSourceAdapter, FakeLogger
@@ -505,6 +506,44 @@ class TestSettingUpRequest(unittest.TestCase):
         assert clear_request3.method == "GET"
         assert len(clear_request3.GET) == 0
         assert len(clear_request3.POST) == 0
+
+
+class TestForgingRequests(unittest.TestCase):
+    """Tests for the forge_request() function."""
+    
+    def setUp(self):
+        req = Request.blank("/this/is/the/path_info")
+        req = setup_request(req.environ, None, None, None)
+        self.original_environ = req.environ
+    
+    def test_original_clear_request_is_not_modified(self):
+        forge_request(self.original_environ, "/somewhere", (), {})
+        original_clear_req = self.original_environ['repoze.what.clear_request']
+        assert original_clear_req.path_info == "/this/is/the/path_info"
+    
+    def test_with_no_query_string(self):
+        forged_req = forge_request(
+            self.original_environ,
+            "/path",
+            ("arg1", "arg2"),
+            {'name': "value"},
+            )
+        assert forged_req.path_info == "/path"
+        assert forged_req.query_string == ""
+        assert forged_req.urlargs == ("arg1", "arg2")
+        assert forged_req.urlvars == dict(name="value")
+    
+    def test_with_query_string(self):
+        forged_req = forge_request(
+            self.original_environ,
+            "/path?var1=val1&var2=val2",
+            ("argA", ),
+            {'name': "val"},
+            )
+        assert forged_req.path_info == "/path"
+        assert forged_req.query_string == "var1=val1&var2=val2"
+        assert forged_req.urlargs == ("argA", )
+        assert forged_req.urlvars == dict(name="val")
 
 
 class TestCredentials(unittest.TestCase):

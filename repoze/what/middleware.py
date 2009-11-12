@@ -274,6 +274,41 @@ def setup_request(environ, userid, group_adapters, permission_adapters):
     return request
 
 
+def forge_request(environ, path, positional_args, named_args):
+    """
+    Return a mock request to ``path`` based on ``environ``.
+    
+    :param environ: The WSGI environment to be used as an starting point.
+    :type environ: :class:`dict`
+    :param path: The path where the request is supposed to be made; it may
+        include the query string.
+    :type path: :class:`basestring`
+    :param positional_args: The positional arguments to be set in the
+        ``wsgiorg.routing_args`` item.
+    :type positional_args: :class:`tuple`
+    :param named_args: The named arguments to be set in the
+        ``wsgiorg.routing_args`` item.
+    :type named_args: :class:`dict`
+    :return: The new request object.
+    :rtype: :class:`webob.Request`
+    
+    The ``positional_args`` and ``named_args`` must have been given by the
+    routing software (e.g., Routes, Selector) for ``path``.
+    
+    """
+    new_request = environ['repoze.what.clear_request'].copy()
+    new_request.urlargs = positional_args
+    new_request.urlvars = named_args
+    
+    # Extracting the PATH_INFO and the QUERY_STRING (if any):
+    if "?" in path:
+        (new_request.path_info, new_request.query_string) = path.split("?", 1)
+    else:
+        new_request.path_info = path
+    
+    return new_request
+
+
 class _Credentials(dict):
     """
     The :mod:`repoze.what` credentials dict.
