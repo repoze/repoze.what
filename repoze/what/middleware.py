@@ -266,7 +266,11 @@ def setup_request(environ, userid, group_adapters, permission_adapters):
     named_args = set(request.urlvars.keys() + request.params.keys())
     request.environ['repoze.what.positional_args'] = positional_args
     request.environ['repoze.what.named_args'] = named_args
-    
+    # Adding a clear request so it can be used to check whether authorization
+    # would be granted for a given request, without buiding it from scratch:
+    clear_request = request.copy_get()
+    clear_request.environ['QUERY_STRING'] = ""
+    request.environ['repoze.what.clear_request'] = clear_request
     return request
 
 

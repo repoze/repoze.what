@@ -21,6 +21,7 @@ Tests for the repoze.what middleware.
 
 """
 
+from StringIO import StringIO
 import unittest, os, logging
 
 from webob import Request
@@ -450,6 +451,60 @@ class TestSettingUpRequest(unittest.TestCase):
         req = setup_request(environ, None, None, None)
         assert req.environ['repoze.what.positional_args'] == 3
         assert req.environ['repoze.what.named_args'] == set()
+    
+    def test_request_copy(self):
+        """
+        A clear copy of the environ must be set in the environment, so it won't
+        have to be built many times to verify authorization.
+        
+        """
+        # Checking with a GET request:
+        environ1 = {
+            'SCRIPT_NAME': "/trac",
+            'PATH_INFO': "/wiki",
+            'REQUEST_METHOD': "GET",
+            'QUERY_STRING': "var=val",
+            }
+        req1 = setup_request(environ1, None, None, None)
+        assert "repoze.what.clear_request" in req1.environ
+        clear_request1 = req1.environ['repoze.what.clear_request']
+        assert clear_request1.script_name == "/trac"
+        assert clear_request1.path_info == "/wiki"
+        assert clear_request1.method == "GET"
+        assert len(clear_request1.GET) == 0
+        # Checking with a POST request:
+        environ2 = {
+            'SCRIPT_NAME': "/trac",
+            'PATH_INFO': "/wiki",
+            'REQUEST_METHOD': "POST",
+            'CONTENT_LENGTH': "7",
+            'wsgi.input': StringIO("var=val"),
+            }
+        req2 = setup_request(environ2, None, None, None)
+        assert "repoze.what.clear_request" in req2.environ
+        clear_request2 = req2.environ['repoze.what.clear_request']
+        assert clear_request2.script_name == "/trac"
+        assert clear_request2.path_info == "/wiki"
+        assert clear_request2.method == "GET"
+        assert len(clear_request2.GET) == 0
+        assert len(clear_request2.POST) == 0
+        # Checking with a POST request and a query string:
+        environ3 = {
+            'SCRIPT_NAME': "/trac",
+            'PATH_INFO': "/wiki",
+            'REQUEST_METHOD': "POST",
+            'CONTENT_LENGTH': "7",
+            'QUERY_STRING': "foo=bar",
+            'wsgi.input': StringIO("var=val"),
+            }
+        req3 = setup_request(environ3, None, None, None)
+        assert "repoze.what.clear_request" in req3.environ
+        clear_request3 = req3.environ['repoze.what.clear_request']
+        assert clear_request3.script_name == "/trac"
+        assert clear_request3.path_info == "/wiki"
+        assert clear_request3.method == "GET"
+        assert len(clear_request3.GET) == 0
+        assert len(clear_request3.POST) == 0
 
 
 class TestCredentials(unittest.TestCase):
