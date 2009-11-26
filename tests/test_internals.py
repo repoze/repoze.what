@@ -87,14 +87,24 @@ class TestSettingUpRequest(unittest.TestCase):
     
     def test_with_post_arguments(self):
         # Forging the POST params:
-        mock_req = Request.blank("/blog/view-post.php")
-        mock_req.method = "POST"
-        mock_req.body = "id=3&session=ABC123"
+        post_args = "id=3&session=ABC123"
+        environ = {
+            'REQUEST_METHOD': "POST",
+            'wsgi.input': StringIO(post_args),
+            'CONTENT_LENGTH': str(len(post_args)),
+            'CONTENT_TYPE': "application/x-www-form-urlencoded",
+            }
+        mock_req = Request.blank("/blog/view-post.php", environ)
         # Testing it:
-        environ = mock_req.environ
-        req = setup_request(environ, None, None, None)
+        req = setup_request(mock_req.environ, None, None, None)
         assert req.environ['repoze.what.positional_args'] == 0
         assert req.environ['repoze.what.named_args'] == set(["id", "session"])
+        # Let's make sure that the POST request is not modified:
+        final_input = req.environ['wsgi.input'].read()
+        assert post_args == final_input
+        assert environ['REQUEST_METHOD'] == req.environ['REQUEST_METHOD']
+        assert environ['CONTENT_LENGTH'] == req.environ['CONTENT_LENGTH']
+        assert environ['CONTENT_TYPE'] == req.environ['CONTENT_TYPE']
     
     def test_named_arguments(self):
         environ = {

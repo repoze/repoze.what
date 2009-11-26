@@ -47,7 +47,9 @@ def setup_request(environ, userid, group_adapters, permission_adapters,
         official/third-party plugins.
     
     """
+    original_content_length = environ.get("CONTENT_LENGTH", "-1")
     request = Request(environ)
+    
     request.environ['repoze.what.credentials'] = _Credentials(
         userid,
         group_adapters,
@@ -69,6 +71,9 @@ def setup_request(environ, userid, group_adapters, permission_adapters,
     clear_request = request.copy_get()
     clear_request.environ['QUERY_STRING'] = ""
     request.environ['repoze.what.clear_request'] = clear_request
+    
+    # Before moving on, let's restore the CONTENT_LENGTH reset by WebOb:
+    request.environ['CONTENT_LENGTH'] = original_content_length
     return request
 
 
