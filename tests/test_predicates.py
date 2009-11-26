@@ -38,7 +38,7 @@ class BasePredicateTester(unittest.TestCase):
     
     def eval_unmet_predicate(self, p, environ, expected_error):
         """Evaluate a predicate that should not be met"""
-        credentials = environ.get('repoze.what.credentials')
+        credentials = environ.get('repoze.what.credentials', {})
         # Testing check_authorization
         try:
             p.evaluate(environ, credentials)
@@ -411,6 +411,13 @@ class TestIsAnonymousPredicate(BasePredicateTester):
         environ = {}
         p = predicates.is_anonymous()
         self.eval_met_predicate(p, environ)
+    
+    def test_anonymous_user_with_empty_username(self):
+        environ = {
+            'repoze.what.credentials': {'repoze.what.userid': None},
+            }
+        p = predicates.is_anonymous()
+        self.eval_met_predicate(p, environ)
 
 
 class TestNotAnonymousPredicate(BasePredicateTester):
@@ -425,6 +432,14 @@ class TestNotAnonymousPredicate(BasePredicateTester):
         p = predicates.not_anonymous()
         self.eval_unmet_predicate(p, environ,
                          'The current user must have been authenticated')
+    
+    def test_anonymous_user_with_empty_username(self):
+        environ = {
+            'repoze.what.credentials': {'repoze.what.userid': None},
+            }
+        p = predicates.not_anonymous()
+        self.eval_unmet_predicate(p, environ,
+                         "The current user must have been authenticated")
 
 
 class TestHasPermissionPredicate(BasePredicateTester):

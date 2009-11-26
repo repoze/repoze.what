@@ -547,7 +547,7 @@ class is_anonymous(Predicate):
     message = u"The current user must be anonymous"
 
     def evaluate(self, environ, credentials):
-        if credentials:
+        if credentials.get("repoze.what.userid"):
             self.unmet()
 
 
@@ -565,7 +565,7 @@ class not_anonymous(Predicate):
     message = u"The current user must have been authenticated"
 
     def evaluate(self, environ, credentials):
-        if not credentials:
+        if not credentials.get("repoze.what.userid"):
             self.unmet()
 
 
