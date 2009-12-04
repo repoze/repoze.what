@@ -11,6 +11,24 @@ This document describes the releases of :mod:`repoze.what`.
 =======================================
 
 * Added support for Access Control Lists.
+* Predicates can now be negated with a tilde. The following expressions are now
+  equivalent::
+  
+      predicate = Not(is_user("foo"))
+      predicate = ~is_user("foo")
+  
+* Predicates can now be joint pythonically, without using the :class:`Any
+  <repoze.what.predicates.Any>` or :class:`All <repoze.what.predicates.All>`
+  predicates. For example, the following conjunctive operations are equivalent::
+  
+      predicate = is_user("foo") & has_permission("bar")
+      predicate = All(is_user("foo"), has_permission("bar"))
+  
+  And the following disjunctive operations are equivalent too::
+  
+      predicate = is_user("foo") | is_user("bar")
+      predicate = Any(is_user("foo"), is_user("bar"))
+  
 * Now groups and permissions are loaded on demand, as long as you use the new
   :mod:`repoze.who` independent middleware.
 * Added :mod:`benchmarking utilities for the source adapters

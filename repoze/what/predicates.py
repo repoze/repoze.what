@@ -342,6 +342,51 @@ class Predicate(object):
             'positional_args': positional_args,
             'named_args': named_args}
         return variables
+    
+    #{ Boolean operations
+    
+    def __invert__(self):
+        """
+        Return the negation for the current predicate.
+        
+        :rtype: :class:`Not`
+        
+        """
+        return Not(self)
+    
+    def __and__(self, other):
+        """
+        Merge this predicate and ``other`` into a :class:`All` predicate and
+        return the result.
+        
+        :rtype: :class:`All`
+        
+        """
+        return self._make_compound(All, other)
+    
+    def __or__(self, other):
+        """
+        Merge this predicate and ``other`` into a :class:`Any` predicate and
+        return the result.
+        
+        :rtype: :class:`Any`
+        
+        """
+        return self._make_compound(Any, other)
+    
+    def _make_compound(self, klass, other):
+        if not isinstance(other, Predicate):
+            return NotImplemented
+        
+        if isinstance(self, klass):
+            predicate = copy(self)
+            predicate.predicates.append(other)
+        else:
+            predicate = klass(self, other)
+        
+        return predicate
+    
+    #}
 
 
 class CompoundPredicate(Predicate):
@@ -349,7 +394,7 @@ class CompoundPredicate(Predicate):
     
     def __init__(self, *predicates, **kwargs):
         super(CompoundPredicate, self).__init__(**kwargs)
-        self.predicates = predicates
+        self.predicates = list(predicates)
 
 
 class Not(Predicate):

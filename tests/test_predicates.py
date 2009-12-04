@@ -15,12 +15,14 @@
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-
 """
 Tests for the predicates.
 
 """
+# TODO: Switch to Nose evaluation functions, instead of using ``assert``
+# statements.
 
+from nose.tools import eq_, ok_
 import unittest
 
 from repoze.what import predicates
@@ -81,7 +83,6 @@ class TestPredicate(BasePredicateTester):
         self.assertEqual(original_predicate.message, "Foo")
         self.assertEqual(new_predicate.message, "Bar")
         self.assertEqual(original_predicate.__class__, new_predicate.__class__)
-        
     
     def test_unicode_messages(self):
         unicode_msg = u'请登陆'
@@ -225,13 +226,13 @@ class TestCompoundPredicate(BasePredicateTester):
     def test_one_predicate_works(self):
         p = EqualsTwo()
         cp = predicates.CompoundPredicate(p)
-        self.assertEqual(cp.predicates, (p,))
+        self.assertEqual(cp.predicates, [p])
         
     def test_two_predicates_work(self):
         p1 = EqualsTwo()
         p2 = MockPredicate()
         cp = predicates.CompoundPredicate(p1, p2)
-        self.assertEqual(cp.predicates, (p1, p2))
+        self.assertEqual(cp.predicates, [p1, p2])
 
 
 class TestNotPredicate(BasePredicateTester):
@@ -500,6 +501,256 @@ class TestUserHasAnyPermissionsPredicate(BasePredicateTester):
                                                        'eat'])
         p = predicates.has_any_permission('party', 'scream')
         self.eval_met_predicate(p, environ)
+
+
+class TestBooleanOperations(unittest.TestCase):
+    """
+    Tests for the boolean operations functionality provided pythonically.
+    
+    """
+    
+    #{ Unary operations
+    
+    def test_not(self):
+        p1 = predicates.is_user("gustavo")
+        p0 = ~p1
+        ok_(isinstance(p0, predicates.Not))
+        ok_(isinstance(p0.predicate, predicates.is_user))
+        eq_(p0.predicate.user_name, "gustavo")
+    
+    #{ 2 operands
+    
+    def test_2_and(self):
+        """predicate & predicate"""
+        p1 = predicates.is_user("gustavo")
+        p2 = predicates.has_permission("watch-tv")
+        p0 = p1 & p2
+        assert isinstance(p0, predicates.All)
+        assert len(p0.predicates) == 2
+        assert p1 in p0.predicates
+        assert p2 in p0.predicates
+    
+    def test_2_or(self):
+        """predicate | predicate"""
+        p1 = predicates.is_user("gustavo")
+        p2 = predicates.has_permission("watch-tv")
+        p0 = p1 | p2
+        assert isinstance(p0, predicates.Any)
+        assert len(p0.predicates) == 2
+        assert p1 in p0.predicates
+        assert p2 in p0.predicates
+    
+    #{ 3 operands
+    
+    def test_3_and(self):
+        """predicate & predicate & predicate"""
+        p1 = predicates.is_user("gustavo")
+        p2 = predicates.has_permission("watch-tv")
+        p3 = predicates.in_group("dev")
+        p0 = p1 & p2 & p3
+        assert isinstance(p0, predicates.All)
+        assert len(p0.predicates) == 3
+        assert p1 == p0.predicates[0]
+        assert p2 == p0.predicates[1]
+        assert p3 == p0.predicates[2]
+    
+    def test_3_or(self):
+        """predicate | predicate | predicate"""
+        p1 = predicates.is_user("gustavo")
+        p2 = predicates.has_permission("watch-tv")
+        p3 = predicates.in_group("dev")
+        p0 = p1 | p2 | p3
+        assert isinstance(p0, predicates.Any)
+        eq_(len(p0.predicates), 3)
+        assert p1 == p0.predicates[0]
+        assert p2 == p0.predicates[1]
+        assert p3 == p0.predicates[2]
+    
+    def test_3_and_or(self):
+        """predicate & predicate | predicate"""
+        p1 = predicates.is_user("gustavo")
+        p2 = predicates.has_permission("watch-tv")
+        p3 = predicates.in_group("dev")
+        p0 = p1 & p2 | p3
+        assert isinstance(p0, predicates.Any)
+        assert len(p0.predicates) == 2
+        assert p3 == p0.predicates[1]
+        assert isinstance(p0.predicates[0], predicates.All)
+        assert len(p0.predicates[0].predicates) == 2
+        assert p1 == p0.predicates[0].predicates[0]
+        assert p2 == p0.predicates[0].predicates[1]
+    
+    def test_3_or_and(self):
+        """predicate | predicate & predicate"""
+        p1 = predicates.is_user("gustavo")
+        p2 = predicates.has_permission("watch-tv")
+        p3 = predicates.in_group("dev")
+        p0 = p1 | p2 & p3
+        assert isinstance(p0, predicates.Any)
+        assert len(p0.predicates) == 2
+        assert p1 == p0.predicates[0]
+        assert isinstance(p0.predicates[1], predicates.All)
+        assert len(p0.predicates[1].predicates) == 2
+        assert p2 == p0.predicates[1].predicates[0]
+        assert p3 == p0.predicates[1].predicates[1]
+    
+    
+    #{ 4 operands
+    
+    def test_4_and(self):
+        """predicate & predicate & predicate & predicate"""
+        p1 = predicates.is_user("gustavo")
+        p2 = predicates.has_permission("watch-tv")
+        p3 = predicates.in_group("dev")
+        p4 = predicates.in_group("foo")
+        p0 = p1 & p2 & p3 & p4
+        assert isinstance(p0, predicates.All)
+        assert len(p0.predicates) == 4
+        assert p1 == p0.predicates[0]
+        assert p2 == p0.predicates[1]
+        assert p3 == p0.predicates[2]
+        assert p4 == p0.predicates[3]
+    
+    def test_4_or(self):
+        """predicate | predicate | predicate | predicate"""
+        p1 = predicates.is_user("gustavo")
+        p2 = predicates.has_permission("watch-tv")
+        p3 = predicates.in_group("dev")
+        p4 = predicates.in_group("foo")
+        p0 = p1 | p2 | p3 | p4
+        assert isinstance(p0, predicates.Any)
+        assert len(p0.predicates) == 4
+        assert p1 == p0.predicates[0]
+        assert p2 == p0.predicates[1]
+        assert p3 == p0.predicates[2]
+        assert p4 == p0.predicates[3]
+    
+    def test_4_or_or_and(self):
+        """predicate | predicate | predicate & predicate"""
+        p1 = predicates.is_user("gustavo")
+        p2 = predicates.has_permission("watch-tv")
+        p3 = predicates.in_group("dev")
+        p4 = predicates.in_group("foo")
+        p0 = p1 | p2 | p3 & p4
+        assert isinstance(p0, predicates.Any)
+        assert len(p0.predicates) == 3
+        assert p1 == p0.predicates[0]
+        assert p2 == p0.predicates[1]
+        assert isinstance(p0.predicates[2], predicates.All)
+        assert len(p0.predicates[2].predicates) == 2
+        assert p3 == p0.predicates[2].predicates[0]
+        assert p4 == p0.predicates[2].predicates[1]
+    
+    def test_4_or_and_or(self):
+        """predicate | predicate & predicate | predicate"""
+        p1 = predicates.is_user("gustavo")
+        p2 = predicates.has_permission("watch-tv")
+        p3 = predicates.in_group("dev")
+        p4 = predicates.in_group("foo")
+        p0 = p1 | p2 & p3 | p4
+        assert isinstance(p0, predicates.Any)
+        assert len(p0.predicates) == 3
+        assert p1 == p0.predicates[0]
+        assert p4 == p0.predicates[2]
+        assert isinstance(p0.predicates[1], predicates.All)
+        assert len(p0.predicates[1].predicates) == 2
+        assert p2 == p0.predicates[1].predicates[0]
+        assert p3 == p0.predicates[1].predicates[1]
+    
+    def test_4_and_or_or(self):
+        """predicate & predicate | predicate | predicate"""
+        p1 = predicates.is_user("gustavo")
+        p2 = predicates.has_permission("watch-tv")
+        p3 = predicates.in_group("dev")
+        p4 = predicates.in_group("foo")
+        p0 = p1 & p2 | p3 | p4
+        assert isinstance(p0, predicates.Any)
+        assert len(p0.predicates) == 3
+        assert p3 == p0.predicates[1]
+        assert p4 == p0.predicates[2]
+        assert isinstance(p0.predicates[0], predicates.All)
+        assert len(p0.predicates[0].predicates) == 2
+        assert p1 == p0.predicates[0].predicates[0]
+        assert p2 == p0.predicates[0].predicates[1]
+    
+    def test_4_and_or_and(self):
+        """predicate & predicate | predicate & predicate"""
+        p1 = predicates.is_user("gustavo")
+        p2 = predicates.has_permission("watch-tv")
+        p3 = predicates.in_group("dev")
+        p4 = predicates.in_group("foo")
+        p0 = p1 & p2 | p3 & p4
+        assert isinstance(p0, predicates.Any)
+        assert len(p0.predicates) == 2
+        assert isinstance(p0.predicates[0], predicates.All)
+        assert len(p0.predicates[0].predicates) == 2
+        assert p1 == p0.predicates[0].predicates[0]
+        assert p2 == p0.predicates[0].predicates[1]
+        assert isinstance(p0.predicates[1], predicates.All)
+        assert len(p0.predicates[1].predicates) == 2
+        assert p3 == p0.predicates[1].predicates[0]
+        assert p4 == p0.predicates[1].predicates[1]
+    
+    def test_4_and_and_or(self):
+        """predicate & predicate & predicate | predicate"""
+        p1 = predicates.is_user("gustavo")
+        p2 = predicates.has_permission("watch-tv")
+        p3 = predicates.in_group("dev")
+        p4 = predicates.in_group("foo")
+        p0 = p1 & p2 & p3 | p4
+        assert isinstance(p0, predicates.Any)
+        assert len(p0.predicates) == 2
+        assert p4 == p0.predicates[1]
+        assert isinstance(p0.predicates[0], predicates.All)
+        assert len(p0.predicates[0].predicates) == 3
+        assert p1 == p0.predicates[0].predicates[0]
+        assert p2 == p0.predicates[0].predicates[1]
+        assert p3 == p0.predicates[0].predicates[2]
+    
+    def test_4_or_and_and(self):
+        """predicate | predicate & predicate & predicate"""
+        p1 = predicates.is_user("gustavo")
+        p2 = predicates.has_permission("watch-tv")
+        p3 = predicates.in_group("dev")
+        p4 = predicates.in_group("foo")
+        p0 = p1 | p2 & p3 & p4
+        assert isinstance(p0, predicates.Any)
+        assert len(p0.predicates) == 2
+        assert p1 == p0.predicates[0]
+        assert isinstance(p0.predicates[1], predicates.All)
+        assert len(p0.predicates[1].predicates) == 3
+        assert p2 == p0.predicates[1].predicates[0]
+        assert p3 == p0.predicates[1].predicates[1]
+        assert p4 == p0.predicates[1].predicates[2]
+    
+    #{ Bad operands
+    
+    def test_bad_operands_AND(self):
+        p1 = object()
+        p2 = predicates.is_user("foo")
+        try:
+            p1 & p2
+        except TypeError:
+            pass
+        else:
+            raise AssertionError("Only predicates must be added together")
+    
+    def test_bad_operands_OR(self):
+        p1 = object()
+        p2 = predicates.is_user("foo")
+        try:
+            p1 | p2
+        except TypeError:
+            pass
+        else:
+            raise AssertionError("Only predicates must be added together")
+    
+    #}
+    
+    def test_same_type_operands(self):
+        """Operands of the same type must be supported."""
+        p = predicates.in_group("foo") & predicates.in_group("bar")
+        assert isinstance(p, predicates.All)
 
 
 #{ Test utilities
