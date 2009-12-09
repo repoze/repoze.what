@@ -66,12 +66,6 @@ repoze.what.plugins.ini [#f1]_           ``.ini`` files        No               
 ======================================= ================ =============== ================ ====================
 
 
-Available :term:`predicates plugins <predicates plugin>`
-========================================================
-
-None, yet.
-
-
 Available :term:`extras plugins <extras plugin>`
 ================================================
 
@@ -80,7 +74,18 @@ Available :term:`extras plugins <extras plugin>`
 ====================================== ===========================================================================================================
 :mod:`repoze.what.plugins.quickstart`   Pre-configured authentication system to get started with :mod:`repoze.who` and :mod:`repoze.what` quickly
 :mod:`repoze.what.plugins.pylonshq`    :mod:`repoze.what` utilities for Pylons/TG2 applications
+:mod:`repoze.what.plugins.dj`          :mod:`repoze.what` integration in Django applications
 repoze.what.plugins.config [#f4]_       Configure :mod:`repoze.what` from an ``Ini`` file with Paste Deploy.
+====================================== ===========================================================================================================
+
+
+Available :term:`predicates plugins <predicates plugin>`
+========================================================
+
+====================================== ===========================================================================================================
+             Plugin name                  Description
+====================================== ===========================================================================================================
+:mod:`repoze.what.plugins.dj`          The Django plugin contains some Django-specific predicate checkers.
 ====================================== ===========================================================================================================
 
 
