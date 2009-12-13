@@ -23,16 +23,16 @@ This is module provides the predicate checkers that were present in the
 original "identity" framework of TurboGears 1, plus others.
 
 """
-
+from warnings import warn
 from copy import copy
 
 from paste.request import parse_formvars, parse_dict_querystring
 
-__all__ = ['Predicate', 'CompoundPredicate', 'All', 'Any', 
-           'has_all_permissions', 'has_any_permission', 'has_permission', 
-           'in_all_groups', 'in_any_group', 'in_group', 'is_user', 
-           'is_anonymous', 'not_anonymous', 'PredicateError',
-           'NotAuthorizedError']
+__all__ = ("Predicate", "CompoundPredicate", "All", "Any", 
+           "has_all_permissions", "has_any_permission", "has_permission", 
+           "in_all_groups", "in_any_group", "in_group", "is_user", 
+           "is_anonymous", "not_anonymous", "PredicateError",
+           "NotAuthorizedError")
 
 
 #{ Predicates
@@ -162,7 +162,6 @@ class Predicate(object):
             Define :meth:`evaluate` instead.
         
         """
-        from warnings import warn
         msg = 'Predicate._eval_with_environ(environ) is deprecated ' \
               'for forward compatibility with repoze.what v2; define ' \
               'Predicate.evaluate(environ, credentials) instead'
