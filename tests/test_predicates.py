@@ -344,6 +344,10 @@ class TestIsUserPredicate(BasePredicateTester):
         p = predicates.is_user('gustavo')
         self.eval_unmet_predicate(p, environ,
                                   'The current user must be "gustavo"')
+    
+    def test_camel_case(self):
+        """The same predicate should be available using CamelCase notation."""
+        eq_(predicates.is_user, predicates.IsUser)
 
 
 class TestInGroupPredicate(BasePredicateTester):
@@ -358,6 +362,10 @@ class TestInGroupPredicate(BasePredicateTester):
         p = predicates.in_group('designers')
         self.eval_unmet_predicate(p, environ,
                     'The current user must belong to the group "designers"')
+    
+    def test_camel_case(self):
+        """The same predicate should be available using CamelCase notation."""
+        eq_(predicates.in_group, predicates.InGroup)
 
 
 class TestInAllGroupsPredicate(BasePredicateTester):
@@ -378,6 +386,10 @@ class TestInAllGroupsPredicate(BasePredicateTester):
         p = predicates.in_all_groups('developers', 'designers')
         self.eval_unmet_predicate(p, environ,
                     'The current user must belong to the group "designers"')
+    
+    def test_camel_case(self):
+        """The same predicate should be available using CamelCase notation."""
+        eq_(predicates.in_all_groups, predicates.InAllGroups)
 
 
 class TestInAnyGroupsPredicate(BasePredicateTester):
@@ -398,6 +410,10 @@ class TestInAnyGroupsPredicate(BasePredicateTester):
         environ = make_environ('gustavo', ['designers'])
         p = predicates.in_any_group('developers', 'designers')
         self.eval_met_predicate(p, environ)
+    
+    def test_camel_case(self):
+        """The same predicate should be available using CamelCase notation."""
+        eq_(predicates.in_any_group, predicates.InAnyGroup)
 
 
 class TestIsAnonymousPredicate(BasePredicateTester):
@@ -419,6 +435,10 @@ class TestIsAnonymousPredicate(BasePredicateTester):
             }
         p = predicates.is_anonymous()
         self.eval_met_predicate(p, environ)
+    
+    def test_camel_case(self):
+        """The same predicate should be available using CamelCase notation."""
+        eq_(predicates.is_anonymous, predicates.IsAnonymous)
 
 
 class TestNotAnonymousPredicate(BasePredicateTester):
@@ -441,6 +461,10 @@ class TestNotAnonymousPredicate(BasePredicateTester):
         p = predicates.not_anonymous()
         self.eval_unmet_predicate(p, environ,
                          "The current user must have been authenticated")
+    
+    def test_camel_case(self):
+        """The same predicate should be available using CamelCase notation."""
+        eq_(predicates.not_anonymous, predicates.NotAnonymous)
 
 
 class TestHasPermissionPredicate(BasePredicateTester):
@@ -455,6 +479,10 @@ class TestHasPermissionPredicate(BasePredicateTester):
         p = predicates.has_permission('eat')
         self.eval_unmet_predicate(p, environ,
                                   'The user must have the "eat" permission')
+    
+    def test_camel_case(self):
+        """The same predicate should be available using CamelCase notation."""
+        eq_(predicates.has_permission, predicates.HasPermission)
 
 
 class TestHasAllPermissionsPredicate(BasePredicateTester):
@@ -478,6 +506,10 @@ class TestHasAllPermissionsPredicate(BasePredicateTester):
         p = predicates.has_all_permissions('party', 'scream')
         self.eval_unmet_predicate(p, environ,
                                   'The user must have the "scream" permission')
+    
+    def test_camel_case(self):
+        """The same predicate should be available using CamelCase notation."""
+        eq_(predicates.has_all_permissions, predicates.HasAllPermissions)
 
 
 class TestUserHasAnyPermissionsPredicate(BasePredicateTester):
@@ -501,6 +533,10 @@ class TestUserHasAnyPermissionsPredicate(BasePredicateTester):
                                                        'eat'])
         p = predicates.has_any_permission('party', 'scream')
         self.eval_met_predicate(p, environ)
+    
+    def test_camel_case(self):
+        """The same predicate should be available using CamelCase notation."""
+        eq_(predicates.has_any_permission, predicates.HasAnyPermission)
 
 
 class TestBooleanOperations(unittest.TestCase):

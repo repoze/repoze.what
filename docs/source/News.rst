@@ -2,6 +2,8 @@
 :mod:`repoze.what` releases
 ***************************
 
+.. currentmodule:: repoze.what
+
 This document describes the releases of :mod:`repoze.what`.
 
 
@@ -11,23 +13,32 @@ This document describes the releases of :mod:`repoze.what`.
 =======================================
 
 * Added support for Access Control Lists.
+* The predicates :class:`is_user <predicates.is_user>`, :class:`not_anonymous
+  <predicates.not_anonymous>`, :class:`is_anonymous <predicates.is_anonymous>`,
+  :class:`is_anonymous <predicates.in_group>`, :class:`in_all_groups
+  <predicates.in_all_groups>`, :class:`in_any_group <predicates.in_any_group>`,
+  :class:`has_permission <predicates.has_permission>`,
+  :class:`has_all_permissions <predicates.has_all_permissions>` and
+  :class:`has_any_permission <predicates.has_any_permission>`
+  have all been renamed to their CamelCase versions and aliases for the old
+  names have been added to keep backwards compatibility.
 * Predicates can now be negated with a tilde. The following expressions are now
   equivalent::
   
-      predicate = Not(is_user("foo"))
-      predicate = ~is_user("foo")
+      predicate = Not(IsUser("foo"))
+      predicate = ~IsUser("foo")
   
 * Predicates can now be joint pythonically, without using the :class:`Any
   <repoze.what.predicates.Any>` or :class:`All <repoze.what.predicates.All>`
   predicates. For example, the following conjunctive operations are equivalent::
   
-      predicate = is_user("foo") & has_permission("bar")
-      predicate = All(is_user("foo"), has_permission("bar"))
+      predicate = IsUser("foo") & has_permission("bar")
+      predicate = All(IsUser("foo"), has_permission("bar"))
   
   And the following disjunctive operations are equivalent too::
   
-      predicate = is_user("foo") | is_user("bar")
-      predicate = Any(is_user("foo"), is_user("bar"))
+      predicate = IsUser("foo") | IsUser("bar")
+      predicate = Any(IsUser("foo"), IsUser("bar"))
   
 * Now groups and permissions are loaded on demand, as long as you use the new
   :mod:`repoze.who` independent middleware.

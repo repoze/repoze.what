@@ -43,9 +43,9 @@ Or if you have a predicate which is "The current user is root and/or somebody
 with the 'manage' permission", then you may use the following built-in predicate
 checkers::
 
-    from repoze.what.predicates import Any, is_user, has_permission
+    from repoze.what.predicates import Any, IsUser, has_permission
     
-    p = Any(is_user('root'), has_permission('manage'),
+    p = Any(IsUser('root'), has_permission('manage'),
             msg='Only administrators can remove blog posts')
 
 As you may have noticed, predicates receive the ``msg`` keyword argument to

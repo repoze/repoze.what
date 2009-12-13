@@ -28,11 +28,12 @@ from copy import copy
 
 from paste.request import parse_formvars, parse_dict_querystring
 
-__all__ = ("Predicate", "CompoundPredicate", "All", "Any", 
-           "has_all_permissions", "has_any_permission", "has_permission", 
-           "in_all_groups", "in_any_group", "in_group", "is_user", 
-           "is_anonymous", "not_anonymous", "PredicateError",
-           "NotAuthorizedError")
+__all__ = ("Predicate", "CompoundPredicate", "All", "Any", "HasAllPermissions",
+    "HasAnyPermission", "HasPermission", "InAllGroups", "InAnyGroup", "InGroup",
+    "IsUser", "IsAnonymous", "NotAnonymous", "has_all_permissions",
+    "has_any_permission", "has_permission", "in_all_groups", "in_any_group",
+    "in_group", "is_user", "is_anonymous", "not_anonymous", "PredicateError",
+    "NotAuthorizedError")
 
 
 #{ Predicates
@@ -288,7 +289,7 @@ class Predicate(object):
         try:
             self.evaluate(environ, credentials)
             return True
-        except NotAuthorizedError, error:
+        except NotAuthorizedError:
             return False
     
     def parse_variables(self, environ):
@@ -417,7 +418,7 @@ class Not(Predicate):
     def evaluate(self, environ, credentials):
         try:
             self.predicate.evaluate(environ, credentials)
-        except NotAuthorizedError, error:
+        except NotAuthorizedError:
             return
         self.unmet()
 
@@ -485,7 +486,7 @@ class Any(CompoundPredicate):
         self.unmet(failed_predicates=failed_predicates)
 
 
-class is_user(Predicate):
+class IsUser(Predicate):
     """
     Check that the authenticated user's username is the specified one.
     
@@ -494,14 +495,14 @@ class is_user(Predicate):
     
     Example::
     
-        p = is_user('linus')
+        p = IsUser('linus')
     
     """
     
     message = u'The current user must be "%(user_name)s"'
 
     def __init__(self, user_name, **kwargs):
-        super(is_user, self).__init__(**kwargs)
+        super(IsUser, self).__init__(**kwargs)
         self.user_name = user_name
 
     def evaluate(self, environ, credentials):
@@ -511,7 +512,7 @@ class is_user(Predicate):
         self.unmet()
 
 
-class in_group(Predicate):
+class InGroup(Predicate):
     """
     Check that the user belongs to the specified group.
     
@@ -520,14 +521,14 @@ class in_group(Predicate):
     
     Example::
     
-        p = in_group('customers')
+        p = InGroup('customers')
     
     """
     
     message = u'The current user must belong to the group "%(group_name)s"'
 
     def __init__(self, group_name, **kwargs):
-        super(in_group, self).__init__(**kwargs)
+        super(InGroup, self).__init__(**kwargs)
         self.group_name = group_name
 
     def evaluate(self, environ, credentials):
@@ -536,7 +537,7 @@ class in_group(Predicate):
         self.unmet()
 
 
-class in_all_groups(All):
+class InAllGroups(All):
     """
     Check that the user belongs to all of the specified groups.
     
@@ -544,17 +545,17 @@ class in_all_groups(All):
     
     Example::
     
-        p = in_all_groups('developers', 'designers')
+        p = InAllGroups('developers', 'designers')
     
     """
     
     
     def __init__(self, *groups, **kwargs):
-        group_predicates = [in_group(g) for g in groups]
-        super(in_all_groups,self).__init__(*group_predicates, **kwargs)
+        group_predicates = [InGroup(g) for g in groups]
+        super(InAllGroups,self).__init__(*group_predicates, **kwargs)
 
 
-class in_any_group(Any):
+class InAnyGroup(Any):
     """
     Check that the user belongs to at least one of the specified groups.
     
@@ -562,7 +563,7 @@ class in_any_group(Any):
     
     Example::
     
-        p = in_any_group('directors', 'hr')
+        p = InAnyGroup('directors', 'hr')
     
     """
     
@@ -571,18 +572,18 @@ class in_any_group(Any):
 
     def __init__(self, *groups, **kwargs):
         self.group_list = ", ".join(groups)
-        group_predicates = [in_group(g) for g in groups]
-        super(in_any_group,self).__init__(*group_predicates, **kwargs)
+        group_predicates = [InGroup(g) for g in groups]
+        super(InAnyGroup,self).__init__(*group_predicates, **kwargs)
 
 
-class is_anonymous(Predicate):
+class IsAnonymous(Predicate):
     """
     Check that the current user is anonymous.
     
     Example::
     
         # The user must be anonymous!
-        p = is_anonymous()
+        p = IsAnonymous()
     
     .. versionadded:: 1.0.7
     
@@ -595,14 +596,14 @@ class is_anonymous(Predicate):
             self.unmet()
 
 
-class not_anonymous(Predicate):
+class NotAnonymous(Predicate):
     """
     Check that the current user has been authenticated.
     
     Example::
     
         # The user must have been authenticated!
-        p = not_anonymous()
+        p = NotAnonymous()
     
     """
     
@@ -613,7 +614,7 @@ class not_anonymous(Predicate):
             self.unmet()
 
 
-class has_permission(Predicate):
+class HasPermission(Predicate):
     """
     Check that the current user has the specified permission.
     
@@ -622,13 +623,13 @@ class has_permission(Predicate):
     
     Example::
     
-        p = has_permission('hire')
+        p = HasPermission('hire')
     
     """
     message = u'The user must have the "%(permission_name)s" permission'
 
     def __init__(self, permission_name, **kwargs):
-        super(has_permission, self).__init__(**kwargs)
+        super(HasPermission, self).__init__(**kwargs)
         self.permission_name = permission_name
 
     def evaluate(self, environ, credentials):
@@ -638,7 +639,7 @@ class has_permission(Predicate):
         self.unmet()
 
 
-class has_all_permissions(All):
+class HasAllPermissions(All):
     """
     Check that the current user has been granted all of the specified 
     permissions.
@@ -648,17 +649,17 @@ class has_all_permissions(All):
     
     Example::
     
-        p = has_all_permissions('view-users', 'edit-users')
+        p = HasAllPermissions('view-users', 'edit-users')
     
     """
     
     def __init__(self, *permissions, **kwargs):
-        permission_predicates = [has_permission(p) for p in permissions]
-        super(has_all_permissions, self).__init__(*permission_predicates,
-                                                  **kwargs)
+        permission_predicates = [HasPermission(p) for p in permissions]
+        super(HasAllPermissions, self).__init__(*permission_predicates,
+                                                **kwargs)
 
 
-class has_any_permission(Any):
+class HasAnyPermission(Any):
     """
     Check that the user has at least one of the specified permissions.
     
@@ -667,7 +668,7 @@ class has_any_permission(Any):
     
     Example::
     
-        p = has_any_permission('manage-users', 'edit-users')
+        p = HasAnyPermission('manage-users', 'edit-users')
     
     """
     
@@ -676,9 +677,8 @@ class has_any_permission(Any):
 
     def __init__(self, *permissions, **kwargs):
         self.permission_list = ", ".join(permissions)
-        permission_predicates = [has_permission(p) for p in permissions]
-        super(has_any_permission,self).__init__(*permission_predicates,
-                                                **kwargs)
+        permission_predicates = [HasPermission(p) for p in permissions]
+        super(HasAnyPermission,self).__init__(*permission_predicates, **kwargs)
 
 
 #{ Exceptions
@@ -716,6 +716,28 @@ class NotAuthorizedError(PredicateError):
     
     """
     pass
+
+
+#{ Aliases for backwards compatibility
+
+
+is_user = IsUser
+
+in_group = InGroup
+
+in_all_groups = InAllGroups
+
+in_any_group = InAnyGroup
+
+is_anonymous = IsAnonymous
+
+not_anonymous = NotAnonymous
+
+has_permission = HasPermission
+
+has_all_permissions = HasAllPermissions
+
+has_any_permission = HasAnyPermission
 
 
 #}

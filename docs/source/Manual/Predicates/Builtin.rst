@@ -21,6 +21,33 @@ is described below:
 Single predicate checkers
 =========================
 
+.. autoclass:: IsUser
+
+.. autoclass:: NotAnonymous
+
+.. autoclass:: IsAnonymous
+
+.. autoclass:: InGroup
+
+.. autoclass:: InAllGroups
+
+.. autoclass:: InAnyGroup
+
+.. autoclass:: HasPermission
+
+.. autoclass:: HasAllPermissions
+
+.. autoclass:: HasAnyPermission
+
+.. autoclass:: Not
+
+
+Old predicate names
+-------------------
+
+The following predicates are aliases to predicates above, provided only to
+keep backwards compatibility. They are all deprecated as of version 1.1:
+
 .. autoclass:: is_user
 
 .. autoclass:: not_anonymous
@@ -38,8 +65,6 @@ Single predicate checkers
 .. autoclass:: has_all_permissions
 
 .. autoclass:: has_any_permission
-
-.. autoclass:: Not
 
 
 Compound predicate checkers
