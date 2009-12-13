@@ -22,6 +22,9 @@ This document describes the releases of :mod:`repoze.what`.
   :class:`has_any_permission <predicates.has_any_permission>`
   have all been renamed to their CamelCase versions and aliases for the old
   names have been added to keep backwards compatibility.
+* Added aliases for instances of nullary predicates:
+  :data:`AUTHENTICATED <predicates.AUTHENTICATED>` and :data:`ANONYMOUS
+  <predicates.ANONYMOUS>`.
 * Predicates can now be negated with a tilde. The following expressions are now
   equivalent::
   

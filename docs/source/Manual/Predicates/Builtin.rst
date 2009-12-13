@@ -42,6 +42,14 @@ Single predicate checkers
 .. autoclass:: Not
 
 
+Aliases for nullary predicates
+------------------------------
+
+.. autodata:: ANONYMOUS
+
+.. autodata:: AUTHENTICATED
+
+
 Old predicate names
 -------------------
 

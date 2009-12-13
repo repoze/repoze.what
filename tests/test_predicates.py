@@ -439,6 +439,10 @@ class TestIsAnonymousPredicate(BasePredicateTester):
     def test_camel_case(self):
         """The same predicate should be available using CamelCase notation."""
         eq_(predicates.is_anonymous, predicates.IsAnonymous)
+    
+    def test_alias_instance(self):
+        """IsAnonymous must have an instance ready to use."""
+        ok_(isinstance(predicates.ANONYMOUS, predicates.IsAnonymous))
 
 
 class TestNotAnonymousPredicate(BasePredicateTester):
@@ -465,6 +469,10 @@ class TestNotAnonymousPredicate(BasePredicateTester):
     def test_camel_case(self):
         """The same predicate should be available using CamelCase notation."""
         eq_(predicates.not_anonymous, predicates.NotAnonymous)
+    
+    def test_alias_instance(self):
+        """NotAnonymous must have an instance ready to use."""
+        ok_(isinstance(predicates.AUTHENTICATED, predicates.NotAnonymous))
 
 
 class TestHasPermissionPredicate(BasePredicateTester):

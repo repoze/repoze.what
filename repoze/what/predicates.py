@@ -32,8 +32,8 @@ __all__ = ("Predicate", "CompoundPredicate", "All", "Any", "HasAllPermissions",
     "HasAnyPermission", "HasPermission", "InAllGroups", "InAnyGroup", "InGroup",
     "IsUser", "IsAnonymous", "NotAnonymous", "has_all_permissions",
     "has_any_permission", "has_permission", "in_all_groups", "in_any_group",
-    "in_group", "is_user", "is_anonymous", "not_anonymous", "PredicateError",
-    "NotAuthorizedError")
+    "in_group", "is_user", "is_anonymous", "not_anonymous", "ANONYMOUS",
+    "AUTHENTICATED", "PredicateError", "NotAuthorizedError")
 
 
 #{ Predicates
@@ -716,6 +716,26 @@ class NotAuthorizedError(PredicateError):
     
     """
     pass
+
+
+#{ Aliases for nullary predicates
+
+
+ANONYMOUS = IsAnonymous()
+"""
+Ready-to-use instance of :class:`IsAnonymous`.
+
+.. versionadded:: 1.1
+
+"""
+
+AUTHENTICATED = NotAnonymous()
+"""
+Ready-to-use instance of :class:`NotAnonymous`.
+
+.. versionadded:: 1.1
+
+"""
 
 
 #{ Aliases for backwards compatibility
