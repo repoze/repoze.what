@@ -141,7 +141,7 @@ or Pylons, you may run it with the following command::
 .. attention::
     If you think you have found a security vulnerability, please get in touch
     with the author as soon as possible via email at ``me#gustavonarea , net``
-    (replacing those invalid characters with the right ones).
+    (replace those invalid characters with the right ones).
 
 Contents
 ========
