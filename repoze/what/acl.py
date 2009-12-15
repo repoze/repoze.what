@@ -2,6 +2,7 @@
 ##############################################################################
 #
 # Copyright (c) 2009, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
+# Copyright (c) 2009, Gustavo Narea <me@gustavonarea.net>.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -106,7 +107,7 @@ class ACL(_BaseAuthorizationControl):
     #{ ACE management
     
     def allow(self, path_or_object, predicate=None, named_args=(),
-              positional_args=0, msg=None):
+              positional_args=0, msg=None, propagate=True):
         """
         Grant access on ``path_or_object`` if the ``predicate`` is met, all the
         named arguments in ``named_args`` are set and there are at least
@@ -124,16 +125,19 @@ class ACL(_BaseAuthorizationControl):
         :type positional_args: :class:`int`
         :param msg: The reason why authorization is granted.
         :type msg: :class:`basestring`
+        :param propagate: Whether this ACE should be propagated to any path
+            which begins with this one (as long as this ACE covers a path).
+        :type propagate: :class:`bool`
         
         If no ``predicate`` is set, then the ACE will always be taken into
         account.
         
         """
         self._add_ace(path_or_object, predicate, True, named_args,
-                      positional_args, None, msg)
+                      positional_args, None, msg, propagate)
     
     def deny(self, path_or_object, predicate=None, named_args=(),
-             positional_args=0, denial_handler=None, msg=None):
+             positional_args=0, denial_handler=None, msg=None, propagate=True):
         """
         Deny access on ``path_or_object`` if the ``predicate`` is met, all the
         named arguments in ``named_args`` are set and there are at least
@@ -153,22 +157,26 @@ class ACL(_BaseAuthorizationControl):
             final ACE (i.e., authorization is to be denied).
         :param msg: The reason why authorization is granted.
         :type msg: :class:`basestring`
+        :param propagate: Whether this ACE should be propagated to any path
+            which begins with this one (as long as this ACE covers a path).
+        :type propagate: :class:`bool`
         
         If no ``predicate`` is set, then the ACE will always be taken into
         account.
         
         """
         self._add_ace(path_or_object, predicate, False, named_args,
-                      positional_args, denial_handler, msg)
+                      positional_args, denial_handler, msg, propagate)
     
     def _add_ace(self, path_or_object, predicate, allow, named_args,
-                 positional_args, denial_handler, msg):
+                 positional_args, denial_handler, msg, propagate):
         is_path = isinstance(path_or_object, basestring)
         if is_path:
             # We're protecting a path, so we must preppend the base path:
             path_or_object = self._base_path + path_or_object
         # Adding this ACE:
-        ace = _ACE(predicate, allow, named_args, positional_args, msg)
+        ace = _ACE(predicate, allow, named_args, positional_args, msg,
+                   propagate)
         self._aces.append((path_or_object, ace, is_path, denial_handler))
     
     #}
@@ -200,8 +208,8 @@ class ACL(_BaseAuthorizationControl):
         # this request (the one described by ``environ`` and the ``object``).
         for (path_or_object, ace, is_path, denial_handler) in self._aces:
             # Checking the scope of the current ACE:
-            if (is_path and
-                not tracker.is_within_scope(path_or_object, environ)):
+            if (is_path and not
+                tracker.is_within_scope(path_or_object, ace.propagate, environ)):
                 # This ACE covers a path, but the current request is not
                 # within its scope.
                 continue
@@ -296,7 +304,7 @@ class ACLCollection(_BaseAuthorizationControl):
         # Let's iterate over every ACL to see if any of them knows what to do
         # with this request:
         for acl in self._acls:
-            if not tracker.is_within_scope(acl._base_path, environ):
+            if not tracker.is_within_scope(acl._base_path, True, environ):
                 # This request is out of the scope of this ACL.
                 continue
             
@@ -354,7 +362,7 @@ class _ACE(object):
     """
     
     def __init__(self, predicate, allow, named_args=(), positional_args=0,
-                 message=None):
+                 message=None, propagate=True):
         if not allow and predicate is not None:
             # Let's negate the predicate so we can get the denial message when
             # it IS met:
@@ -364,6 +372,7 @@ class _ACE(object):
         self.named_args = set(named_args)
         self.positional_args = positional_args
         self.message = message
+        self.propagate = propagate
     
     def can_participate(self, environ):
         """
@@ -440,7 +449,7 @@ class _MatchTracker(object):
         self.longest_path_match = 0
         self.object_ace_found = False
     
-    def is_within_scope(self, protected_path, environ):
+    def is_within_scope(self, protected_path, propagated, environ):
         """
         Report whether ``protected_path`` covers the path in
         ``environ['PATH_INFO']``.
@@ -449,15 +458,21 @@ class _MatchTracker(object):
         ``environ``, but we already found a protected path whose scope is
         more specific, then ``protected_path`` will be out of scope.
         
-        Likewise, if we already found an ACE/ACL for the object of the requets,
+        Likewise, if we already found an ACE/ACL for the object of the requests,
         then ``protected_path`` will be out of scope.
         
         In other words, ``protected_path`` will be within scope if and only if
         ``protected_path`` represents the most specific ACE.
         
+        If ``protected_path`` is ``propagated``, then it will affect cover all
+        the requests under such a path.
+        
         """
-        return (environ['PATH_INFO'].startswith(protected_path) and
-                len(protected_path) >= self.longest_path_match and
+        path = environ['PATH_INFO']
+        protected_path_length = len(protected_path)
+        return (path.startswith(protected_path) and
+                (propagated or len(path) == protected_path_length) and
+                protected_path_length >= self.longest_path_match and
                 not self.object_ace_found)
     
     def set_longest_path(self, protected_path):

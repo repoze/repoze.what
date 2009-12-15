@@ -1,4 +1,18 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+#
+# Copyright (c) 2009, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
+# Copyright (c) 2009, Gustavo Narea <me@gustavonarea.net>.
+# All Rights Reserved.
+#
+# This software is subject to the provisions of the BSD-like license at
+# http://www.repoze.org/LICENSE.txt.  A copy of the license should accompany
+# this distribution.  THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL
+# EXPRESS OR IMPLIED WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO,
+# THE IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND
+# FITNESS FOR A PARTICULAR PURPOSE.
+#
+##############################################################################
 """
 Tests for the ACL implementation.
 
@@ -47,6 +61,7 @@ class TestACL(TestCase):
         eq_(ace.predicate, predicate)
         eq_(ace.named_args, set())
         eq_(ace.positional_args, 0)
+        eq_(ace.propagate, True)
     
     def test_allow_object_in_global_acl_without_arguments(self):
         predicate = TitletalePredicate()
@@ -148,6 +163,12 @@ class TestACL(TestCase):
         ok_(ace.allow)
         eq_(ace.message, "Everyone can access the blog")
     
+    def test_allow_without_propagation(self):
+        acl = ACL()
+        acl.allow("/blog", propagate=False)
+        ace = acl._aces[0][1]
+        assert_false(ace.propagate)
+    
     #{ Testing denials
     
     def test_deny_path_in_global_acl_without_arguments(self):
@@ -165,6 +186,7 @@ class TestACL(TestCase):
         eq_(ace.predicate.predicate, predicate)
         eq_(ace.named_args, set())
         eq_(ace.positional_args, 0)
+        eq_(ace.propagate, True)
     
     def test_deny_object_in_global_acl_without_arguments(self):
         predicate = TitletalePredicate()
@@ -280,6 +302,12 @@ class TestACL(TestCase):
         ace = acl._aces[0][1]
         assert_false(ace.allow)
         eq_(ace.message, "Noone can access the blog")
+    
+    def test_deny_without_propagation(self):
+        acl = ACL()
+        acl.deny("/blog", propagate=False)
+        ace = acl._aces[0][1]
+        assert_false(ace.propagate)
     
     #{ Testing decisions
     
@@ -675,6 +703,36 @@ class TestACL(TestCase):
         ok_(decision4.allow)
         eq_(decision4.message, "Everybody can add posts tomorrow")
     
+    def test_authorization_without_propagation_nor_predicate(self):
+        """ACEs must not be propagated when explicitly requested."""
+        acl = ACL()
+        acl.allow("/blog/", propagate=False)
+        environ = {
+            'PATH_INFO': "/blog/posts",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision = acl.decide_authorization(environ)
+        eq_(decision, None)
+    
+    def test_authorization_with_predicate_and_no_propagation(self):
+        """
+        ACEs must not be propagated when explicitly requested and predicates
+        must have not been evaluated.
+        
+        """
+        acl = ACL()
+        predicate = TitletalePredicate(True)
+        acl.allow("/blog/", predicate=predicate, propagate=False)
+        environ = {
+            'PATH_INFO': "/blog/posts",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision = acl.decide_authorization(environ)
+        eq_(decision, None)
+        assert_false(predicate.evaluated)
+    
     #}
 
 
@@ -874,15 +932,18 @@ class TestAces(TestCase):
         eq_(ace.allow, True)
         eq_(ace.named_args, set())
         eq_(ace.positional_args, 0)
+        eq_(ace.propagate, True)
     
     def test_constructor_with_args(self):
         predicate = is_user("foo")
-        ace = _ACE(predicate, True, ("arg1", "arg2"), 3, "Here's a message")
+        ace = _ACE(predicate, True, ("arg1", "arg2"), 3, "Here's a message",
+                   False)
         eq_(ace.predicate, predicate)
         eq_(ace.allow, True)
         eq_(ace.named_args, set(["arg1", "arg2"]))
         eq_(ace.positional_args, 3)
         eq_(ace.message, "Here's a message")
+        eq_(ace.propagate, False)
     
     def test_denial_ace(self):
         predicate = is_user("foo")
@@ -903,7 +964,7 @@ class TestAces(TestCase):
         ok_(participation)
         eq_(message, None)
     
-    def test_denial_ace_without_and_custom_message(self):
+    def test_denial_ace_without_predicate_and_custom_message(self):
         ace = _ACE(None, False, message="Foo Bar")
         eq_(ace.predicate, None)
         environ = {
@@ -1148,7 +1209,8 @@ class TestMatchTracker(TestCase):
         
         """
         tracker = _MatchTracker()
-        assert_false(tracker.is_within_scope("/admin", {'PATH_INFO': "/blog"}))
+        environ = {'PATH_INFO': "/blog/"}
+        assert_false(tracker.is_within_scope("/admin", True, environ))
     
     def test_scope_check_with_less_specific_path(self):
         """
@@ -1158,7 +1220,8 @@ class TestMatchTracker(TestCase):
         """
         tracker = _MatchTracker()
         tracker.longest_path_match = 3
-        assert_false(tracker.is_within_scope("/", {'PATH_INFO': "/blog"}))
+        environ = {'PATH_INFO': "/blog"}
+        assert_false(tracker.is_within_scope("/", True, environ))
     
     def test_scope_check_with_object_protection_found(self):
         """
@@ -1168,7 +1231,8 @@ class TestMatchTracker(TestCase):
         """
         tracker = _MatchTracker()
         tracker.object_ace_found = True
-        assert_false(tracker.is_within_scope("/", {'PATH_INFO': "/blog"}))
+        environ = {'PATH_INFO': "/blog/"}
+        assert_false(tracker.is_within_scope("/", True, environ))
     
     def test_scope_check_with_right_path(self):
         """
@@ -1177,7 +1241,8 @@ class TestMatchTracker(TestCase):
         
         """
         tracker = _MatchTracker()
-        ok_(tracker.is_within_scope("/blog", {'PATH_INFO': "/blog/add_post"}))
+        environ = {'PATH_INFO': "/blog/add_post"}
+        ok_(tracker.is_within_scope("/blog", True, environ))
     
     def test_scope_check_with_equally_specific_path(self):
         """
@@ -1187,7 +1252,18 @@ class TestMatchTracker(TestCase):
         """
         tracker = _MatchTracker()
         tracker.longest_path_match = 1
-        ok_(tracker.is_within_scope("/", {'PATH_INFO': "/blog"}))
+        environ = {'PATH_INFO': "/blog"}
+        ok_(tracker.is_within_scope("/", True, environ))
+    
+    def test_scope_check_with_parent_path_but_no_propagation(self):
+        """
+        A request is not within the scope of a parent path if the later is not
+        propagated.
+        
+        """
+        tracker = _MatchTracker()
+        environ = {'PATH_INFO': "/blog/add_post"}
+        assert_false(tracker.is_within_scope("/blog", False, environ))
     
     def test_setting_longest_path(self):
         tracker = _MatchTracker()
