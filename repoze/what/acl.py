@@ -18,6 +18,8 @@ Basic Access Control Lists implementation.
 
 """
 
+from re import compile as compile_regex
+
 from repoze.what.predicates import Not, NotAuthorizedError
 
 __all__ = ("ACL", "ACLCollection", "AuthorizationDecision")
@@ -82,7 +84,7 @@ class ACL(_BaseAuthorizationControl):
         :param default_denial_handler: The default authorization denial handler.
         :type default_denial_handler: :class:`object`
         
-        If ``base_path`` is an empty string or a backslash, that means this ACL
+        If ``base_path`` is an empty string or a slash, that means this ACL
         is global.
         
         When a request in not within the scope of any ACE in the ACL,
@@ -94,15 +96,14 @@ class ACL(_BaseAuthorizationControl):
         denial handler.
         
         """
-        self._base_path = base_path
+        self._base_path = _normalize_path(base_path)
         # The ACEs can't be a dictionary because order matters. It will be a
         # list made of quadruples where the first element is the protected
         # object/path, the second one is its set of ACEs, the third one is
         # a boolean which specifies where it's a path and the fourth one is the
         # denial handler to be used (if authorization is to be denied).
         self._aces = []
-        super(ACL, self).__init__(allow_by_default,
-                                  default_denial_handler)
+        super(ACL, self).__init__(allow_by_default, default_denial_handler)
     
     #{ ACE management
     
@@ -173,7 +174,7 @@ class ACL(_BaseAuthorizationControl):
         is_path = isinstance(path_or_object, basestring)
         if is_path:
             # We're protecting a path, so we must preppend the base path:
-            path_or_object = self._base_path + path_or_object
+            path_or_object = _normalize_path(self._base_path + path_or_object)
         # Adding this ACE:
         ace = _ACE(predicate, allow, named_args, positional_args, msg,
                    propagate)
@@ -199,6 +200,7 @@ class ACL(_BaseAuthorizationControl):
         
         """
         final_decision = self._default_final_decision
+        path_info = _normalize_path(environ['PATH_INFO'])
         
         # Let's keep track of the longest path match so far, so we can ignore
         # shorter matches:
@@ -209,7 +211,7 @@ class ACL(_BaseAuthorizationControl):
         for (path_or_object, ace, is_path, denial_handler) in self._aces:
             # Checking the scope of the current ACE:
             if (is_path and not
-                tracker.is_within_scope(path_or_object, ace.propagate, environ)):
+                tracker.is_within_scope(path_or_object, ace.propagate, path_info)):
                 # This ACE covers a path, but the current request is not
                 # within its scope.
                 continue
@@ -296,6 +298,7 @@ class ACLCollection(_BaseAuthorizationControl):
         
         """
         final_decision = self._default_final_decision
+        path_info = _normalize_path(environ['PATH_INFO'])
         
         # Let's keep track of the longest path match so far, so we can ignore
         # shorter matches:
@@ -304,7 +307,7 @@ class ACLCollection(_BaseAuthorizationControl):
         # Let's iterate over every ACL to see if any of them knows what to do
         # with this request:
         for acl in self._acls:
-            if not tracker.is_within_scope(acl._base_path, True, environ):
+            if not tracker.is_within_scope(acl._base_path, True, path_info):
                 # This request is out of the scope of this ACL.
                 continue
             
@@ -449,10 +452,9 @@ class _MatchTracker(object):
         self.longest_path_match = 0
         self.object_ace_found = False
     
-    def is_within_scope(self, protected_path, propagated, environ):
+    def is_within_scope(self, protected_path, propagated, path):
         """
-        Report whether ``protected_path`` covers the path in
-        ``environ['PATH_INFO']``.
+        Report whether ``protected_path`` covers the ``path``.
         
         If ``protected_path`` covers the path in the request described by
         ``environ``, but we already found a protected path whose scope is
@@ -468,7 +470,6 @@ class _MatchTracker(object):
         the requests under such a path.
         
         """
-        path = environ['PATH_INFO']
         protected_path_length = len(protected_path)
         return (path.startswith(protected_path) and
                 (propagated or len(path) == protected_path_length) and
@@ -478,6 +479,31 @@ class _MatchTracker(object):
     def set_longest_path(self, protected_path):
         """Set the longest protected path so far to ``protected_path``."""
         self.longest_path_match = len(protected_path)
+
+
+_MULTIPLE_PATHS = compile_regex(r"/{2,}")
+
+
+def _normalize_path(path):
+    """
+    Normalize ``path``.
+    
+    It returns ``path`` with leading and trailing slashes, and no multiple
+    continuous slashes.
+    
+    """
+    if path:
+        if path[0] != "/":
+            path = "/" + path
+        
+        if path[-1] != "/":
+            path = path + "/"
+        
+        path = _MULTIPLE_PATHS.sub("/", path)
+    else:
+        path = "/"
+    
+    return path
 
 
 #}

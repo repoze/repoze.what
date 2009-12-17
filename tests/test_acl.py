@@ -24,7 +24,8 @@ from nose.tools import eq_, ok_, assert_false, assert_raises
 
 from repoze.what.predicates import Predicate, is_user
 from repoze.what.acl import (ACL, ACLCollection, AuthorizationDecision,
-                             _BaseAuthorizationControl, _ACE, _MatchTracker)
+                             _BaseAuthorizationControl, _ACE, _MatchTracker,
+                             _normalize_path)
 from repoze.what.predicates import NotAuthorizedError
 
 
@@ -39,7 +40,7 @@ class TestACL(TestCase):
     
     def test_constructor_without_extra_args(self):
         acl = ACL()
-        eq_(acl._base_path, "")
+        eq_(acl._base_path, "/")
         eq_(len(acl._aces), 0)
         eq_(acl._default_final_decision, None)
         eq_(acl._default_denial_handler, None)
@@ -54,7 +55,7 @@ class TestACL(TestCase):
         eq_(len(acl._aces), 1)
         eq_(len(acl._aces[0]), 4)
         (path_or_object, ace, is_path, denial_handler) = acl._aces[0]
-        eq_(path_or_object, "/blog")
+        eq_(path_or_object, "/blog/")
         ok_(is_path)
         eq_(denial_handler, None)
         ok_(ace.allow)
@@ -88,7 +89,7 @@ class TestACL(TestCase):
         eq_(len(acl._aces), 1)
         eq_(len(acl._aces[0]), 4)
         (path_or_object, ace, is_path, denial_handler) = acl._aces[0]
-        eq_(path_or_object, "/blog")
+        eq_(path_or_object, "/blog/")
         ok_(is_path)
         eq_(denial_handler, None)
         ok_(ace.allow)
@@ -104,7 +105,7 @@ class TestACL(TestCase):
         eq_(len(acl._aces), 1)
         eq_(len(acl._aces[0]), 4)
         (path_or_object, ace, is_path, denial_handler) = acl._aces[0]
-        eq_(path_or_object, "/blog/post_new")
+        eq_(path_or_object, "/blog/post_new/")
         ok_(is_path)
         eq_(denial_handler, None)
         ok_(ace.allow)
@@ -137,7 +138,7 @@ class TestACL(TestCase):
         eq_(len(acl._aces), 1)
         eq_(len(acl._aces[0]), 4)
         (path_or_object, ace, is_path, denial_handler) = acl._aces[0]
-        eq_(path_or_object, "/blog/view_comment")
+        eq_(path_or_object, "/blog/view_comment/")
         ok_(is_path)
         eq_(denial_handler, None)
         ok_(ace.allow)
@@ -179,7 +180,7 @@ class TestACL(TestCase):
         eq_(len(acl._aces), 1)
         eq_(len(acl._aces[0]), 4)
         (path_or_object, ace, is_path, denial_handler) = acl._aces[0]
-        eq_(path_or_object, "/blog")
+        eq_(path_or_object, "/blog/")
         ok_(is_path)
         eq_(denial_handler, None)
         assert_false(ace.allow)
@@ -213,7 +214,7 @@ class TestACL(TestCase):
         eq_(len(acl._aces), 1)
         eq_(len(acl._aces[0]), 4)
         (path_or_object, ace, is_path, denial_handler) = acl._aces[0]
-        eq_(path_or_object, "/blog")
+        eq_(path_or_object, "/blog/")
         ok_(is_path)
         eq_(denial_handler, None)
         assert_false(ace.allow)
@@ -229,7 +230,7 @@ class TestACL(TestCase):
         eq_(len(acl._aces), 1)
         eq_(len(acl._aces[0]), 4)
         (path_or_object, ace, is_path, denial_handler) = acl._aces[0]
-        eq_(path_or_object, "/blog/post_new")
+        eq_(path_or_object, "/blog/post_new/")
         ok_(is_path)
         eq_(denial_handler, None)
         assert_false(ace.allow)
@@ -262,7 +263,7 @@ class TestACL(TestCase):
         eq_(len(acl._aces), 1)
         eq_(len(acl._aces[0]), 4)
         (path_or_object, ace, is_path, denial_handler) = acl._aces[0]
-        eq_(path_or_object, "/blog/view_comment")
+        eq_(path_or_object, "/blog/view_comment/")
         ok_(is_path)
         eq_(denial_handler, None)
         assert_false(ace.allow)
@@ -279,7 +280,7 @@ class TestACL(TestCase):
         eq_(len(acl._aces), 1)
         eq_(len(acl._aces[0]), 4)
         (path_or_object, ace, is_path, denial_handler) = acl._aces[0]
-        eq_(path_or_object, "/blog")
+        eq_(path_or_object, "/blog/")
         ok_(is_path)
         eq_(denial_handler, custom_denial_handler)
         assert_false(ace.allow)
@@ -443,7 +444,7 @@ class TestACL(TestCase):
         ok_(decision1.allow)
         eq_(decision1.message, None)
         eq_(decision1.denial_handler, None)
-        eq_(decision1.match_tracker.longest_path_match, 5)
+        eq_(decision1.match_tracker.longest_path_match, 6)
         assert_false(decision1.match_tracker.object_ace_found)
         # Checking with an object:
         environ2 = {
@@ -498,7 +499,7 @@ class TestACL(TestCase):
         ok_(decision2.allow)
         eq_(decision2.message, None)
         eq_(decision2.denial_handler, None)
-        eq_(decision2.match_tracker.longest_path_match, 5)
+        eq_(decision2.match_tracker.longest_path_match, 6)
         assert_false(decision2.match_tracker.object_ace_found)
         # ----- Two ACEs cover the current path; pick the most specific one:
         environ3 = {
@@ -510,7 +511,7 @@ class TestACL(TestCase):
         assert_false(decision3.allow)
         eq_(decision3.message, "Titletale predicate")
         eq_(decision3.denial_handler, None)
-        eq_(decision3.match_tracker.longest_path_match, 18)
+        eq_(decision3.match_tracker.longest_path_match, 19)
         assert_false(decision3.match_tracker.object_ace_found)
         # ----- Three ACEs cover the current path and two of them cover the
         # ----- exact same path; pick the latest one:
@@ -523,7 +524,7 @@ class TestACL(TestCase):
         ok_(decision4.allow)
         eq_(decision4.message, None)
         eq_(decision4.denial_handler, None)
-        eq_(decision4.match_tracker.longest_path_match, 18)
+        eq_(decision4.match_tracker.longest_path_match, 19)
         assert_false(decision4.match_tracker.object_ace_found)
         # ----- One ACE covers the object itself:
         environ5 = {
@@ -548,7 +549,7 @@ class TestACL(TestCase):
         ok_(decision6.allow)
         eq_(decision6.message, None)
         eq_(decision6.denial_handler, None)
-        eq_(decision6.match_tracker.longest_path_match, 18)
+        eq_(decision6.match_tracker.longest_path_match, 19)
         ok_(decision6.match_tracker.object_ace_found)
         # ----- Two ACEs cover the object itself; pick the latest one:
         environ7 = {
@@ -733,6 +734,93 @@ class TestACL(TestCase):
         eq_(decision, None)
         assert_false(predicate.evaluated)
     
+    def test_authorization_with_ace_with_trailing_slash(self):
+        """ACEs with a trailing slash should match requests without it."""
+        acl = ACL()
+        acl.allow("/path/", propagate=False)
+        environ = {
+            'PATH_INFO': "/path",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision = acl.decide_authorization(environ)
+        ok_(decision.allow)
+    
+    def test_authorization_with_ace_without_trailing_slash(self):
+        """ACEs without a trailing slash should match requests with it."""
+        acl = ACL()
+        acl.allow("/path", propagate=False)
+        environ = {
+            'PATH_INFO': "/path/",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision = acl.decide_authorization(environ)
+        ok_(decision.allow)
+    
+    def test_authorization_with_propagation_and_no_trailing_slash(self):
+        """
+        ACEs without a trailing slash should not match sibling paths.
+        
+        This is, paths under the same parent directory.
+        
+        """
+        acl = ACL()
+        acl.allow("/path", propagate=True)
+        environ = {
+            'PATH_INFO': "/path-brother",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision = acl.decide_authorization(environ)
+        eq_(decision, None)
+    
+    def test_authorization_without_leading_slashes_in_paths(self):
+        """Missing leading slashes in the paths must not affect authorization"""
+        acl = ACL()
+        # ACEs without leading slashes must match right paths:
+        acl.allow("foo/")
+        environ_with_right_path = {
+            'PATH_INFO': "/foo",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision1 = acl.decide_authorization(environ_with_right_path)
+        ok_(decision1.allow)
+        # Right ACEs must match paths without leading slashes, although this
+        # doesn't seem to make sense:
+        acl.allow("/bar/")
+        environ_with_wrong_path = {
+            'PATH_INFO': "bar/",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision2 = acl.decide_authorization(environ_with_wrong_path)
+        ok_(decision2.allow)
+    
+    def test_authorization_with_multiple_continuous_slashes_in_paths(self):
+        """Multiple continuous slashes in the paths must make no difference."""
+        acl = ACL()
+        # Checking an ACE with multiple continuous slashes:
+        acl.allow("/foo/////bar/")
+        environ_with_right_path = {
+            'PATH_INFO': "/foo/bar/",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision1 = acl.decide_authorization(environ_with_right_path)
+        ok_(decision1.allow)
+        # Checking an PATH_INFO with multiple continuous slashes:
+        acl.allow("/bar/foo/")
+        environ_with_wrong_path = {
+            'PATH_INFO': "/bar/////foo/",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision2 = acl.decide_authorization(environ_with_wrong_path)
+        ok_(decision2.allow)
+        
+    
     #}
 
 
@@ -820,7 +908,7 @@ class TestACLCollections(TestCase):
         decision1 = collection.decide_authorization(environ1)
         assert_false(decision1.allow)
         eq_(decision1.message, "Titletale predicate")
-        eq_(decision1.match_tracker.longest_path_match, 10)
+        eq_(decision1.match_tracker.longest_path_match, 11)
         # ----- If there's a default decision, use it:
         environ2 = {
             'PATH_INFO': "/foo/bar",
@@ -851,7 +939,41 @@ class TestACLCollections(TestCase):
         decision = collection.decide_authorization(environ)
         assert_false(decision.allow)
         eq_(decision.message, "This is something custom")
-        eq_(decision.match_tracker.longest_path_match, 16)
+        eq_(decision.match_tracker.longest_path_match, 17)
+    
+    def test_authorization_with_acl_with_trailing_slash(self):
+        """
+        ACLs covering a path with a trailing slash must cover requests without
+        it.
+        
+        """
+        acl = ACL("/path/", allow_by_default=True)
+        collection = ACLCollection()
+        collection.add_acl(acl)
+        environ = {
+            'PATH_INFO': "/path",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision = collection.decide_authorization(environ)
+        ok_(decision.allow)
+    
+    def test_authorization_with_acl_without_trailing_slash(self):
+        """
+        ACLs covering a path without a trailing slash must cover requests with
+        it.
+        
+        """
+        acl = ACL("/path", allow_by_default=True)
+        collection = ACLCollection()
+        collection.add_acl(acl)
+        environ = {
+            'PATH_INFO': "/path/",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision = collection.decide_authorization(environ)
+        ok_(decision.allow)
     
     #}
 
@@ -1209,8 +1331,7 @@ class TestMatchTracker(TestCase):
         
         """
         tracker = _MatchTracker()
-        environ = {'PATH_INFO': "/blog/"}
-        assert_false(tracker.is_within_scope("/admin", True, environ))
+        assert_false(tracker.is_within_scope("/admin", True, "/blog/"))
     
     def test_scope_check_with_less_specific_path(self):
         """
@@ -1220,8 +1341,7 @@ class TestMatchTracker(TestCase):
         """
         tracker = _MatchTracker()
         tracker.longest_path_match = 3
-        environ = {'PATH_INFO': "/blog"}
-        assert_false(tracker.is_within_scope("/", True, environ))
+        assert_false(tracker.is_within_scope("/", True, "/blog"))
     
     def test_scope_check_with_object_protection_found(self):
         """
@@ -1231,8 +1351,7 @@ class TestMatchTracker(TestCase):
         """
         tracker = _MatchTracker()
         tracker.object_ace_found = True
-        environ = {'PATH_INFO': "/blog/"}
-        assert_false(tracker.is_within_scope("/", True, environ))
+        assert_false(tracker.is_within_scope("/", True, "/blog/"))
     
     def test_scope_check_with_right_path(self):
         """
@@ -1241,8 +1360,7 @@ class TestMatchTracker(TestCase):
         
         """
         tracker = _MatchTracker()
-        environ = {'PATH_INFO': "/blog/add_post"}
-        ok_(tracker.is_within_scope("/blog", True, environ))
+        ok_(tracker.is_within_scope("/blog", True, "/blog/add_post"))
     
     def test_scope_check_with_equally_specific_path(self):
         """
@@ -1252,8 +1370,7 @@ class TestMatchTracker(TestCase):
         """
         tracker = _MatchTracker()
         tracker.longest_path_match = 1
-        environ = {'PATH_INFO': "/blog"}
-        ok_(tracker.is_within_scope("/", True, environ))
+        ok_(tracker.is_within_scope("/", True, "/blog"))
     
     def test_scope_check_with_parent_path_but_no_propagation(self):
         """
@@ -1262,8 +1379,7 @@ class TestMatchTracker(TestCase):
         
         """
         tracker = _MatchTracker()
-        environ = {'PATH_INFO': "/blog/add_post"}
-        assert_false(tracker.is_within_scope("/blog", False, environ))
+        assert_false(tracker.is_within_scope("/blog", False, "/blog/add_post"))
     
     def test_setting_longest_path(self):
         tracker = _MatchTracker()
@@ -1271,6 +1387,46 @@ class TestMatchTracker(TestCase):
         eq_(tracker.longest_path_match, 9)
         tracker.set_longest_path("/hi")
         eq_(tracker.longest_path_match, 3)
+
+
+class TestNormalizingPath(object):
+    """Tests for :func:`_normalize_path`."""
+    
+    def test_empty_string(self):
+        path_normalized = _normalize_path("")
+        eq_(path_normalized, "/")
+    
+    def test_slash(self):
+        path_normalized = _normalize_path("/")
+        eq_(path_normalized, "/")
+    
+    def test_no_leading_slash(self):
+        path_normalized = _normalize_path("path/")
+        eq_(path_normalized, "/path/")
+    
+    def test_no_trailing_slash(self):
+        path_normalized = _normalize_path("/path")
+        eq_(path_normalized, "/path/")
+    
+    def test_trailing_and_leading_slashes(self):
+        path_normalized = _normalize_path("/path/")
+        eq_(path_normalized, "/path/")
+    
+    def test_multiple_leading_slashes(self):
+        path_normalized = _normalize_path("////path/")
+        eq_(path_normalized, "/path/")
+    
+    def test_multiple_trailing_slashes(self):
+        path_normalized = _normalize_path("/path////")
+        eq_(path_normalized, "/path/")
+    
+    def test_multiple_inner_slashes(self):
+        path_normalized = _normalize_path("/path////here/")
+        eq_(path_normalized, "/path/here/")
+    
+    def test_unicode_path(self):
+        path_normalized = _normalize_path(u"mañana/aquí")
+        eq_(path_normalized, u"/mañana/aquí/")
 
 
 #{ Mock objects
