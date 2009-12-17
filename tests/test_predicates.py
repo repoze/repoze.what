@@ -72,18 +72,6 @@ class TestPredicate(BasePredicateTester):
         p = EqualsTwo()
         self.assertEqual(previous_msg, p.message)
     
-    def test_copying_with_new_message(self):
-        """
-        Calling a predicate should return a copy of that predicate but with a
-        new message.
-        
-        """
-        original_predicate = EqualsTwo(msg="Foo")
-        new_predicate = original_predicate(msg="Bar")
-        self.assertEqual(original_predicate.message, "Foo")
-        self.assertEqual(new_predicate.message, "Bar")
-        self.assertEqual(original_predicate.__class__, new_predicate.__class__)
-    
     def test_unicode_messages(self):
         unicode_msg = u'请登陆'
         p = EqualsTwo(msg=unicode_msg)

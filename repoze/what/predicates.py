@@ -24,7 +24,6 @@ original "identity" framework of TurboGears 1, plus others.
 
 """
 from warnings import warn
-from copy import copy
 
 from paste.request import parse_formvars, parse_dict_querystring
 
@@ -61,22 +60,6 @@ class Predicate(object):
         """
         if msg:
             self.message = msg
-    
-    def __call__(self, msg):
-        """
-        Return a copy of this predicate, but use ``msg`` as the message.
-        
-        :param msg: The new message.
-        :type msg: :class:`basestring`
-        :return: A copy of the current predicate.
-        :rtype: :class:`Predicate`
-        
-        .. versionadded:: 1.1
-        
-        """
-        new_predicate = copy(self)
-        new_predicate.message = msg
-        return new_predicate
     
     def evaluate(self, environ, credentials):
         """
