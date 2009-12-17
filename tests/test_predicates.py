@@ -553,6 +553,16 @@ class TestBooleanOperations(unittest.TestCase):
     
     """
     
+    def test_invalid_operations(self):
+        try:
+            predicates.is_user("gustavo") & "I am just an string"
+            predicates.is_user("gustavo") | "I am just an string"
+        except TypeError:
+            pass
+        else:
+            raise AssertionError("Predicates must only support binary "
+                                 "operations with other predicates!")
+    
     #{ Unary operations
     
     def test_not(self):

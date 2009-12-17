@@ -379,8 +379,8 @@ class Predicate(object):
             return NotImplemented
         
         if isinstance(self, klass):
-            predicate = copy(self)
-            predicate.predicates.append(other)
+            predicates = self.predicates + [other]
+            predicate = klass(*predicates)
         else:
             predicate = klass(self, other)
         
