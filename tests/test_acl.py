@@ -310,6 +310,12 @@ class TestACL(TestCase):
         ace = acl._aces[0][1]
         assert_false(ace.propagate)
     
+    def test_deny_with_inclusion_forced(self):
+        acl = ACL()
+        acl.deny("/blog", force_inclusion=True)
+        ace = acl._aces[0][1]
+        ok_(ace.force_inclusion)
+    
     #{ Testing decisions
     
     def test_authorization_with_no_matching_ace_and_no_default_decision(self):
@@ -734,6 +740,50 @@ class TestACL(TestCase):
         eq_(decision, None)
         assert_false(predicate.evaluated)
     
+    def test_authorization_with_inclusion_forced_but_no_predicate(self):
+        """ACEs must be enforced when explicitly requested."""
+        acl = ACL()
+        acl.deny("/blog/", force_inclusion=True)
+        acl.allow("/blog/posts")
+        environ = {
+            'PATH_INFO': "/blog/posts",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision = acl.decide_authorization(environ)
+        assert_false(decision.allow, False)
+    
+    def test_authorization_with_predicate_and_inclusion_forced(self):
+        """
+        ACEs must be forced when explicitly requested and their predicates
+        are met.
+        
+        """
+        acl = ACL()
+        acl.deny("/blog/", TitletalePredicate(True), force_inclusion=True)
+        acl.allow("/blog/posts/")
+        acl.deny("/forum/", TitletalePredicate(False), force_inclusion=True)
+        acl.allow("/forum/posts/")
+        
+        # Authorization must be denied if the predicate of a forced ACE is met:
+        environ1 = {
+            'PATH_INFO': "/blog/posts/",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision1 = acl.decide_authorization(environ1)
+        eq_(decision1.allow, False)
+        
+        # Authorization must be granted if the predicate of a forced ACE is not
+        # met:
+        environ2 = {
+            'PATH_INFO': "/forum/posts/",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision2 = acl.decide_authorization(environ2)
+        eq_(decision2.allow, True)
+    
     def test_authorization_with_ace_with_trailing_slash(self):
         """ACEs with a trailing slash should match requests without it."""
         acl = ACL()
@@ -975,6 +1025,27 @@ class TestACLCollections(TestCase):
         decision = collection.decide_authorization(environ)
         ok_(decision.allow)
     
+    def test_authorization_with_acl_forcing_ace(self):
+        """
+        ACEs cannot override enforced ACEs from previous ACLs.
+        
+        """
+        first_acl = ACL()
+        first_acl.deny("/blog", force_inclusion=True)
+        second_acl = ACL()
+        second_acl.allow("/blog/posts")
+        collection = ACLCollection()
+        collection.add_acl(first_acl)
+        collection.add_acl(second_acl)
+        
+        environ = {
+            'PATH_INFO': "/blog/posts",
+            'repoze.what.named_args': set(),
+            'repoze.what.positional_args': 0,
+            }
+        decision = collection.decide_authorization(environ)
+        assert_false(decision.allow)
+    
     #}
 
 
@@ -1055,17 +1126,19 @@ class TestAces(TestCase):
         eq_(ace.named_args, set())
         eq_(ace.positional_args, 0)
         eq_(ace.propagate, True)
+        eq_(ace.force_inclusion, False)
     
     def test_constructor_with_args(self):
         predicate = is_user("foo")
         ace = _ACE(predicate, True, ("arg1", "arg2"), 3, "Here's a message",
-                   False)
+                   False, True)
         eq_(ace.predicate, predicate)
         eq_(ace.allow, True)
         eq_(ace.named_args, set(["arg1", "arg2"]))
         eq_(ace.positional_args, 3)
         eq_(ace.message, "Here's a message")
         eq_(ace.propagate, False)
+        eq_(ace.force_inclusion, True)
     
     def test_denial_ace(self):
         predicate = is_user("foo")
@@ -1323,6 +1396,7 @@ class TestMatchTracker(TestCase):
         tracker = _MatchTracker()
         eq_(tracker.longest_path_match, 0)
         eq_(tracker.object_ace_found, False)
+        eq_(tracker.forced_ace_found, False)
     
     def test_scope_check_with_wrong_path(self):
         """
@@ -1331,7 +1405,7 @@ class TestMatchTracker(TestCase):
         
         """
         tracker = _MatchTracker()
-        assert_false(tracker.is_within_scope("/admin", True, "/blog/"))
+        assert_false(tracker.is_within_scope("/admin", True, False, "/blog/"))
     
     def test_scope_check_with_less_specific_path(self):
         """
@@ -1341,7 +1415,7 @@ class TestMatchTracker(TestCase):
         """
         tracker = _MatchTracker()
         tracker.longest_path_match = 3
-        assert_false(tracker.is_within_scope("/", True, "/blog"))
+        assert_false(tracker.is_within_scope("/", True, False, "/blog"))
     
     def test_scope_check_with_object_protection_found(self):
         """
@@ -1351,7 +1425,7 @@ class TestMatchTracker(TestCase):
         """
         tracker = _MatchTracker()
         tracker.object_ace_found = True
-        assert_false(tracker.is_within_scope("/", True, "/blog/"))
+        assert_false(tracker.is_within_scope("/", True, False, "/blog/"))
     
     def test_scope_check_with_right_path(self):
         """
@@ -1360,7 +1434,7 @@ class TestMatchTracker(TestCase):
         
         """
         tracker = _MatchTracker()
-        ok_(tracker.is_within_scope("/blog", True, "/blog/add_post"))
+        ok_(tracker.is_within_scope("/blog", True, False, "/blog/add_post"))
     
     def test_scope_check_with_equally_specific_path(self):
         """
@@ -1370,7 +1444,7 @@ class TestMatchTracker(TestCase):
         """
         tracker = _MatchTracker()
         tracker.longest_path_match = 1
-        ok_(tracker.is_within_scope("/", True, "/blog"))
+        ok_(tracker.is_within_scope("/", True, False, "/blog"))
     
     def test_scope_check_with_parent_path_but_no_propagation(self):
         """
@@ -1379,7 +1453,52 @@ class TestMatchTracker(TestCase):
         
         """
         tracker = _MatchTracker()
-        assert_false(tracker.is_within_scope("/blog", False, "/blog/add_post"))
+        assert_false(tracker.is_within_scope("/blog", False, False,
+                                             "/blog/add_post"))
+    
+    def test_scope_check_with_inclusion_forced_but_not_propagated(self):
+        """
+        A request is within scope if the parent path's inclusion is forced,
+        even if it's not propagated.
+        
+        """
+        tracker = _MatchTracker()
+        ok_(tracker.is_within_scope("/", False, True, "/blog/"))
+    
+    def test_scope_check_with_propagation_and_inclusion_forced(self):
+        """
+        A request is within scope if the parent path is both propagated and
+        its inclusion is forced.
+        
+        """
+        tracker = _MatchTracker()
+        ok_(tracker.is_within_scope("/", True, True, "/blog/"))
+    
+    def test_scope_check_with_inclusion_really_forced(self):
+        """
+        A request is within scope if the parent path's inclusion is forced,
+        no matter if it already found an ACE for the object or it's not the
+        most specific match so far.
+        
+        """
+        # With an object ACE found:
+        tracker_with_object = _MatchTracker()
+        tracker_with_object.object_ace_found = True
+        ok_(tracker_with_object.is_within_scope("/", True, True, "/blog/"))
+        # With a more specific path found:
+        tracker_with_path = _MatchTracker()
+        tracker_with_path.longest_path_match = 5
+        ok_(tracker_with_path.is_within_scope("/", True, True, "/blog/"))
+    
+    def test_scope_check_with_inclusion_but_inclusion_already_forced(self):
+        """
+        A request must not be within the scope of a forced ACE if another ACE
+        was already enforced.
+        
+        """
+        tracker = _MatchTracker()
+        tracker.forced_ace_found = True
+        assert_false(tracker.is_within_scope("/", True, True, "/blog/"))
     
     def test_setting_longest_path(self):
         tracker = _MatchTracker()
