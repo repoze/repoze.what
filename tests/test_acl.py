@@ -170,6 +170,17 @@ class TestACL(TestCase):
         ace = acl._aces[0][1]
         assert_false(ace.propagate)
     
+    def test_allow_with_multiple_acos(self):
+        acl = ACL()
+        acl.allow(("blog", "forum"))
+        eq_(len(acl._aces), 2)
+        # Testing the first one:
+        eq_(acl._aces[0][0], "/blog/")
+        ok_(acl._aces[0][1].allow)
+        # Testing the second one:
+        eq_(acl._aces[1][0], "/forum/")
+        ok_(acl._aces[1][1].allow)
+    
     #{ Testing denials
     
     def test_deny_path_in_global_acl_without_arguments(self):
@@ -315,6 +326,17 @@ class TestACL(TestCase):
         acl.deny("/blog", force_inclusion=True)
         ace = acl._aces[0][1]
         ok_(ace.force_inclusion)
+    
+    def test_deny_with_multiple_acos(self):
+        acl = ACL()
+        acl.deny(("blog", "forum"))
+        eq_(len(acl._aces), 2)
+        # Testing the first one:
+        eq_(acl._aces[0][0], "/blog/")
+        assert_false(acl._aces[0][1].allow)
+        # Testing the second one:
+        eq_(acl._aces[1][0], "/forum/")
+        assert_false(acl._aces[1][1].allow)
     
     #{ Testing decisions
     

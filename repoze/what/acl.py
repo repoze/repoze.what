@@ -115,7 +115,8 @@ class ACL(_BaseAuthorizationControl):
         ``positional_args`` positional arguments.
         
         :param path_or_object: The path or the object to be covered by this ACE.
-        :type path_or_object: :class:`basestring` or callable
+        :type path_or_object: :class:`basestring`, callable or a collection of
+            them
         :param predicate: The :mod:`repoze.what` predicate that must be met
             for this ACE to be taken into account.
         :type predicate: :class:`repoze.what.predicates.Predicate`
@@ -146,7 +147,8 @@ class ACL(_BaseAuthorizationControl):
         ``positional_args`` positional arguments.
         
         :param path_or_object: The path or the object to be covered by this ACE.
-        :type path_or_object: :class:`basestring` or callable
+        :type path_or_object: :class:`basestring`, callable or a collection of
+            them
         :param predicate: The :mod:`repoze.what` predicate that must be met
             for this ACE to be taken into account.
         :type predicate: :class:`repoze.what.predicates.Predicate`
@@ -177,6 +179,16 @@ class ACL(_BaseAuthorizationControl):
     def _add_ace(self, path_or_object, predicate, allow, named_args,
                  positional_args, denial_handler, msg, propagate,
                  force_inclusion):
+        
+        # If we've been given multiple Access Control Objects at once, we have
+        # to add them one by one:
+        if hasattr(path_or_object, "__iter__"):
+            for aco in path_or_object:
+                self._add_ace(aco, predicate, allow, named_args,
+                              positional_args, denial_handler, msg, propagate,
+                              force_inclusion)
+            return
+        
         is_path = isinstance(path_or_object, basestring)
         if is_path:
             # We're protecting a path, so we must preppend the base path:
