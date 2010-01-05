@@ -188,8 +188,8 @@ latex_documents = [
 
 intersphinx_mapping = {
     'http://static.repoze.org/whodocs/': None,
-    'http://code.gustavonarea.net/repoze.what.plugins.sql/': None,
-    'http://code.gustavonarea.net/repoze.what.plugins.xml/': None,
+    'http://code.gustavonarea.net/repoze.what-sql/': None,
+    'http://code.gustavonarea.net/repoze.what-xml/': None,
     'http://code.gustavonarea.net/repoze.what-pylons/': None,
     'http://code.gustavonarea.net/repoze.what-quickstart/': None,
     'http://what.repoze.org/docs/plugins/django/': None,
