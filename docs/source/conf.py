@@ -44,7 +44,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = u'repoze.what'
-copyright = u'2008, The Repoze Project'
+copyright = u'2008-2010, Gustavo Narea'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
