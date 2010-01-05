@@ -61,7 +61,7 @@ def setup_request(environ, userid, group_adapters, permission_adapters,
         }
     # Setting the arguments:
     positional_args = len(request.urlargs)
-    named_args = set(request.urlvars.keys() + request.params.keys())
+    named_args = set(request.urlvars.keys())
     request.environ['repoze.what.positional_args'] = positional_args
     request.environ['repoze.what.named_args'] = named_args
     # Injecting the global authorization control, so it can be used by plugins:

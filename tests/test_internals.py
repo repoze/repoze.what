@@ -79,13 +79,15 @@ class TestSettingUpRequest(unittest.TestCase):
         assert req.environ['repoze.what.global_control'] is None
     
     def test_with_get_arguments(self):
+        """GET arguments must be ignored."""
         # Forging the GET params:
         environ = Request.blank("/blog/view.php?id=3&session=ABC123").environ
         req = setup_request(environ, None, None, None)
         assert req.environ['repoze.what.positional_args'] == 0
-        assert req.environ['repoze.what.named_args'] == set(["id", "session"])
+        assert len(req.environ['repoze.what.named_args']) == 0
     
     def test_with_post_arguments(self):
+        """POST arguments must be ignored."""
         # Forging the POST params:
         post_args = "id=3&session=ABC123"
         environ = {
@@ -98,7 +100,7 @@ class TestSettingUpRequest(unittest.TestCase):
         # Testing it:
         req = setup_request(mock_req.environ, None, None, None)
         assert req.environ['repoze.what.positional_args'] == 0
-        assert req.environ['repoze.what.named_args'] == set(["id", "session"])
+        assert len(req.environ['repoze.what.named_args']) == 0
         # Let's make sure that the POST request is not modified:
         final_input = req.environ['wsgi.input'].read()
         assert post_args == final_input
@@ -115,6 +117,7 @@ class TestSettingUpRequest(unittest.TestCase):
         assert req.environ['repoze.what.named_args'] == set(["foo", "baz"])
     
     def test_with_named_positional_post_and_get_arguments(self):
+        """Both POST and GET args must be ignored."""
         # Forging all the params:
         mock_req = Request.blank("/blog/view-post.php?foo=bar")
         mock_req.method = "POST"
@@ -127,8 +130,7 @@ class TestSettingUpRequest(unittest.TestCase):
         environ = mock_req.environ
         req = setup_request(environ, None, None, None)
         assert req.environ['repoze.what.positional_args'] == 6
-        assert req.environ['repoze.what.named_args'] == set(["id", "session",
-                                                             "foo", "baz"])
+        assert req.environ['repoze.what.named_args'] == set(["baz"])
     
     def test_with_positional_args(self):
         environ = {
