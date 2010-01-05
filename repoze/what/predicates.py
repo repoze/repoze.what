@@ -61,6 +61,9 @@ class Predicate(object):
         if msg:
             self.message = msg
     
+    def __call__(self, request):
+        pass
+    
     def evaluate(self, environ, credentials):
         """
         Raise an exception if the predicate is not met.
