@@ -398,7 +398,7 @@ class _ACE(object):
             predicate = Not(predicate, msg=predicate.message)
         self.predicate = predicate
         self.allow = allow
-        self.named_args = set(named_args)
+        self.named_args = frozenset(named_args)
         self.positional_args = positional_args
         self.message = message
         self.propagate = propagate
