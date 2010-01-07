@@ -85,35 +85,3 @@ it as in the code below::
         if in_group('customer').is_met(environ):
             print_message('Dear customer, thanks for your comment!')
 
-
-:mod:`repoze.what.authorize`
-============================
-
-.. module:: repoze.what.authorize
-    :synopsis: repoze.what authorization utilities
-
-Before :meth:`Predicate.check_authorization
-<repoze.what.predicates.Predicate.check_authorization>`, predicates were 
-evaluated with :func:`check_authorization` where you wanted to restrict access.
-That function was run before performing the protected procedure so that it can 
-raise the :class:`NotAuthorizedError
-<repoze.what.predicates.NotAuthorizedError>` exception if the user was not 
-authorized:
-
-.. autofunction:: check_authorization
-
-For example, if you have a sensitive function that should be run by certain
-users, you may use it at the start of the function as in the example below::
-
-    # ...
-    from repoze.what.authorize import check_authorization
-    from repoze.what.predicates import has_permission
-    # ...
-    environ = give_me_the_wsgi_environ()
-    # ...
-    
-    def add_comment(post_id, comment):
-        check_authorization(has_permission('post-comment'), environ)
-        # If reached this point, then the user *can* leave a comment!
-        new_comment = Comment(post=post_id, comment=comment)
-        save(new_comment)

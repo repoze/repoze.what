@@ -75,4 +75,7 @@ Support has been dropped for the following long deprecated things:
   sure it didn't use to get called in your application; if it does, replace it
   by calling the predicate checker object -- But keep in mind it returns a value,
   instead of raising an exception.
+* The :mod:`repoze.what.authorize` module. If you call
+  :func:`repoze.what.authorize.check_authorization` somewhere, again, replace it
+  by calling the predicate checker object.
 
