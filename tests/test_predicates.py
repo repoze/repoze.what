@@ -66,6 +66,8 @@ class TestPredicate(BasePredicateTester):
         new_msg = 'It does not equal two!'
         p = EqualsTwo(msg=new_msg)
         self.assertEqual(new_msg, p.message)
+        # The original message must have not be changed:
+        eq_(previous_msg, "Number %(number)s doesn't equal 2")
     
     def test_message_isnt_changed_unless_required(self):
         previous_msg = EqualsTwo.message
