@@ -13,8 +13,8 @@ This document describes the releases of :mod:`repoze.what` 1.1.X. You can also
 Version 1.1.0 (*unreleased*)
 ============================
 
-New features
-------------
+New or enhanced stuff
+---------------------
 
 * Added support for Access Control Lists.
 * The predicates :class:`is_user <predicates.is_user>`, :class:`not_anonymous

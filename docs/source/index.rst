@@ -150,7 +150,7 @@ Contents
     :maxdepth: 2
 
     Manual/index
-    News
+    changelog
     Participate
 
 
