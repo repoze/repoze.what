@@ -7,10 +7,13 @@
 This document describes the releases of :mod:`repoze.what`.
 
 
-.. _repoze.what-1.1.0:
+.. _1-1-0:
 
 :mod:`repoze.what` 1.1.0 (*unreleased*)
 =======================================
+
+New features
+------------
 
 * Added support for Access Control Lists.
 * The predicates :class:`is_user <predicates.is_user>`, :class:`not_anonymous
@@ -47,14 +50,30 @@ This document describes the releases of :mod:`repoze.what`.
   :mod:`repoze.who` independent middleware.
 * Added :mod:`benchmarking utilities for the source adapters
   <repoze.what.adapters.benchmark>`.
-* Added the ability to duplicate a predicate, getting the new one with a
-  different name. See :meth:`repoze.what.predicates.Predicate.__call__`.
+
+
+Bug fixes
+---------
+
 * When a section was renamed, the adapter didn't check if the new name was
   in use. `Bug #68 <http://bugs.repoze.org/issue68>`_.
 * Fixed a typo in the documentation. Reported by Jonás Melián.
 * Fixed a typo in a test of the :mod:`repoze.what.adapters.testutil` module,
   in which a variable is misspelled. It became visible when that test failed.
   Reported by Jonás Melián.
+
+Backwards incompatible changes
+------------------------------
+
+Support has been dropped for the following long deprecated things:
+
+* The :meth:`repoze.what.predicates.Predicate._eval_with_environ` method. Make
+  sure none of your predicates define this method; if they do, upgrade them to
+  :meth:`repoze.what.predicates.Predicate.check`.
+* The :meth:`repoze.what.predicates.Predicate.eval_with_environ` method. Make
+  sure it didn't use to get called in your application; if it does, replace it
+  by calling the predicate checker object -- But keep in mind it returns a value,
+  instead of raising an exception.
 
 
 .. _repoze.what-1.0.8:

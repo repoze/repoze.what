@@ -192,25 +192,6 @@ class TestPredicate(BasePredicateTester):
         self.assertEqual(True, p.is_met(environ))
 
 
-class TestDeprecatedPredicate(BasePredicateTester):
-    """
-    Test that predicates using the deprecated ``_eval_with_environ()`` and
-    ``evaluate()`` are still supported.
-    
-    """
-    
-    def test_met_eval_with_environ(self):
-        environ = {}
-        p = DeprecatedEvalWithEnvironPredicate(True)
-        self.eval_met_predicate(p, environ)
-    
-    def test_unmet_eval_with_environ(self):
-        environ = {}
-        error = 'This is a deprecated predicate'
-        p = DeprecatedEvalWithEnvironPredicate(False)
-        self.eval_unmet_predicate(p, environ, error)
-
-
 class TestCompoundPredicate(BasePredicateTester):
     
     def test_one_predicate_works(self):
@@ -859,16 +840,5 @@ class LessThan(predicates.Predicate):
         number = environ.get('test_number')
         if not number < self.compared_number:
             self.unmet(number=number, compared_number=self.compared_number)
-
-
-class DeprecatedEvalWithEnvironPredicate(predicates.Predicate):
-    message = "This is a deprecated predicate"
-    
-    def __init__(self, result, **kwargs):
-        super(DeprecatedEvalWithEnvironPredicate, self).__init__(**kwargs)
-        self.result = result
-    
-    def _eval_with_environ(self, environ):
-        return self.result
 
 #}

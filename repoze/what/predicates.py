@@ -23,7 +23,6 @@ This is module provides the predicate checkers that were present in the
 original "identity" framework of TurboGears 1, plus others.
 
 """
-from warnings import warn
 
 from paste.request import parse_formvars, parse_dict_querystring
 
@@ -62,7 +61,11 @@ class Predicate(object):
             self.message = msg
     
     def __call__(self, request):
-        pass
+        credentials = request.environ.get('repoze.what.credentials', {})
+        return self.check(request, credentials)
+    
+    def check(self, request, credentials):
+        return self.is_met(request.environ)
     
     def evaluate(self, environ, credentials):
         """
@@ -114,47 +117,8 @@ class Predicate(object):
             delete any attribute of the predicate.
         
         """
-        self.eval_with_environ(environ)
-    
-    def _eval_with_environ(self, environ):
-        """
-        Check whether the predicate is met.
-        
-        :param environ: The WSGI environment.
-        :type environ: dict
-        :return: Whether the predicate is met or not.
-        :rtype: bool
-        :raise NotImplementedError: This must be defined by the predicate
-            itself.
-        
-        .. deprecated:: 1.0.2
-            Only :meth:`evaluate` will be used as of :mod:`repoze.what` v2.
-        
-        """
-        raise NotImplementedError
-    
-    def eval_with_environ(self, environ):
-        """
-        Make sure this predicate is met.
-        
-        :param environ: The WSGI environment.
-        :raises NotAuthorizedError: If the predicate is not met.
-        
-        .. versionchanged:: 1.0.1
-            In :mod:`repoze.what`<1.0.1, this method returned a ``bool`` and
-            set the ``error`` instance attribute of the predicate to the
-            predicate message.
-        
-        .. deprecated:: 1.0.2
-            Define :meth:`evaluate` instead.
-        
-        """
-        msg = 'Predicate._eval_with_environ(environ) is deprecated ' \
-              'for forward compatibility with repoze.what v2; define ' \
-              'Predicate.evaluate(environ, credentials) instead'
-        warn(msg, DeprecationWarning, stacklevel=2)
-        if not self._eval_with_environ(environ):
-            self.unmet()
+        raise NotImplementedError("Predicate checkers must define their "
+                                  "evaluate() method")
     
     def unmet(self, msg=None, **placeholders):
         """
