@@ -21,9 +21,10 @@ Tests for the predicates.
 """
 # TODO: Switch to Nose evaluation functions, instead of using ``assert``
 # statements.
+from StringIO import StringIO
+import unittest
 
 from nose.tools import eq_, ok_
-import unittest
 
 from repoze.what import predicates
 
@@ -138,7 +139,6 @@ class TestPredicate(BasePredicateTester):
         
         """
         # -- Setting the environ up
-        from StringIO import StringIO
         post_vars = [('postvar1', 'valA')]
         content_type, body = encode_multipart_formdata(post_vars)
         environ = {
