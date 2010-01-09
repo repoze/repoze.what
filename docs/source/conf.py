@@ -194,4 +194,5 @@ intersphinx_mapping = {
     'http://code.gustavonarea.net/repoze.what-quickstart/': None,
     'http://what.repoze.org/docs/plugins/django/': None,
     'http://code.gustavonarea.net/repoze.who-testutil/': None,
+    'http://pythonpaste.org/webob/': None,
     }
