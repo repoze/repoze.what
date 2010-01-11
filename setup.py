@@ -67,6 +67,7 @@ setup(name='repoze.what',
         'repoze.who-testutil >= 1.0b2', 
         'Paste > 1.7',
         'WebOb >= 0.9.7',
+        'setuptools',
         ],
       test_suite="nose.collector",
       entry_points = """\
