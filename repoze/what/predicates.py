@@ -278,7 +278,12 @@ class Predicate(object):
         
         """
         warn(_CALLABLE_WARNING, stacklevel=2)
+        
+        # Let's continue using the repoze.who logger here. There's no point in
+        # migrating this logger to repoze.what when this method is already
+        # deprecated:
         logger = environ.get('repoze.who.logger')
+        
         credentials = environ.get('repoze.what.credentials', {})
         try:
             self.evaluate(environ, credentials)
