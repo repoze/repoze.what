@@ -211,13 +211,13 @@ class TestCompoundPredicate(BasePredicateTester):
     
     def test_one_predicate_works(self):
         p = EqualsTwo()
-        cp = predicates.CompoundPredicate(p)
+        cp = predicates._CompoundPredicate(p)
         self.assertEqual(cp.predicates, [p])
         
     def test_two_predicates_work(self):
         p1 = EqualsTwo()
         p2 = MockPredicate()
-        cp = predicates.CompoundPredicate(p1, p2)
+        cp = predicates._CompoundPredicate(p1, p2)
         self.assertEqual(cp.predicates, [p1, p2])
 
 

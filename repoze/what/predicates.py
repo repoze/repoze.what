@@ -421,11 +421,11 @@ class Predicate(object):
     #}
 
 
-class CompoundPredicate(Predicate):
+class _CompoundPredicate(Predicate):
     """A predicate composed of other predicates."""
     
     def __init__(self, *predicates, **kwargs):
-        super(CompoundPredicate, self).__init__(**kwargs)
+        super(_CompoundPredicate, self).__init__(**kwargs)
         self.predicates = list(predicates)
 
 
@@ -455,7 +455,7 @@ class Not(Predicate):
         self.unmet()
 
 
-class All(CompoundPredicate):
+class All(_CompoundPredicate):
     """
     Check that all of the specified predicates are met.
     
@@ -482,7 +482,7 @@ class All(CompoundPredicate):
             p.evaluate(environ, credentials)
 
 
-class Any(CompoundPredicate):
+class Any(_CompoundPredicate):
     """
     Check that at least one of the specified predicates is met.
     
