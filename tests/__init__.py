@@ -14,5 +14,7 @@
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-
 """Test suite for repoze.what."""
+from warnings import filterwarnings
+
+filterwarnings("ignore", ".+", DeprecationWarning, r"^tests\.test_predicates$")

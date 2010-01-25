@@ -15,7 +15,7 @@ The base :class:`Predicate` class
 is described below:
 
 .. autoclass:: Predicate
-    :members: __init__, __call__, evaluate, unmet, check_authorization, is_met, parse_variables
+    :members: __init__, __call__, check, evaluate, unmet, check_authorization, is_met, parse_variables
 
 
 Single predicate checkers

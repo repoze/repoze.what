@@ -15,15 +15,13 @@
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-
 """
 Built-in predicate checkers.
 
-This is module provides the predicate checkers that were present in the 
-original "identity" framework of TurboGears 1, plus others.
-
 """
+from warnings import warn, filterwarnings
 
+from webob import Request
 from paste.request import parse_formvars, parse_dict_querystring
 
 __all__ = ("Predicate", "CompoundPredicate", "All", "Any", "HasAllPermissions",
@@ -56,15 +54,75 @@ class Predicate(object):
         
         You may use the ``msg`` keyword argument with any predicate.
         
+        .. deprecated:: 1.1.0
+        
+            The ``msg`` should no longer be defined.
+        
         """
         if msg:
             self.message = msg
     
     def __call__(self, request):
+        """
+        Report whether the predicate is met.
+        
+        :param request: The WSGI environment or a WebOb request object.
+        :type request: :class:`dict` or :class:`webob.Request`
+        :return: Whether the predicate is met.
+        :rtype: :class:`bool` or ``None``
+        
+        **Predicate checkers should NOT override this method.**
+        
+        It returns ``None`` if and only if there was a critical error while
+        processing the predicate AND said error will occur **unequivocally** in
+        the routine being covered by the predicate.
+        
+        For example, if you have a blogging system and wrote a predicate which
+        checks whether the article requested is hidden, it must return ``None``
+        when a non-existing article is requested -- It must be up to your
+        controller action to return a 404 response.
+        
+        .. versionadded:: 1.1.0
+        
+        """
+        if not isinstance(request, Request):
+            # It must be a WSGI environment dictionary:
+            request = Request(request)
         credentials = request.environ.get('repoze.what.credentials', {})
         return self.check(request, credentials)
     
     def check(self, request, credentials):
+        """
+        Report whether the predicate is met.
+        
+        :param request: The request object.
+        :type request: :class:`webob.Request`
+        :param credentials: The repoze.what credentials.
+        :type credentials: :class:`repoze.what.internals._Credentials`
+        :return: Whether the predicate is met.
+        :rtype: :class:`bool` or ``None``
+        
+        **Predicate checkers MUST override this method.**
+        
+        It must return ``None`` if and only if there was a critical error while
+        processing the predicate AND said error will occur **unequivocally** in
+        the routine being covered by the predicate.
+        
+        For example, if you have a blogging system and wrote a predicate which
+        checks whether the article requested is hidden, it must return ``None``
+        when a non-existing article is requested -- It's up to your controller
+        action to return a 404 response.
+        
+        On the contrary, if your predicate checks whether the user's IP address
+        is a given one, for example, but the ``REMOTE_ADDR`` variable is not
+        set, then it must return ``False`` instead of ``None``: No matter what
+        his IP address is, the point is that it may not the one we expect and
+        the controller action wouldn't necessarily fail because of the absence
+        of this value.
+        
+        .. versionadded:: 1.1.0
+        
+        """
         return self.is_met(request.environ)
     
     def evaluate(self, environ, credentials):
@@ -89,12 +147,12 @@ class Predicate(object):
             from datetime import date
             from repoze.what.predicates import Predicate
             
-            class is_month(Predicate):
+            class IsMonth(Predicate):
                 message = 'The current month must be %(right_month)s'
                 
                 def __init__(self, right_month, **kwargs):
                     self.right_month = right_month
-                    super(is_month, self).__init__(**kwargs)
+                    super(IsMonth, self).__init__(**kwargs)
                 
                 def evaluate(self, environ, credentials):
                     today = date.today()
@@ -104,10 +162,13 @@ class Predicate(object):
         
         .. versionadded:: 1.0.2
         
+        .. deprecated:: 1.1.0
+            Define :meth:`check` instead.
+        
         .. attention::
             Do not evaluate predicates by yourself using this method. See
             :meth:`check_authorization` and :meth:`is_met`.
-
+        
         .. warning::
         
             To make your predicates thread-safe, keep in mind that they may
@@ -168,11 +229,19 @@ class Predicate(object):
         .. versionchanged:: 1.0.4
             Introduced the ``msg`` argument.
         
+        .. deprecated:: 1.1.0
+            The use of messages associated to predicates is deprecated. Define
+            :meth:`check` and return a :class:`bool` object instead.
+        
         .. attention::
         
             This method should only be called from :meth:`evaluate`.
         
         """
+        warn("Predicate checkers should not have messages associated anymore",
+             DeprecationWarning,
+             stacklevel=2,
+             )
         if msg:
             message = msg
         else:
@@ -202,10 +271,13 @@ class Predicate(object):
             repoze.what.predicates.NotAuthorizedError: The current user must be "gustavo"
         
         .. versionadded:: 1.0.4
-            Backported from :mod:`repoze.what` v2; deprecates
-            :func:`repoze.what.authorize.check_authorization`.
+            Deprecates :func:`repoze.what.authorize.check_authorization`.
+        
+        .. deprecated:: 1.1.0
+            Use :meth:`__call__` instead.
         
         """
+        warn(_CALLABLE_WARNING, stacklevel=2)
         logger = environ.get('repoze.who.logger')
         credentials = environ.get('repoze.what.credentials', {})
         try:
@@ -232,9 +304,12 @@ class Predicate(object):
             False
         
         .. versionadded:: 1.0.4
-            Backported from :mod:`repoze.what` v2.
+        
+        .. deprecated:: 1.1.0
+            Use :meth:`__call__` instead.
         
         """
+        warn(_CALLABLE_WARNING, stacklevel=2)
         credentials = environ.get('repoze.what.credentials', {})
         try:
             self.evaluate(environ, credentials)
@@ -277,7 +352,14 @@ class Predicate(object):
         
         .. versionadded:: 1.0.4
         
+        .. deprecated:: 1.1.0
+            Use the :class:`webob.Request` object getters instead.
+        
         """
+        warn("Predicate.parse_variables() is deprecated. Please define the "
+             "check() method and use the WebOb request object instead.",
+             DeprecationWarning,
+             stacklevel=2)
         get_vars = parse_dict_querystring(environ) or {}
         try:
             post_vars = parse_formvars(environ, False) or {}
@@ -383,7 +465,7 @@ class All(CompoundPredicate):
     
         # Grant access if the current month is July and the user belongs to
         # the human resources group.
-        p = All(is_month(7), in_group('hr'))
+        p = All(IsMonth(7), in_group('hr'))
     
     """
     
@@ -639,8 +721,7 @@ class PredicateError(Exception):
     Former exception raised by a :class:`Predicate` if it's not met.
     
     .. deprecated:: 1.0.4
-        Deprecated in favor of :class:`NotAuthorizedError`, for forward
-        compatibility with :mod:`repoze.what` v2.
+        Deprecated in favor of :class:`NotAuthorizedError`.
     
     """
     
@@ -664,6 +745,12 @@ class NotAuthorizedError(PredicateError):
         compatibility with v1.X releases -- but it won't work in
         :mod:`repoze.what` v2.
     
+    .. deprecated:: 1.1.0
+        Exceptions should have never been used as the result of a predicate
+        evaluation just to transport the reason why authorization was denied.
+        But the reason why this is deprecated is because predicate checkers
+        should no longer have a message associated.
+    
     """
     pass
 
@@ -675,7 +762,7 @@ ANONYMOUS = IsAnonymous()
 """
 Ready-to-use instance of :class:`IsAnonymous`.
 
-.. versionadded:: 1.1
+.. versionadded:: 1.1.0
 
 """
 
@@ -683,7 +770,7 @@ AUTHENTICATED = NotAnonymous()
 """
 Ready-to-use instance of :class:`NotAnonymous`.
 
-.. versionadded:: 1.1
+.. versionadded:: 1.1.0
 
 """
 
@@ -708,6 +795,18 @@ has_permission = HasPermission
 has_all_permissions = HasAllPermissions
 
 has_any_permission = HasAnyPermission
+
+
+#{ Deprecation warning handling
+
+
+_CALLABLE_WARNING = DeprecationWarning("Predicates must now define the check() "
+                                       "method and be evaluated by calling "
+                                       "them.")
+
+
+# We don't want deprecation warnings to be issued for built-in predicates:
+filterwarnings("ignore", ".", DeprecationWarning, r"^repoze\.what\.predicates$")
 
 
 #}

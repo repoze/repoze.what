@@ -16,7 +16,7 @@
 #
 ##############################################################################
 """
-Tests for the predicates.
+Tests for the built-in predicates.
 
 """
 # TODO: Switch to Nose evaluation functions, instead of using ``assert``
@@ -24,7 +24,8 @@ Tests for the predicates.
 from StringIO import StringIO
 import unittest
 
-from nose.tools import eq_, ok_
+from nose.tools import eq_, ok_, assert_false
+from webob import Request
 
 from repoze.what import predicates
 
@@ -38,6 +39,7 @@ class BasePredicateTester(unittest.TestCase):
         """Evaluate a predicate that should be met"""
         self.assertEqual(p.check_authorization(environ), None)
         self.assertEqual(p.is_met(environ), True)
+        ok_(p(environ))
     
     def eval_unmet_predicate(self, p, environ, expected_error):
         """Evaluate a predicate that should not be met"""
@@ -51,6 +53,7 @@ class BasePredicateTester(unittest.TestCase):
             self.assertEqual(unicode(error), expected_error)
         # Testing is_met:
         self.assertEqual(p.is_met(environ), False)
+        assert_false(p(environ))
 
 
 #{ The test suite itself
@@ -58,9 +61,21 @@ class BasePredicateTester(unittest.TestCase):
 
 class TestPredicate(BasePredicateTester):
     
-    def test_evaluate_isnt_implemented(self):
+    def test_check_isnt_implemented(self):
         p = MockPredicate()
-        self.failUnlessRaises(NotImplementedError, p.evaluate, None, None)
+        self.failUnlessRaises(NotImplementedError, p, {})
+    
+    def test_request_can_be_webobs(self):
+        """
+        The predicate checker must not also accept WSGI environments, but also
+        WebOb request objects.
+        
+        """
+        p = EqualsTwo()
+        req1 = Request({'test_number': 2})
+        req2 = Request({'test_number': 3})
+        ok_(p(req1))
+        assert_false(p(req2))
     
     def test_message_is_changeable(self):
         previous_msg = EqualsTwo.message

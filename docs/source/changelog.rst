@@ -17,6 +17,8 @@ New or enhanced stuff
 ---------------------
 
 * Added support for Access Control Lists.
+* Predicate checkers can now be evaluated with a :class:`webob.Request` object
+  instead of the WSGI environment dictionary.
 * The predicates :class:`is_user <predicates.is_user>`, :class:`not_anonymous
   <predicates.not_anonymous>`, :class:`is_anonymous <predicates.is_anonymous>`,
   :class:`is_anonymous <predicates.in_group>`, :class:`in_all_groups
@@ -49,6 +51,16 @@ New or enhanced stuff
   
 * Now groups and permissions are loaded on demand, as long as you use the new
   :mod:`repoze.who` independent middleware.
+* Predicate checkers should preferably return a boolean value from now on::
+
+      class FromLocalhost(Predicate):
+          """Predicate to check whether the user comes from the local host."""
+          
+          def check(self, request, credentials):
+              return request.remote_addr == "127.0.0.1"
+  
+  See :meth:`repoze.what.predicates.Predicate.check`.
+  
 * Added :mod:`benchmarking utilities for the source adapters
   <repoze.what.adapters.benchmark>`.
 
@@ -62,6 +74,37 @@ Bug fixes
 * Fixed a typo in a test of the :mod:`repoze.what.adapters.testutil` module,
   in which a variable is misspelled. It became visible when that test failed.
   Reported by Jonás Melián.
+
+
+Deprecations
+------------
+
+The following things still work, but don't expect to see them in eventual v1.2
+or v2 releases:
+
+* :meth:`~repoze.what.predicates.Predicate.is_met` has been superseded by
+  :meth:`repoze.what.predicates.Predicate.__call__`.
+* Predicate checkers should not have messages associated anymore. Now they are
+  not only used to grant authorization conditionally: Thanks to the ACL support,
+  they can also be used to deny authorization conditionally. So such a message
+  would only make sense in one of these situations.
+  
+  This value should have never been coupled with the logic that verifies a
+  given condition anyway. It was also useless in many situations, since its value
+  got lost when a compound predicate was formed.
+  
+  From now on, predicates checkers should define
+  :meth:`~repoze.what.predicates.Predicate.check` and return a boolean value.
+  
+  To be precise, the following methods in :class:`repoze.what.predicates.Predicate`
+  are deprecated:
+  :meth:`~repoze.what.predicates.Predicate.unmet`,
+  :meth:`~repoze.what.predicates.Predicate.evaluate`, and
+  :meth:`~repoze.what.predicates.Predicate.check_authorization`, as well as the
+  predicate related exceptions
+  :class:`~repoze.what.predicates.PredicateError` and
+  :class:`~repoze.what.predicates.NotAuthorizedError`.
+
 
 Backwards incompatible changes
 ------------------------------
