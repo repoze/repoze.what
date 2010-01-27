@@ -241,14 +241,14 @@ class ACL(_BaseAuthorizationControl):
                 continue
             
             # The current path/object IS within the scope of this ACE.
-            (ace_participates, message) = ace.can_participate(environ)
+            ace_participates = ace.can_participate(environ)
             if not ace_participates:
                 # However, it cannot participate because other conditions
                 # are not met.
                 continue
             
             # The current ACE *must* be taken into account:
-            final_decision = AuthorizationDecision(ace.allow, message,
+            final_decision = AuthorizationDecision(ace.allow, ace.message,
                                                    denial_handler)
             
             # Updating the tracker:
@@ -392,10 +392,6 @@ class _ACE(object):
     
     def __init__(self, predicate, allow, named_args=(), positional_args=0,
                  message=None, propagate=True, force_inclusion=False):
-        if not allow and predicate is not None:
-            # Let's negate the predicate so we can get the denial message when
-            # it IS met:
-            predicate = Not(predicate, msg=predicate.message)
         self.predicate = predicate
         self.allow = allow
         self.named_args = frozenset(named_args)
@@ -419,7 +415,7 @@ class _ACE(object):
         """
         # If there's no predicate, then this ACE should always participate:
         if self.predicate is None:
-            return (True, self.message)
+            return True
         
         # Let's extract the request arguments. We shouldn't evaluate the
         # predicate until we know the minimum arguments are present:
@@ -430,42 +426,9 @@ class _ACE(object):
         # evaluating the predicate and thus this ACE must be ignored:
         if not (named_args.issuperset(self.named_args) and
                 positional_args >= self.positional_args):
-            return (False, None)
+            return False
         
-        # At this point, we have to evaluate the predicate because the minimum
-        # arguments are present. But we don't know yet if this ACE is to be
-        # taken into account; it all depends on whether it grants or denies
-        # authorization, combined with the predicate evaluation result:
-        #
-        # ---------------------------------------------------------------------
-        #   Predicate is met  |  ACE decision  |     Will ACE participate?
-        # ---------------------------------------------------------------------
-        #        False *      |      Deny      |         YES (include reason)
-        #        False        |      Allow     |         NO
-        #        True *       |      Deny      |         NO
-        #        True         |      Allow     |         YES
-        # ---------------------------------------------------------------------
-        #
-        # * In ACL.deny() we negated the predicate so we can get the denial
-        #   message when it IS met, so that it *apparently* is unmet actually
-        #   means that it IS met and thus this ACE must be taken into account.
-        predicate_met = True
-        message = self.message
-        try:
-            self.predicate.check_authorization(environ)
-        except NotAuthorizedError, denial_exception:
-            predicate_met = False
-            if not message:
-                # If we already have a custom message, we must keep it.
-                message = unicode(denial_exception)
-        
-        # Finally, let's decide whether this ACE must be taken into account,
-        # based on the table above:
-        should_participate = (not predicate_met and not self.allow
-                              or
-                              predicate_met and self.allow)
-        
-        return (should_participate, message)
+        return self.predicate(environ)
 
 
 class _MatchTracker(object):

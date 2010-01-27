@@ -26,7 +26,6 @@ from repoze.what.predicates import Predicate, is_user
 from repoze.what.acl import (ACL, ACLCollection, AuthorizationDecision,
                              _BaseAuthorizationControl, _ACE, _MatchTracker,
                              _normalize_path)
-from repoze.what.predicates import NotAuthorizedError
 
 
 #{ Tests for external stuff
@@ -195,7 +194,7 @@ class TestACL(TestCase):
         ok_(is_path)
         eq_(denial_handler, None)
         assert_false(ace.allow)
-        eq_(ace.predicate.predicate, predicate)
+        eq_(ace.predicate, predicate)
         eq_(ace.named_args, set())
         eq_(ace.positional_args, 0)
         eq_(ace.propagate, True)
@@ -213,7 +212,7 @@ class TestACL(TestCase):
         assert_false(is_path)
         eq_(denial_handler, None)
         assert_false(ace.allow)
-        eq_(ace.predicate.predicate, predicate)
+        eq_(ace.predicate, predicate)
         eq_(ace.named_args, set())
         eq_(ace.positional_args, 0)
     
@@ -229,7 +228,7 @@ class TestACL(TestCase):
         ok_(is_path)
         eq_(denial_handler, None)
         assert_false(ace.allow)
-        eq_(ace.predicate.predicate, predicate)
+        eq_(ace.predicate, predicate)
         eq_(ace.named_args, set(["post_id", "comment_id"]))
         eq_(ace.positional_args, 2)
     
@@ -245,7 +244,7 @@ class TestACL(TestCase):
         ok_(is_path)
         eq_(denial_handler, None)
         assert_false(ace.allow)
-        eq_(ace.predicate.predicate, predicate)
+        eq_(ace.predicate, predicate)
         eq_(ace.named_args, set())
         eq_(ace.positional_args, 0)
     
@@ -262,7 +261,7 @@ class TestACL(TestCase):
         assert_false(is_path)
         eq_(denial_handler, None)
         assert_false(ace.allow)
-        eq_(ace.predicate.predicate, predicate)
+        eq_(ace.predicate, predicate)
         eq_(ace.named_args, set())
         eq_(ace.positional_args, 0)
     
@@ -278,7 +277,7 @@ class TestACL(TestCase):
         ok_(is_path)
         eq_(denial_handler, None)
         assert_false(ace.allow)
-        eq_(ace.predicate.predicate, predicate)
+        eq_(ace.predicate, predicate)
         eq_(ace.named_args, set(["post_id", "comment_id"]))
         eq_(ace.positional_args, 2)
     
@@ -295,7 +294,7 @@ class TestACL(TestCase):
         ok_(is_path)
         eq_(denial_handler, custom_denial_handler)
         assert_false(ace.allow)
-        eq_(ace.predicate.predicate, predicate)
+        eq_(ace.predicate, predicate)
     
     def test_deny_without_predicate(self):
         acl = ACL()
@@ -406,7 +405,7 @@ class TestACL(TestCase):
         # ------ The predicate must not have been evaluated:
         assert_false(predicate.evaluated)
     
-    def test_authorization_with_no_matching_ace_but_predicate_not_met(self):
+    def test_authorization_with_matching_ace_but_predicate_not_met(self):
         """
         No decision must be made if the ACE covers the path/object and the
         minimum arguments are present, but the predicate is not met.
@@ -461,7 +460,7 @@ class TestACL(TestCase):
         protected_object = object()
         acl = ACL()
         acl.allow("/blog", predicate1)
-        acl.deny(protected_object, predicate2)
+        acl.deny(protected_object, predicate2, msg="Get out")
         # Checking with a path:
         environ1 = {
             'PATH_INFO': "/blog",
@@ -482,7 +481,7 @@ class TestACL(TestCase):
             }
         decision2 = acl.decide_authorization(environ2, protected_object)
         assert_false(decision2.allow)
-        eq_(decision2.message, "Titletale predicate")
+        eq_(decision2.message, "Get out")
         eq_(decision2.denial_handler, None)
         eq_(decision2.match_tracker.longest_path_match, 0)
         ok_(decision2.match_tracker.object_ace_found)
@@ -497,13 +496,13 @@ class TestACL(TestCase):
         protected_object1 = object()
         protected_object2 = object()
         acl = ACL(allow_by_default=False)
-        acl.allow("/blog", predicate1)
-        acl.deny("/blog/post_article", predicate1)
-        acl.deny("/blog/view_comment", predicate1)
-        acl.allow("/blog/view_comment", predicate1)
-        acl.allow(protected_object1, predicate1)
+        acl.allow("/blog", predicate1, msg="You're allowed")
+        acl.deny("/blog/post_article", predicate1, msg="Get out")
+        acl.deny("/blog/view_comment", predicate1, msg="Deny foo")
+        acl.allow("/blog/view_comment", predicate1, msg="Allow foo")
+        acl.allow(protected_object1, predicate1, msg="Gotcha")
         acl.allow(protected_object2, predicate1)
-        acl.deny(protected_object2, predicate1)
+        acl.deny(protected_object2, predicate1, msg="Gotcha!")
         acl.deny("/dev", predicate2)
         # ----- No specific ACE, using the default decision:
         environ1 = {
@@ -525,7 +524,7 @@ class TestACL(TestCase):
             }
         decision2 = acl.decide_authorization(environ2)
         ok_(decision2.allow)
-        eq_(decision2.message, None)
+        eq_(decision2.message, "You're allowed")
         eq_(decision2.denial_handler, None)
         eq_(decision2.match_tracker.longest_path_match, 6)
         assert_false(decision2.match_tracker.object_ace_found)
@@ -537,7 +536,7 @@ class TestACL(TestCase):
             }
         decision3 = acl.decide_authorization(environ3)
         assert_false(decision3.allow)
-        eq_(decision3.message, "Titletale predicate")
+        eq_(decision3.message, "Get out")
         eq_(decision3.denial_handler, None)
         eq_(decision3.match_tracker.longest_path_match, 19)
         assert_false(decision3.match_tracker.object_ace_found)
@@ -550,7 +549,7 @@ class TestACL(TestCase):
             }
         decision4 = acl.decide_authorization(environ4)
         ok_(decision4.allow)
-        eq_(decision4.message, None)
+        eq_(decision4.message, "Allow foo")
         eq_(decision4.denial_handler, None)
         eq_(decision4.match_tracker.longest_path_match, 19)
         assert_false(decision4.match_tracker.object_ace_found)
@@ -562,7 +561,7 @@ class TestACL(TestCase):
             }
         decision5 = acl.decide_authorization(environ5, protected_object1)
         ok_(decision5.allow)
-        eq_(decision5.message, None)
+        eq_(decision5.message, "Gotcha")
         eq_(decision5.denial_handler, None)
         eq_(decision5.match_tracker.longest_path_match, 0)
         ok_(decision5.match_tracker.object_ace_found)
@@ -575,7 +574,7 @@ class TestACL(TestCase):
             }
         decision6 = acl.decide_authorization(environ6, protected_object1)
         ok_(decision6.allow)
-        eq_(decision6.message, None)
+        eq_(decision6.message, "Gotcha")
         eq_(decision6.denial_handler, None)
         eq_(decision6.match_tracker.longest_path_match, 19)
         ok_(decision6.match_tracker.object_ace_found)
@@ -587,7 +586,7 @@ class TestACL(TestCase):
             }
         decision7 = acl.decide_authorization(environ7, protected_object2)
         assert_false(decision7.allow)
-        eq_(decision7.message, "Titletale predicate")
+        eq_(decision7.message, "Gotcha!")
         eq_(decision7.denial_handler, None)
         eq_(decision7.match_tracker.longest_path_match, 0)
         ok_(decision7.match_tracker.object_ace_found)
@@ -600,7 +599,7 @@ class TestACL(TestCase):
             }
         decision8 = acl.decide_authorization(environ8, protected_object1)
         ok_(decision8.allow)
-        eq_(decision8.message, None)
+        eq_(decision8.message, "Gotcha")
         eq_(decision8.denial_handler, None)
         eq_(decision8.match_tracker.longest_path_match, 0)
         ok_(decision8.match_tracker.object_ace_found)
@@ -650,7 +649,7 @@ class TestACL(TestCase):
         """ACEs which don't have predicates must always be taken into account"""
         acl = ACL()
         acl.allow("/blog")
-        acl.deny("/blog/post-new", TitletalePredicate())
+        acl.deny("/blog/post-new", TitletalePredicate(), msg="Get out")
         acl.deny("/blog/repository")
         acl.allow("/blog/repository/download")
         # ----- Checking just one ACE without predicate:
@@ -686,7 +685,7 @@ class TestACL(TestCase):
             }
         decision4 = acl.decide_authorization(environ4)
         assert_false(decision4.allow)
-        eq_(decision4.message, "Titletale predicate")
+        eq_(decision4.message, "Get out")
     
     def test_authorization_with_custom_messages(self):
         acl = ACL("/blog", allow_by_default=True)
@@ -964,7 +963,7 @@ class TestACLCollections(TestCase):
         
         """
         acl1 = ACL("/trac")
-        acl1.deny("/wiki", TitletalePredicate())
+        acl1.deny("/wiki", TitletalePredicate(), msg="Not allowed")
         acl2 = ACL("/blog")
         acl3 = ACL("/foo", allow_by_default=False)
         collection = ACLCollection()
@@ -979,7 +978,7 @@ class TestACLCollections(TestCase):
             }
         decision1 = collection.decide_authorization(environ1)
         assert_false(decision1.allow)
-        eq_(decision1.message, "Titletale predicate")
+        eq_(decision1.message, "Not allowed")
         eq_(decision1.match_tracker.longest_path_match, 11)
         # ----- If there's a default decision, use it:
         environ2 = {
@@ -998,7 +997,7 @@ class TestACLCollections(TestCase):
         acl2 = ACL("/admin/blog")
         acl2.allow("/post", TitletalePredicate())
         acl3 = ACL("/admin/blog/post")
-        acl3.deny("", TitletalePredicate(msg="This is something custom"))
+        acl3.deny("", TitletalePredicate(), msg="This is something custom")
         collection = ACLCollection()
         collection.add_acl(acl1)
         collection.add_acl(acl2)
@@ -1165,7 +1164,7 @@ class TestAces(TestCase):
     def test_denial_ace(self):
         predicate = is_user("foo")
         ace = _ACE(predicate, False)
-        #eq_(ace.predicate, predicate)
+        eq_(ace.predicate, predicate)
         eq_(ace.allow, False)
         eq_(ace.named_args, set())
         eq_(ace.positional_args, 0)
@@ -1177,20 +1176,8 @@ class TestAces(TestCase):
             'repoze.what.named_args': set(),
             'repoze.what.positional_args': 0,
             }
-        (participation, message) = ace.can_participate(environ)
+        participation = ace.can_participate(environ)
         ok_(participation)
-        eq_(message, None)
-    
-    def test_denial_ace_without_predicate_and_custom_message(self):
-        ace = _ACE(None, False, message="Foo Bar")
-        eq_(ace.predicate, None)
-        environ = {
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
-        (participation, message) = ace.can_participate(environ)
-        ok_(participation)
-        eq_(message, "Foo Bar")
     
     def test_can_participate_without_minimum_args(self):
         """
@@ -1207,9 +1194,8 @@ class TestAces(TestCase):
         # Set:
         ace = _ACE(predicate, True, ["arg1", "arg2"], 3)
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        participation = ace.can_participate(environ)
         eq_(participation, False)
-        eq_(message, None)
         assert_false(predicate.evaluated)
     
     def test_can_participate_with_wrong_named_args(self):
@@ -1227,9 +1213,8 @@ class TestAces(TestCase):
         # Set:
         ace = _ACE(predicate, True, ["arg1", "arg2"])
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        participation = ace.can_participate(environ)
         eq_(participation, False)
-        eq_(message, None)
         assert_false(predicate.evaluated)
     
     def test_can_participate_with_less_positional_args(self):
@@ -1247,9 +1232,8 @@ class TestAces(TestCase):
         # Set:
         ace = _ACE(predicate, True, ["arg1"], 3)
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        participation = ace.can_participate(environ)
         eq_(participation, False)
-        eq_(message, None)
         assert_false(predicate.evaluated)
     
     def test_can_participate_with_exact_args(self):
@@ -1267,9 +1251,8 @@ class TestAces(TestCase):
         # Set:
         ace = _ACE(predicate, True, ["arg1", "arg2"], 2)
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        participation = ace.can_participate(environ)
         eq_(participation, True)
-        eq_(message, None)
         ok_(predicate.evaluated)
     
     def test_can_participate_with_more_args(self):
@@ -1287,9 +1270,8 @@ class TestAces(TestCase):
         # Set:
         ace = _ACE(predicate, True, ["arg1", "arg2"], 2)
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        participation = ace.can_participate(environ)
         eq_(participation, True)
-        eq_(message, None)
         ok_(predicate.evaluated)
     
     def test_predicate_met_and_authz_denied(self):
@@ -1306,9 +1288,8 @@ class TestAces(TestCase):
         # Set:
         ace = _ACE(predicate, False)
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        participation = ace.can_participate(environ)
         eq_(participation, True)
-        eq_(message, "Titletale predicate")
         ok_(predicate.evaluated)
     
     def test_predicate_met_and_authz_granted(self):
@@ -1325,49 +1306,8 @@ class TestAces(TestCase):
         # Set:
         ace = _ACE(predicate, True)
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        participation = ace.can_participate(environ)
         eq_(participation, True)
-        eq_(message, None)
-        ok_(predicate.evaluated)
-    
-    def test_predicate_met_and_authz_denied_with_custom_message(self):
-        """
-        The ACE must participate with a custom message if the predicate is met
-        and authz is denied.
-        
-        """
-        # Ready:
-        predicate = TitletalePredicate()
-        environ = {
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
-        # Set:
-        ace = _ACE(predicate, False, message="ABC XYZ")
-        # Go!:
-        (participation, message) = ace.can_participate(environ)
-        eq_(participation, True)
-        eq_(message, "ABC XYZ")
-        ok_(predicate.evaluated)
-    
-    def test_predicate_met_and_authz_granted_with_custom_message(self):
-        """
-        The ACE must participate with a custom message if the predicate is met
-        and authz is granted.
-        
-        """
-        # Ready:
-        predicate = TitletalePredicate()
-        environ = {
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
-        # Set:
-        ace = _ACE(predicate, True, message="ABC XYZ")
-        # Go!:
-        (participation, message) = ace.can_participate(environ)
-        eq_(participation, True)
-        eq_(message, "ABC XYZ")
         ok_(predicate.evaluated)
     
     def test_predicate_unmet_and_authz_denied(self):
@@ -1385,9 +1325,8 @@ class TestAces(TestCase):
         # Set:
         ace = _ACE(predicate, False)
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        participation = ace.can_participate(environ)
         eq_(participation, False)
-        eq_(message, None)
         ok_(predicate.evaluated)
     
     def test_predicate_unmet_and_authz_granted(self):
@@ -1405,9 +1344,8 @@ class TestAces(TestCase):
         # Set:
         ace = _ACE(predicate, True)
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        participation = ace.can_participate(environ)
         eq_(participation, False)
-        eq_(message, "Titletale predicate")
         ok_(predicate.evaluated)
 
 
@@ -1576,17 +1514,14 @@ class TestNormalizingPath(object):
 class TitletalePredicate(Predicate):
     """Mock predicate to check when a predicate is evaluated."""
     
-    message = "Titletale predicate"
-    
     def __init__(self, evaluation_result=True, *args, **kwargs):
         self.evaluation_result = evaluation_result
         self.evaluated = False
         super(TitletalePredicate, self).__init__(*args, **kwargs)
     
-    def evaluate(self, environ, credentials):
+    def check(self, request, credentials):
         self.evaluated = True
-        if not self.evaluation_result:
-            raise NotAuthorizedError(self.message)
+        return self.evaluation_result
 
 
 #}
