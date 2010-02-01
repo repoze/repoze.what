@@ -59,9 +59,6 @@ def setup_request(environ, userid, group_adapters, permission_adapters,
         'groups': group_adapters,
         'permissions': permission_adapters,
         }
-    # Setting the arguments:
-    request.environ['repoze.what.positional_args'] = len(request.urlargs)
-    request.environ['repoze.what.named_args'] = frozenset(request.urlvars.keys())
     # Injecting the global authorization control, so it can be used by plugins:
     request.environ['repoze.what.global_control'] = global_control
     # Adding a clear request so it can be used to check whether authorization
@@ -71,6 +68,7 @@ def setup_request(environ, userid, group_adapters, permission_adapters,
     request.environ['repoze.what.clear_request'] = clear_request
     
     # Before moving on, let's restore the CONTENT_LENGTH reset by WebOb:
+    # TODO: I think I no longer need this; verify it!
     request.environ['CONTENT_LENGTH'] = original_content_length
     return request
 

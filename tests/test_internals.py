@@ -35,8 +35,6 @@ class TestSettingUpRequest(unittest.TestCase):
         environ = {}
         req = setup_request(environ, None, None, None)
         assert len(req.environ) >= 4
-        assert "repoze.what.positional_args" in req.environ
-        assert "repoze.what.named_args" in req.environ
         # Checking the credentials:
         assert len(req.environ['repoze.what.credentials']) == 3
         assert req.environ['repoze.what.credentials']['repoze.what.userid'] is None
@@ -53,8 +51,6 @@ class TestSettingUpRequest(unittest.TestCase):
         environ = {}
         req = setup_request(environ, "rms", group_adapters, permission_adapters)
         assert len(req.environ) >= 4
-        assert "repoze.what.positional_args" in req.environ
-        assert "repoze.what.named_args" in req.environ
         # Checking the credentials:
         assert len(req.environ['repoze.what.credentials']) == 3
         assert (req.environ['repoze.what.credentials']['repoze.what.userid'] ==
@@ -77,68 +73,6 @@ class TestSettingUpRequest(unittest.TestCase):
         req = setup_request({}, None, None, None, None)
         assert "repoze.what.global_control" in req.environ
         assert req.environ['repoze.what.global_control'] is None
-    
-    def test_with_get_arguments(self):
-        """GET arguments must be ignored."""
-        # Forging the GET params:
-        environ = Request.blank("/blog/view.php?id=3&session=ABC123").environ
-        req = setup_request(environ, None, None, None)
-        assert req.environ['repoze.what.positional_args'] == 0
-        assert len(req.environ['repoze.what.named_args']) == 0
-    
-    def test_with_post_arguments(self):
-        """POST arguments must be ignored."""
-        # Forging the POST params:
-        post_args = "id=3&session=ABC123"
-        environ = {
-            'REQUEST_METHOD': "POST",
-            'wsgi.input': StringIO(post_args),
-            'CONTENT_LENGTH': str(len(post_args)),
-            'CONTENT_TYPE': "application/x-www-form-urlencoded",
-            }
-        mock_req = Request.blank("/blog/view-post.php", environ)
-        # Testing it:
-        req = setup_request(mock_req.environ, None, None, None)
-        assert req.environ['repoze.what.positional_args'] == 0
-        assert len(req.environ['repoze.what.named_args']) == 0
-        # Let's make sure that the POST request is not modified:
-        final_input = req.environ['wsgi.input'].read()
-        assert post_args == final_input
-        assert environ['REQUEST_METHOD'] == req.environ['REQUEST_METHOD']
-        assert environ['CONTENT_LENGTH'] == req.environ['CONTENT_LENGTH']
-        assert environ['CONTENT_TYPE'] == req.environ['CONTENT_TYPE']
-    
-    def test_named_arguments(self):
-        environ = {
-            'wsgiorg.routing_args': ((), {'foo': "bar", 'baz': "foo"}),
-        }
-        req = setup_request(environ, None, None, None)
-        assert req.environ['repoze.what.positional_args'] == 0
-        assert req.environ['repoze.what.named_args'] == set(["foo", "baz"])
-    
-    def test_with_named_positional_post_and_get_arguments(self):
-        """Both POST and GET args must be ignored."""
-        # Forging all the params:
-        mock_req = Request.blank("/blog/view-post.php?foo=bar")
-        mock_req.method = "POST"
-        mock_req.body = "id=3&session=ABC123"
-        mock_req.environ['wsgiorg.routing_args'] = (
-            ("a", "b", "c", "1", "2", "3"),
-            {'baz': "bar"}
-            )
-        # Testing it:
-        environ = mock_req.environ
-        req = setup_request(environ, None, None, None)
-        assert req.environ['repoze.what.positional_args'] == 6
-        assert req.environ['repoze.what.named_args'] == set(["baz"])
-    
-    def test_with_positional_args(self):
-        environ = {
-            'wsgiorg.routing_args': (("foo", "bar", "baz"), {}),
-        }
-        req = setup_request(environ, None, None, None)
-        assert req.environ['repoze.what.positional_args'] == 3
-        assert req.environ['repoze.what.named_args'] == set()
     
     def test_request_copy(self):
         """

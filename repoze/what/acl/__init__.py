@@ -107,8 +107,7 @@ class ACL(_BaseAuthorizationControl):
     
     #{ ACE management
     
-    def allow(self, path_or_object, predicate=None, named_args=(),
-              positional_args=0, msg=None, propagate=True):
+    def allow(self, path_or_object, predicate=None, msg=None, propagate=True):
         """
         Grant access on ``path_or_object`` if the ``predicate`` is met, all the
         named arguments in ``named_args`` are set and there are at least
@@ -120,11 +119,6 @@ class ACL(_BaseAuthorizationControl):
         :param predicate: The :mod:`repoze.what` predicate that must be met
             for this ACE to be taken into account.
         :type predicate: :class:`repoze.what.predicates.Predicate`
-        :param named_args: The named arguments that must be present.
-        :type named_args: :class:`tuple` or :class:`list`
-        :param positional_args: The minimum amount of positional arguments that
-            must be present.
-        :type positional_args: :class:`int`
         :param msg: The reason why authorization is granted.
         :type msg: :class:`basestring`
         :param propagate: Whether this ACE should be propagated to any path
@@ -135,12 +129,11 @@ class ACL(_BaseAuthorizationControl):
         account.
         
         """
-        self._add_ace(path_or_object, predicate, True, named_args,
-                      positional_args, None, msg, propagate, None)
+        self._add_ace(path_or_object, predicate, True, None, msg, propagate,
+                      None)
     
-    def deny(self, path_or_object, predicate=None, named_args=(),
-             positional_args=0, denial_handler=None, msg=None, propagate=True,
-             force_inclusion=False):
+    def deny(self, path_or_object, predicate=None, denial_handler=None,
+             msg=None, propagate=True, force_inclusion=False):
         """
         Deny access on ``path_or_object`` if the ``predicate`` is met, all the
         named arguments in ``named_args`` are set and there are at least
@@ -152,11 +145,6 @@ class ACL(_BaseAuthorizationControl):
         :param predicate: The :mod:`repoze.what` predicate that must be met
             for this ACE to be taken into account.
         :type predicate: :class:`repoze.what.predicates.Predicate`
-        :param named_args: The named arguments that must be present.
-        :type named_args: :class:`tuple` or :class:`list`
-        :param positional_args: The minimum amount of positional arguments that
-            must be present.
-        :type positional_args: :class:`int`
         :param denial_handler: The denial handler to be used if this is the
             final ACE (i.e., authorization is to be denied).
         :param msg: The reason why authorization is granted.
@@ -172,21 +160,18 @@ class ACL(_BaseAuthorizationControl):
         account.
         
         """
-        self._add_ace(path_or_object, predicate, False, named_args,
-                      positional_args, denial_handler, msg, propagate,
-                      force_inclusion)
+        self._add_ace(path_or_object, predicate, False, denial_handler, msg,
+                      propagate, force_inclusion)
     
-    def _add_ace(self, path_or_object, predicate, allow, named_args,
-                 positional_args, denial_handler, msg, propagate,
-                 force_inclusion):
+    def _add_ace(self, path_or_object, predicate, allow, denial_handler, msg,
+                 propagate, force_inclusion):
         
         # If we've been given multiple Access Control Objects at once, we have
         # to add them one by one:
         if hasattr(path_or_object, "__iter__"):
             for aco in path_or_object:
-                self._add_ace(aco, predicate, allow, named_args,
-                              positional_args, denial_handler, msg, propagate,
-                              force_inclusion)
+                self._add_ace(aco, predicate, allow, denial_handler, msg,
+                              propagate, force_inclusion)
             return
         
         is_path = isinstance(path_or_object, basestring)
@@ -194,8 +179,7 @@ class ACL(_BaseAuthorizationControl):
             # We're protecting a path, so we must preppend the base path:
             path_or_object = _normalize_path(self._base_path + path_or_object)
         # Adding this ACE:
-        ace = _ACE(predicate, allow, named_args, positional_args, msg,
-                   propagate, force_inclusion)
+        ace = _ACE(predicate, allow, msg, propagate, force_inclusion)
         self._aces.append((path_or_object, ace, is_path, denial_handler))
     
     #}
@@ -390,12 +374,10 @@ class _ACE(object):
     
     """
     
-    def __init__(self, predicate, allow, named_args=(), positional_args=0,
-                 message=None, propagate=True, force_inclusion=False):
+    def __init__(self, predicate, allow, message=None, propagate=True,
+                 force_inclusion=False):
         self.predicate = predicate
         self.allow = allow
-        self.named_args = frozenset(named_args)
-        self.positional_args = positional_args
         self.message = message
         self.propagate = propagate
         self.force_inclusion = force_inclusion
@@ -407,26 +389,13 @@ class _ACE(object):
         
         :param environ: The WSGI environment dictionary.
         :type environ: :class:`dict`
-        :return: A doublet where the first element tells if this ACE should be
-            taken into account and the second one contains the message to be
-            shown to the user (if any).
-        :rtype: (:class:`bool`, :class:`basestring`)
+        :return: Whether this ACE should be taken into account
+        :rtype: :class:`bool`
         
         """
         # If there's no predicate, then this ACE should always participate:
         if self.predicate is None:
             return True
-        
-        # Let's extract the request arguments. We shouldn't evaluate the
-        # predicate until we know the minimum arguments are present:
-        named_args = environ['repoze.what.named_args']
-        positional_args = environ['repoze.what.positional_args']
-        
-        # If the minimum arguments are not present, there's no point in
-        # evaluating the predicate and thus this ACE must be ignored:
-        if not (named_args.issuperset(self.named_args) and
-                positional_args >= self.positional_args):
-            return False
         
         return self.predicate(environ)
 
