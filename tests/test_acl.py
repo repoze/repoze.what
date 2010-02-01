@@ -116,12 +116,12 @@ class TestACL(TestCase):
     
     def test_allow_with_custom_message(self):
         acl = ACL()
-        acl.allow("/blog", msg="Everyone can access the blog")
+        acl.allow("/blog", reason="Everyone can access the blog")
         # Checking the new ACE:
         eq_(len(acl._aces), 1)
         ace = acl._aces[0][1]
         ok_(ace.allow)
-        eq_(ace.message, "Everyone can access the blog")
+        eq_(ace.reason, "Everyone can access the blog")
     
     def test_allow_without_propagation(self):
         acl = ACL()
@@ -227,12 +227,12 @@ class TestACL(TestCase):
     
     def test_deny_with_custom_message(self):
         acl = ACL()
-        acl.deny("/blog", msg="Noone can access the blog")
+        acl.deny("/blog", reason="Noone can access the blog")
         # Checking the new ACE:
         eq_(len(acl._aces), 1)
         ace = acl._aces[0][1]
         assert_false(ace.allow)
-        eq_(ace.message, "Noone can access the blog")
+        eq_(ace.reason, "Noone can access the blog")
     
     def test_deny_without_propagation(self):
         acl = ACL()
@@ -306,14 +306,14 @@ class TestACL(TestCase):
         # Checking the first ACL:
         decision1 = acl1.decide_authorization(environ)
         ok_(decision1.allow)
-        eq_(decision1.message, None)
+        eq_(decision1.reason, None)
         eq_(decision1.denial_handler, None)
         eq_(decision1.match_tracker.longest_path_match, 0)
         assert_false(decision1.match_tracker.object_ace_found)
         # Checking the second ACL:
         decision2 = acl2.decide_authorization(environ)
         assert_false(decision2.allow)
-        eq_(decision2.message, None)
+        eq_(decision2.reason, None)
         eq_(decision2.denial_handler, None)
         eq_(decision2.match_tracker.longest_path_match, 0)
         assert_false(decision2.match_tracker.object_ace_found)
@@ -325,12 +325,12 @@ class TestACL(TestCase):
         protected_object = object()
         acl = ACL()
         acl.allow("/blog", predicate1)
-        acl.deny(protected_object, predicate2, msg="Get out")
+        acl.deny(protected_object, predicate2, reason="Get out")
         # Checking with a path:
         environ1 = {'PATH_INFO': "/blog"}
         decision1 = acl.decide_authorization(environ1)
         ok_(decision1.allow)
-        eq_(decision1.message, None)
+        eq_(decision1.reason, None)
         eq_(decision1.denial_handler, None)
         eq_(decision1.match_tracker.longest_path_match, 6)
         assert_false(decision1.match_tracker.object_ace_found)
@@ -338,7 +338,7 @@ class TestACL(TestCase):
         environ2 = {'PATH_INFO': "/trac"}
         decision2 = acl.decide_authorization(environ2, protected_object)
         assert_false(decision2.allow)
-        eq_(decision2.message, "Get out")
+        eq_(decision2.reason, "Get out")
         eq_(decision2.denial_handler, None)
         eq_(decision2.match_tracker.longest_path_match, 0)
         ok_(decision2.match_tracker.object_ace_found)
@@ -353,19 +353,19 @@ class TestACL(TestCase):
         protected_object1 = object()
         protected_object2 = object()
         acl = ACL(allow_by_default=False)
-        acl.allow("/blog", predicate1, msg="You're allowed")
-        acl.deny("/blog/post_article", predicate1, msg="Get out")
-        acl.deny("/blog/view_comment", predicate1, msg="Deny foo")
-        acl.allow("/blog/view_comment", predicate1, msg="Allow foo")
-        acl.allow(protected_object1, predicate1, msg="Gotcha")
+        acl.allow("/blog", predicate1, reason="You're allowed")
+        acl.deny("/blog/post_article", predicate1, reason="Get out")
+        acl.deny("/blog/view_comment", predicate1, reason="Deny foo")
+        acl.allow("/blog/view_comment", predicate1, reason="Allow foo")
+        acl.allow(protected_object1, predicate1, reason="Gotcha")
         acl.allow(protected_object2, predicate1)
-        acl.deny(protected_object2, predicate1, msg="Gotcha!")
+        acl.deny(protected_object2, predicate1, reason="Gotcha!")
         acl.deny("/dev", predicate2)
         # ----- No specific ACE, using the default decision:
         environ1 = {'PATH_INFO': "/yet-another/path"}
         decision1 = acl.decide_authorization(environ1)
         assert_false(decision1.allow)
-        eq_(decision1.message, None)
+        eq_(decision1.reason, None)
         eq_(decision1.denial_handler, None)
         eq_(decision1.match_tracker.longest_path_match, 0)
         assert_false(decision1.match_tracker.object_ace_found)
@@ -373,7 +373,7 @@ class TestACL(TestCase):
         environ2 = {'PATH_INFO': "/blog"}
         decision2 = acl.decide_authorization(environ2)
         ok_(decision2.allow)
-        eq_(decision2.message, "You're allowed")
+        eq_(decision2.reason, "You're allowed")
         eq_(decision2.denial_handler, None)
         eq_(decision2.match_tracker.longest_path_match, 6)
         assert_false(decision2.match_tracker.object_ace_found)
@@ -381,7 +381,7 @@ class TestACL(TestCase):
         environ3 = {'PATH_INFO': "/blog/post_article"}
         decision3 = acl.decide_authorization(environ3)
         assert_false(decision3.allow)
-        eq_(decision3.message, "Get out")
+        eq_(decision3.reason, "Get out")
         eq_(decision3.denial_handler, None)
         eq_(decision3.match_tracker.longest_path_match, 19)
         assert_false(decision3.match_tracker.object_ace_found)
@@ -390,7 +390,7 @@ class TestACL(TestCase):
         environ4 = {'PATH_INFO': "/blog/view_comment"}
         decision4 = acl.decide_authorization(environ4)
         ok_(decision4.allow)
-        eq_(decision4.message, "Allow foo")
+        eq_(decision4.reason, "Allow foo")
         eq_(decision4.denial_handler, None)
         eq_(decision4.match_tracker.longest_path_match, 19)
         assert_false(decision4.match_tracker.object_ace_found)
@@ -398,7 +398,7 @@ class TestACL(TestCase):
         environ5 = {'PATH_INFO': "/"}
         decision5 = acl.decide_authorization(environ5, protected_object1)
         ok_(decision5.allow)
-        eq_(decision5.message, "Gotcha")
+        eq_(decision5.reason, "Gotcha")
         eq_(decision5.denial_handler, None)
         eq_(decision5.match_tracker.longest_path_match, 0)
         ok_(decision5.match_tracker.object_ace_found)
@@ -407,7 +407,7 @@ class TestACL(TestCase):
         environ6 = {'PATH_INFO': "/blog/post_article"}
         decision6 = acl.decide_authorization(environ6, protected_object1)
         ok_(decision6.allow)
-        eq_(decision6.message, "Gotcha")
+        eq_(decision6.reason, "Gotcha")
         eq_(decision6.denial_handler, None)
         eq_(decision6.match_tracker.longest_path_match, 19)
         ok_(decision6.match_tracker.object_ace_found)
@@ -415,7 +415,7 @@ class TestACL(TestCase):
         environ7 = {'PATH_INFO': "/"}
         decision7 = acl.decide_authorization(environ7, protected_object2)
         assert_false(decision7.allow)
-        eq_(decision7.message, "Gotcha!")
+        eq_(decision7.reason, "Gotcha!")
         eq_(decision7.denial_handler, None)
         eq_(decision7.match_tracker.longest_path_match, 0)
         ok_(decision7.match_tracker.object_ace_found)
@@ -424,7 +424,7 @@ class TestACL(TestCase):
         environ8 = {'PATH_INFO': "/"}
         decision8 = acl.decide_authorization(environ8, protected_object1)
         ok_(decision8.allow)
-        eq_(decision8.message, "Gotcha")
+        eq_(decision8.reason, "Gotcha")
         eq_(decision8.denial_handler, None)
         eq_(decision8.match_tracker.longest_path_match, 0)
         ok_(decision8.match_tracker.object_ace_found)
@@ -466,7 +466,7 @@ class TestACL(TestCase):
         """ACEs which don't have predicates must always be taken into account"""
         acl = ACL()
         acl.allow("/blog")
-        acl.deny("/blog/post-new", TitletalePredicate(), msg="Get out")
+        acl.deny("/blog/post-new", TitletalePredicate(), reason="Get out")
         acl.deny("/blog/repository")
         acl.allow("/blog/repository/download")
         # ----- Checking just one ACE without predicate:
@@ -486,35 +486,37 @@ class TestACL(TestCase):
         environ4 = {'PATH_INFO': "/blog/post-new"}
         decision4 = acl.decide_authorization(environ4)
         assert_false(decision4.allow)
-        eq_(decision4.message, "Get out")
+        eq_(decision4.reason, "Get out")
     
     def test_authorization_with_custom_messages(self):
         acl = ACL("/blog", allow_by_default=True)
-        acl.deny("/add-user", msg="Noone can add users")
-        acl.allow("/add-user/tomorrow", msg="Everybody can add users tomorrow")
-        acl.deny("/add-post", TitletalePredicate(), msg="Noone can add posts")
+        acl.deny("/add-user", reason="Noone can add users")
+        acl.allow("/add-user/tomorrow",
+                  reason="Everybody can add users tomorrow")
+        acl.deny("/add-post", TitletalePredicate(),
+                 reason="Noone can add posts")
         acl.allow("/add-post/tomorrow", TitletalePredicate(),
-                  msg="Everybody can add posts tomorrow")
+                  reason="Everybody can add posts tomorrow")
         # Checking the message the authz is denied without a predicate:
         environ1 = {'PATH_INFO': "/blog/add-user"}
         decision1 = acl.decide_authorization(environ1)
         assert_false(decision1.allow)
-        eq_(decision1.message, "Noone can add users")
+        eq_(decision1.reason, "Noone can add users")
         # Checking the message the authz is denied with a predicate:
         environ2 = {'PATH_INFO': "/blog/add-post"}
         decision2 = acl.decide_authorization(environ2)
         assert_false(decision2.allow)
-        eq_(decision2.message, "Noone can add posts")
+        eq_(decision2.reason, "Noone can add posts")
         # Checking the message the authz is granted without a predicate:
         environ3 = {'PATH_INFO': "/blog/add-user/tomorrow"}
         decision3 = acl.decide_authorization(environ3)
         ok_(decision3.allow)
-        eq_(decision3.message, "Everybody can add users tomorrow")
+        eq_(decision3.reason, "Everybody can add users tomorrow")
         # Checking the message the authz is granted with a predicate:
         environ4 = {'PATH_INFO': "/blog/add-post/tomorrow",}
         decision4 = acl.decide_authorization(environ4)
         ok_(decision4.allow)
-        eq_(decision4.message, "Everybody can add posts tomorrow")
+        eq_(decision4.reason, "Everybody can add posts tomorrow")
     
     def test_authorization_without_propagation_nor_predicate(self):
         """ACEs must not be propagated when explicitly requested."""
@@ -696,7 +698,7 @@ class TestACLCollections(TestCase):
         
         """
         acl1 = ACL("/trac")
-        acl1.deny("/wiki", TitletalePredicate(), msg="Not allowed")
+        acl1.deny("/wiki", TitletalePredicate(), reason="Not allowed")
         acl2 = ACL("/blog")
         acl3 = ACL("/foo", allow_by_default=False)
         collection = ACLCollection()
@@ -707,13 +709,13 @@ class TestACLCollections(TestCase):
         environ1 = {'PATH_INFO': "/trac/wiki/StartPage",}
         decision1 = collection.decide_authorization(environ1)
         assert_false(decision1.allow)
-        eq_(decision1.message, "Not allowed")
+        eq_(decision1.reason, "Not allowed")
         eq_(decision1.match_tracker.longest_path_match, 11)
         # ----- If there's a default decision, use it:
         environ2 = {'PATH_INFO': "/foo/bar",}
         decision2 = collection.decide_authorization(environ2)
         assert_false(decision2.allow)
-        eq_(decision2.message, None)
+        eq_(decision2.reason, None)
         eq_(decision2.match_tracker.longest_path_match, 0)
         
     def test_authorization_with_many_acls_participating(self):
@@ -722,7 +724,7 @@ class TestACLCollections(TestCase):
         acl2 = ACL("/admin/blog")
         acl2.allow("/post", TitletalePredicate())
         acl3 = ACL("/admin/blog/post")
-        acl3.deny("", TitletalePredicate(), msg="This is something custom")
+        acl3.deny("", TitletalePredicate(), reason="This is something custom")
         collection = ACLCollection()
         collection.add_acl(acl1)
         collection.add_acl(acl2)
@@ -730,7 +732,7 @@ class TestACLCollections(TestCase):
         environ = {'PATH_INFO': "/admin/blog/post",}
         decision = collection.decide_authorization(environ)
         assert_false(decision.allow)
-        eq_(decision.message, "This is something custom")
+        eq_(decision.reason, "This is something custom")
         eq_(decision.match_tracker.longest_path_match, 17)
     
     def test_authorization_with_acl_with_trailing_slash(self):
@@ -789,7 +791,7 @@ class TestAuthorizationDecision(TestCase):
         denial_handler = object()
         decision = AuthorizationDecision(False, "FooBar", denial_handler)
         eq_(decision.allow, False)
-        eq_(decision.message, "FooBar")
+        eq_(decision.reason, "FooBar")
         eq_(decision.denial_handler, denial_handler)
         eq_(decision.match_tracker, None)
     

@@ -107,11 +107,10 @@ class ACL(_BaseAuthorizationControl):
     
     #{ ACE management
     
-    def allow(self, path_or_object, predicate=None, msg=None, propagate=True):
+    def allow(self, path_or_object, predicate=None, reason=None,
+              propagate=True):
         """
-        Grant access on ``path_or_object`` if the ``predicate`` is met, all the
-        named arguments in ``named_args`` are set and there are at least
-        ``positional_args`` positional arguments.
+        Grant access on ``path_or_object`` if the ``predicate`` is met.
         
         :param path_or_object: The path or the object to be covered by this ACE.
         :type path_or_object: :class:`basestring`, callable or a collection of
@@ -119,8 +118,8 @@ class ACL(_BaseAuthorizationControl):
         :param predicate: The :mod:`repoze.what` predicate that must be met
             for this ACE to be taken into account.
         :type predicate: :class:`repoze.what.predicates.Predicate`
-        :param msg: The reason why authorization is granted.
-        :type msg: :class:`basestring`
+        :param reason: The reason why authorization is granted.
+        :type reason: :class:`basestring`
         :param propagate: Whether this ACE should be propagated to any path
             which begins with this one (as long as this ACE covers a path).
         :type propagate: :class:`bool`
@@ -129,15 +128,13 @@ class ACL(_BaseAuthorizationControl):
         account.
         
         """
-        self._add_ace(path_or_object, predicate, True, None, msg, propagate,
+        self._add_ace(path_or_object, predicate, True, None, reason, propagate,
                       None)
     
     def deny(self, path_or_object, predicate=None, denial_handler=None,
-             msg=None, propagate=True, force_inclusion=False):
+             reason=None, propagate=True, force_inclusion=False):
         """
-        Deny access on ``path_or_object`` if the ``predicate`` is met, all the
-        named arguments in ``named_args`` are set and there are at least
-        ``positional_args`` positional arguments.
+        Deny access on ``path_or_object`` if the ``predicate`` is met.
         
         :param path_or_object: The path or the object to be covered by this ACE.
         :type path_or_object: :class:`basestring`, callable or a collection of
@@ -147,8 +144,8 @@ class ACL(_BaseAuthorizationControl):
         :type predicate: :class:`repoze.what.predicates.Predicate`
         :param denial_handler: The denial handler to be used if this is the
             final ACE (i.e., authorization is to be denied).
-        :param msg: The reason why authorization is granted.
-        :type msg: :class:`basestring`
+        :param reason: The reason why authorization is granted.
+        :type reason: :class:`basestring`
         :param propagate: Whether this ACE should be propagated to any path
             which begins with this one (as long as this ACE covers a path).
         :type propagate: :class:`bool`
@@ -160,17 +157,16 @@ class ACL(_BaseAuthorizationControl):
         account.
         
         """
-        self._add_ace(path_or_object, predicate, False, denial_handler, msg,
+        self._add_ace(path_or_object, predicate, False, denial_handler, reason,
                       propagate, force_inclusion)
     
-    def _add_ace(self, path_or_object, predicate, allow, denial_handler, msg,
+    def _add_ace(self, path_or_object, predicate, allow, denial_handler, reason,
                  propagate, force_inclusion):
-        
         # If we've been given multiple Access Control Objects at once, we have
         # to add them one by one:
         if hasattr(path_or_object, "__iter__"):
             for aco in path_or_object:
-                self._add_ace(aco, predicate, allow, denial_handler, msg,
+                self._add_ace(aco, predicate, allow, denial_handler, reason,
                               propagate, force_inclusion)
             return
         
@@ -179,7 +175,7 @@ class ACL(_BaseAuthorizationControl):
             # We're protecting a path, so we must preppend the base path:
             path_or_object = _normalize_path(self._base_path + path_or_object)
         # Adding this ACE:
-        ace = _ACE(predicate, allow, msg, propagate, force_inclusion)
+        ace = _ACE(predicate, allow, reason, propagate, force_inclusion)
         self._aces.append((path_or_object, ace, is_path, denial_handler))
     
     #}
@@ -232,7 +228,7 @@ class ACL(_BaseAuthorizationControl):
                 continue
             
             # The current ACE *must* be taken into account:
-            final_decision = AuthorizationDecision(ace.allow, ace.message,
+            final_decision = AuthorizationDecision(ace.allow, ace.reason,
                                                    denial_handler)
             
             # Updating the tracker:
@@ -349,9 +345,9 @@ class AuthorizationDecision(object):
     
     """
     
-    def __init__(self, allow, message, denial_handler):
+    def __init__(self, allow, reason, denial_handler):
         self.allow = allow
-        self.message = message
+        self.reason = reason
         self.denial_handler = denial_handler
         self.match_tracker = None
     
@@ -374,11 +370,11 @@ class _ACE(object):
     
     """
     
-    def __init__(self, predicate, allow, message=None, propagate=True,
+    def __init__(self, predicate, allow, reason=None, propagate=True,
                  force_inclusion=False):
         self.predicate = predicate
         self.allow = allow
-        self.message = message
+        self.reason = reason
         self.propagate = propagate
         self.force_inclusion = force_inclusion
     
