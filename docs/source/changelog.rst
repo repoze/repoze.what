@@ -61,6 +61,10 @@ New or enhanced stuff
   
   See :meth:`repoze.what.predicates.Predicate.check`.
   
+* Added support for "indeterminate predicates", whose evaluation is ``None``
+  (not a boolean!). This is crucial for those situations in which the requested
+  resource is not found and returning a 404 response is preferred over letting
+  repoze.what deny authorization, for example.
 * Added :mod:`benchmarking utilities for the source adapters
   <repoze.what.adapters.benchmark>`.
 

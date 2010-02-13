@@ -24,7 +24,7 @@ Tests for the built-in predicates.
 from StringIO import StringIO
 import unittest
 
-from nose.tools import eq_, ok_, assert_false
+from nose.tools import eq_, ok_, assert_false, assert_raises
 from webob import Request
 
 from repoze.what import predicates
@@ -33,12 +33,13 @@ from tests.base import FakeLogger, encode_multipart_formdata
 
 
 class BasePredicateTester(unittest.TestCase):
-    """Base test case for predicates."""
+    """Base test case for old-style predicate checkers."""
     
     def eval_met_predicate(self, p, environ):
         """Evaluate a predicate that should be met"""
         self.assertEqual(p.check_authorization(environ), None)
         self.assertEqual(p.is_met(environ), True)
+        # The new-style way:
         ok_(p(environ))
     
     def eval_unmet_predicate(self, p, environ, expected_error):
@@ -53,6 +54,7 @@ class BasePredicateTester(unittest.TestCase):
             self.assertEqual(unicode(error), expected_error)
         # Testing is_met:
         self.assertEqual(p.is_met(environ), False)
+        # The new-style way:
         assert_false(p(environ))
 
 
@@ -238,11 +240,37 @@ class TestNotPredicate(BasePredicateTester):
         self.eval_unmet_predicate(p, environ, 'It must not equal four')
     
     def test_success(self):
+        """``False`` is returned if the wrapped predicate is met."""
         environ = {'test_number': 5}
         # It must not equal 4
         p = predicates.Not(EqualsFour())
         # It doesn't equal 4!
         self.eval_met_predicate(p, environ)
+    
+    def test_no_result(self):
+        """
+        Nothing should be returned if the negated predicated didn't return
+        anything.
+        
+        """
+        predicate = IndecisivePredicate()
+        negated_predicate = predicates.Not(predicate)
+        eq_(negated_predicate({}), None)
+        ok_(predicate.evaluated)
+    
+    def test_new_style_predicates(self):
+        """New-style predicate checkers are supported."""
+        positive_predicate = predicates.Not(NewStylePredicate(True))
+        negative_predicate = predicates.Not(NewStylePredicate(False))
+        assert_false(positive_predicate({}))
+        ok_(negative_predicate({}))
+    
+    def test_old_style_predicates(self):
+        """Old-style predicate checkers are supported."""
+        positive_predicate = predicates.Not(OldStylePredicate(True))
+        negative_predicate = predicates.Not(OldStylePredicate(False))
+        assert_false(positive_predicate({}))
+        ok_(negative_predicate({}))
 
 
 class TestAllPredicate(BasePredicateTester):
@@ -271,6 +299,85 @@ class TestAllPredicate(BasePredicateTester):
         environ = {'test_number': 5}
         p = predicates.All(EqualsFour(), GreaterThan(3))
         self.eval_unmet_predicate(p, environ, "Number 5 doesn't equal 4")
+    
+    def test_no_results(self):
+        """
+        The evaluation of All is indeterminate when no result was received.
+        
+        """
+        p1 = IndecisivePredicate()
+        p2 = IndecisivePredicate()
+        conjunction = predicates.All(p1, p2)
+        eq_(conjunction({}), None)
+    
+    def test_one_missing(self):
+        """
+        The evaluation of All is indeterminate when there's only one inner
+        predicate and it is indeterminate.
+        
+        """
+        indecisive_predicate = IndecisivePredicate()
+        conjunction = predicates.All(indecisive_predicate)
+        eq_(conjunction({}), None)
+    
+    def test_one_missing_and_one_true_result(self):
+        """
+        The evaluation of All is indeterminate when at least one of the results
+        is missing (i.e., ``None`` was returned), even if there was one
+        positive result.
+        
+        """
+        indecisive_predicate = IndecisivePredicate()
+        true_predicate = NewStylePredicate()
+        conjunction = predicates.All(indecisive_predicate, true_predicate)
+        eq_(conjunction({}), None)
+        # Checking it the other way around:
+        reversed_conjunction = predicates.All(true_predicate,
+                                              indecisive_predicate)
+        eq_(reversed_conjunction({}), None)
+    
+    def test_one_missing_and_one_false_result(self):
+        """
+        The evaluation of All is negative if one of the results was negative,
+        even if there was an indeterminate result.
+        
+        """
+        indecisive_predicate = IndecisivePredicate()
+        false_predicate = NewStylePredicate(False)
+        conjunction = predicates.All(indecisive_predicate, false_predicate)
+        eq_(conjunction({}), False)
+        # Checking it the other way around:
+        reversed_conjunction = predicates.All(false_predicate,
+                                              indecisive_predicate)
+        eq_(reversed_conjunction({}), False)
+    
+    def test_new_style_predicates(self):
+        """
+        New-style predicate checkers are supported, but cannot be used the old
+        style way.
+        
+        """
+        positive_predicate = predicates.All(NewStylePredicate(True))
+        negative_predicate = predicates.All(NewStylePredicate(False))
+        ok_(positive_predicate({}))
+        assert_false(negative_predicate({}))
+        # But they cannot be evaluated as old-style predicates:
+        assert_raises(NotImplementedError, positive_predicate.evaluate, {}, {})
+        assert_raises(NotImplementedError, negative_predicate.evaluate, {}, {})
+    
+    def test_old_style_predicates(self):
+        """
+        Old-style predicate checkers are supported and can be used in both ways.
+        
+        """
+        positive_predicate = predicates.All(OldStylePredicate(True))
+        negative_predicate = predicates.All(OldStylePredicate(False))
+        # New-style check:
+        ok_(positive_predicate({}))
+        assert_false(negative_predicate({}))
+        # Old-style check:
+        self.eval_met_predicate(positive_predicate, {})
+        self.eval_unmet_predicate(negative_predicate, {}, "Predicate not met")
 
 
 class TestAnyPredicate(BasePredicateTester):
@@ -304,6 +411,89 @@ class TestAnyPredicate(BasePredicateTester):
         environ = {'test_number': 5}
         p = predicates.Any(EqualsFour(), GreaterThan(3))
         self.eval_met_predicate(p, environ)
+    
+    def test_no_results(self):
+        """
+        The evaluation of Any is indeterminate when no result was received.
+        
+        """
+        p1 = IndecisivePredicate()
+        p2 = IndecisivePredicate()
+        disjunction = predicates.Any(p1, p2)
+        eq_(disjunction({}), None)
+    
+    def test_one_missing(self):
+        """
+        The evaluation of Any is indeterminate when there's only one inner
+        predicate and it is indeterminate.
+        
+        """
+        indecisive_predicate = IndecisivePredicate()
+        conjunction = predicates.Any(indecisive_predicate)
+        eq_(conjunction({}), None)
+    
+    def test_one_missing_and_one_true_result(self):
+        """
+        The evaluation of Any is true if any least one of the inner predicates
+        evaluates to True, even if one of them was indeterminate.
+        
+        """
+        indecisive_predicate = IndecisivePredicate()
+        true_predicate = NewStylePredicate()
+        disjunction = predicates.Any(indecisive_predicate, true_predicate)
+        ok_(disjunction({}))
+        # Checking it the other way around:
+        reversed_disjunction = predicates.Any(true_predicate,
+                                              indecisive_predicate)
+        ok_(reversed_disjunction({}))
+    
+    def test_one_missing_and_one_false_result(self):
+        """
+        The evaluation of Any is indeterminate if none of the inner predicates
+        evaluates to False and at least one was indeterminate.
+        
+        """
+        indecisive_predicate = IndecisivePredicate()
+        false_predicate = NewStylePredicate(False)
+        disjunction = predicates.Any(indecisive_predicate, false_predicate)
+        eq_(disjunction({}), None)
+        # Checking it the other way around:
+        reversed_disjunction = predicates.Any(false_predicate,
+                                              indecisive_predicate)
+        eq_(reversed_disjunction({}), None)
+    
+    def test_new_style_predicates(self):
+        """
+        New-style predicate checkers are supported, but cannot be used the old
+        style way.
+        
+        """
+        positive_predicate = predicates.Any(NewStylePredicate(True))
+        negative_predicate = predicates.Any(NewStylePredicate(False))
+        ok_(positive_predicate({}))
+        assert_false(negative_predicate({}))
+        # But they cannot be evaluated as old-style predicates:
+        assert_raises(NotImplementedError, positive_predicate.evaluate, {}, {})
+        assert_raises(NotImplementedError, negative_predicate.evaluate, {}, {})
+    
+    def test_old_style_predicates(self):
+        """
+        Old-style predicate checkers are supported and can be used in both ways.
+        
+        """
+        positive_predicate = predicates.Any(OldStylePredicate(True))
+        negative_predicate = predicates.Any(OldStylePredicate(False))
+        # New-style check:
+        ok_(positive_predicate({}))
+        assert_false(negative_predicate({}))
+        # Old-style check:
+        self.eval_met_predicate(positive_predicate, {})
+        self.eval_unmet_predicate(
+            negative_predicate,
+            {},
+            "At least one of the following predicates must be met: Predicate "
+            "not met",
+            )
 
 
 class TestIsUserPredicate(BasePredicateTester):
@@ -805,11 +995,16 @@ def make_environ(user, groups=None, permissions=None):
     return environ
 
 
-#{ Mock definitions
-
-
 class MockPredicate(predicates.Predicate):
     message = "I'm a fake predicate"
+    
+    def __init__(self, result=True, *args, **kwargs):
+        super(MockPredicate, self).__init__(*args, **kwargs)
+        self.result = result
+        self.evaluated = False
+
+
+#{ Mock & old-style predicate checkers
 
 
 class EqualsTwo(predicates.Predicate):
@@ -855,5 +1050,44 @@ class LessThan(predicates.Predicate):
         number = environ.get('test_number')
         if not number < self.compared_number:
             self.unmet(number=number, compared_number=self.compared_number)
+
+
+class OldStylePredicate(MockPredicate):
+    """
+    Predicate checker which supports the old API prior to v1.1.
+    
+    The one where predicate checkers raised exceptions and had messages
+    associated.
+    
+    """
+    
+    def evaluate(self, environ, credentials):
+        if not self.result:
+            raise predicates.NotAuthorizedError("Predicate not met")
+
+
+#{ Mock & new-style predicate checkers
+
+
+class NewStylePredicate(MockPredicate):
+    """
+    Predicate checker which supports the new API introduced in v1.1.
+    
+    The one where predicate checkers return booleans and don't have messages
+    associated.
+    
+    """
+    
+    def check(self, request, credentials):
+        return self.result
+
+
+class IndecisivePredicate(MockPredicate):
+    """Predicate checker which is always indeterminate."""
+    
+    def check(self, request, credentials):
+        self.evaluated = True
+        return None
+
 
 #}

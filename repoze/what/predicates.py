@@ -86,7 +86,7 @@ class Predicate(object):
         
         """
         if not isinstance(request, Request):
-            # It must be a WSGI environment dictionary:
+            # It was a WSGI environment dictionary:
             request = Request(request)
         credentials = request.environ.get('repoze.what.credentials', {})
         return self.check(request, credentials)
@@ -178,8 +178,9 @@ class Predicate(object):
             delete any attribute of the predicate.
         
         """
-        raise NotImplementedError("Predicate checkers must define their "
-                                  "evaluate() method")
+        raise NotImplementedError(
+            "Predicate checker %r does not override the deprecated "
+            "evaluate() method" % self.__class__)
     
     def unmet(self, msg=None, **placeholders):
         """
@@ -443,7 +444,7 @@ class Not(Predicate):
     Example::
     
         # The user *must* be anonymous:
-        p = Not(not_anonymous())
+        p = Not(NotAnonymous())
     
     """
     message = u"The condition must not be met"
@@ -452,6 +453,15 @@ class Not(Predicate):
         super(Not, self).__init__(**kwargs)
         self.predicate = predicate
     
+    # New-style evaluation:
+    def check(self, request, credentials):
+        is_met = self.predicate.check(request, credentials)
+        # If the predicate evaluation was undeterminate, leave it as is:
+        if is_met is not None:
+            is_met = not is_met
+        return is_met
+    
+    # Old-style, backwards compatible evaluation:
     def evaluate(self, environ, credentials):
         try:
             self.predicate.evaluate(environ, credentials)
@@ -470,10 +480,42 @@ class All(_CompoundPredicate):
     
         # Grant access if the current month is July and the user belongs to
         # the human resources group.
-        p = All(IsMonth(7), in_group('hr'))
+        p = All(IsMonth(7), InGroup('hr'))
+    
+    This predicate is met when all the inner predicates are met, unmet when at
+    least one of them is unmet and indeterminate for the rest of the situation.
     
     """
     
+    # New-style evaluation:
+    def check(self, request, credentials):
+        met_predicates = 0
+        any_indeterminate = False
+        any_unmet = False
+        
+        for predicate in self.predicates:
+            evaluation_result = predicate.check(request, credentials)
+            
+            if evaluation_result is True:
+                met_predicates += 1
+            elif evaluation_result is None:
+                any_indeterminate = True
+            elif evaluation_result is False:
+                any_unmet = True
+                break
+        
+        if any_indeterminate and not any_unmet:
+            # The predicates were indeterminate, although some of them might
+            # have been met -- Which is not enough, they all must be met.
+            met = None
+        else:
+            # Either all the oredicates were met, or at least one of them was
+            # definitely not met.
+            met = len(self.predicates) == met_predicates
+        
+        return met
+    
+    # Old-style, backwards compatible evaluation:
     def evaluate(self, environ, credentials):
         """
         Evaluate all the predicates it contains.
@@ -497,12 +539,39 @@ class Any(_CompoundPredicate):
     
         # Grant access if the currest user is Richard Stallman or Linus
         # Torvalds.
-        p = Any(is_user('rms'), is_user('linus'))
+        p = Any(IsUser('rms'), IsUser('linus'))
+    
+    This predicate is met when at least one of the inner predicates is met and
+    unmet when all of the inner predicates are unmet. If none of the predicates
+    are met and also there's at least one indeterminate predicate, this
+    predicate is indeterminate.
     
     """
     message = u"At least one of the following predicates must be met: " \
                "%(failed_predicates)s"
     
+    # New-style evaluation:
+    def check(self, request, credentials):
+        one_met = False
+        any_indeterminate = False
+        
+        for predicate in self.predicates:
+            evaluation_result = predicate.check(request, credentials)
+            print "%r: %s" % (predicate, evaluation_result)
+            if evaluation_result == True:
+                one_met = True
+                break
+            elif evaluation_result is None:
+                any_indeterminate = True
+        
+        if any_indeterminate and not one_met:
+            met = None
+        else:
+            met = one_met
+        
+        return met
+    
+    # Old-style, backwards compatible evaluation:
     def evaluate(self, environ, credentials):
         """
         Evaluate all the predicates it contains.
