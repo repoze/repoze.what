@@ -222,13 +222,20 @@ class ACL(_BaseAuthorizationControl):
             
             # The current path/object IS within the scope of this ACE.
             ace_participates = ace.can_participate(environ)
-            if not ace_participates:
+            if ace_participates is False:
                 # However, it cannot participate because other conditions
                 # are not met.
                 continue
             
+            # If the predicate was indeterminate, we cannot take the ACE's
+            # .allow value:
+            if ace_participates is None:
+                allow = None
+            else:
+                allow = ace.allow
+            
             # The current ACE *must* be taken into account:
-            final_decision = AuthorizationDecision(ace.allow, ace.reason,
+            final_decision = AuthorizationDecision(allow, ace.reason,
                                                    denial_handler)
             
             # Updating the tracker:
@@ -346,7 +353,8 @@ class AuthorizationDecision(object):
     """
     
     def __init__(self, allow, reason, denial_handler):
-        self.allow = allow
+        self.allow = allow in (True, None)
+        self.was_indeterminate = allow is None
         self.reason = reason
         self.denial_handler = denial_handler
         self.match_tracker = None

@@ -259,6 +259,37 @@ class TestACL(TestCase):
     
     #{ Testing decisions
     
+    def test_authorization_with_indeterminate_predicate(self):
+        """
+        Authorization must always be granted if the predicate is indeterminate.
+        
+        """
+        predicate = TitletalePredicate(None)
+        acl = ACL()
+        acl.deny("/blog", predicate)
+        acl.allow("/contact", predicate)
+        # Checking decisions:
+        decision1 = acl.decide_authorization({'PATH_INFO': "/blog"}, None)
+        decision2 = acl.decide_authorization({'PATH_INFO': "/contact"}, None)
+        ok_(decision1.allow)
+        ok_(decision1.was_indeterminate)
+        ok_(decision2.allow)
+        ok_(decision2.was_indeterminate)
+    
+    def test_authorization_with_less_specific_indeterminate_predicate(self):
+        """
+        The authorization decider must go on even if it already found an
+        indeterminate predicate.
+        
+        """
+        predicate = TitletalePredicate(None)
+        acl = ACL()
+        acl.allow("/blog", predicate)
+        acl.deny("/blog/posts")
+        decision = acl.decide_authorization({'PATH_INFO': "/blog/posts"}, None)
+        assert_false(decision.allow)
+        assert_false(decision.was_indeterminate)
+    
     def test_authorization_with_no_matching_ace_and_no_default_decision(self):
         """
         No decision must be made if there's no ACE participating and there's
@@ -671,6 +702,21 @@ class TestACLCollections(TestCase):
     
     #{ Testing decisions
     
+    def test_authorization_with_indeterminate_predicate(self):
+        """
+        Authorization must always be granted if the predicate is indeterminate.
+        
+        """
+        predicate = TitletalePredicate(None)
+        acl = ACL()
+        acl.deny("/blog", predicate)
+        collection = ACLCollection()
+        collection.add_acl(acl)
+        # Checking decisions:
+        decision = collection.decide_authorization({'PATH_INFO': "/blog"}, None)
+        ok_(decision.allow)
+        ok_(decision.was_indeterminate)
+    
     def test_authorization_with_out_of_scope_acls(self):
         """
         No decision must be made if the request is not within the scope of any
@@ -787,13 +833,32 @@ class TestAuthorizationDecision(TestCase):
     
     """
     
-    def test_constructor(self):
+    #{ Testing the constructor
+    
+    def test_authz_granted(self):
         denial_handler = object()
-        decision = AuthorizationDecision(False, "FooBar", denial_handler)
-        eq_(decision.allow, False)
+        decision = AuthorizationDecision(True, "FooBar", denial_handler)
+        ok_(decision.allow)
+        assert_false(decision.was_indeterminate)
         eq_(decision.reason, "FooBar")
         eq_(decision.denial_handler, denial_handler)
         eq_(decision.match_tracker, None)
+    
+    def test_authz_denied(self):
+        denial_handler = object()
+        decision = AuthorizationDecision(False, "FooBar", denial_handler)
+        eq_(decision.allow, False)
+        assert_false(decision.was_indeterminate)
+        eq_(decision.reason, "FooBar")
+        eq_(decision.denial_handler, denial_handler)
+        eq_(decision.match_tracker, None)
+    
+    def test_indetermination(self):
+        decision = AuthorizationDecision(None, "FooBar", None)
+        ok_(decision.allow)
+        ok_(decision.was_indeterminate)
+    
+    #}
     
     def test_setting_denial_handler_with_existing_one(self):
         """If there's already a denial handler, it must not be replaced."""
