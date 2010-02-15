@@ -261,6 +261,10 @@ class ACL(_BaseAuthorizationControl):
             final_decision.set_match_tracker(tracker)
         
         return final_decision
+    
+    def __repr__(self):
+        return "<ACL base=%s aces=%s at 0x%x>" % \
+               (self._base_path, len(self._aces), id(self))
 
 
 class ACLCollection(_BaseAuthorizationControl):
@@ -344,6 +348,9 @@ class ACLCollection(_BaseAuthorizationControl):
             final_decision.set_denial_handler(self._default_denial_handler)
         
         return final_decision
+    
+    def __repr__(self):
+        return "<ACL-Collection acls=%s at 0x%x>" % (len(self._acls), id(self))
 
 
 class AuthorizationDecision(object):
@@ -402,6 +409,10 @@ class _ACE(object):
             return True
         
         return self.predicate(environ)
+    
+    def __repr__(self):
+        return "<ACE allow=%r predicate=%r reason=%r>" % \
+               (self.allow, self.predicate, self.reason)
 
 
 class _MatchTracker(object):

@@ -660,9 +660,14 @@ class TestACL(TestCase):
         environ_with_wrong_path = {'PATH_INFO': "/bar/////foo/",}
         decision2 = acl.decide_authorization(environ_with_wrong_path)
         ok_(decision2.allow)
-        
     
     #}
+    
+    def test_representation(self):
+        acl = ACL()
+        acl.allow("foo")
+        acl.deny("bar")
+        eq_("<ACL base=/ aces=2 at %s>" % hex(id(acl)), repr(acl))
 
 
 class TestACLCollections(TestCase):
@@ -825,6 +830,14 @@ class TestACLCollections(TestCase):
         assert_false(decision.allow)
     
     #}
+    
+    def test_representation(self):
+        collection = ACLCollection(allow_by_default=False)
+        collection.add_acl(ACL())
+        collection.add_acl(ACL())
+        collection.add_acl(ACL())
+        eq_("<ACL-Collection acls=3 at %s>" % hex(id(collection)),
+            repr(collection))
 
 
 class TestAuthorizationDecision(TestCase):
@@ -929,6 +942,15 @@ class TestAces(TestCase):
         eq_(ace2.allow, False)
         eq_(ace2.propagate, True)
         eq_(ace2.force_inclusion, False)
+    
+    def test_representation(self):
+        predicate = is_user("foo")
+        ace1 = _ACE(predicate, True, "No reason")
+        ace2 = _ACE(predicate, False, "No reason")
+        eq_("<ACE allow=True predicate=%r reason='No reason'>" % predicate,
+            repr(ace1))
+        eq_("<ACE allow=False predicate=%r reason='No reason'>" % predicate,
+            repr(ace2))
     
     def test_denial_ace_without_predicate(self):
         ace = _ACE(None, False)
