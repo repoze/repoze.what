@@ -103,6 +103,7 @@ class TestSettingUpRequest(unittest.TestCase):
             'wsgi.input': StringIO("var=val"),
             }
         req2 = setup_request(environ2, None, None, None)
+        assert environ2['CONTENT_LENGTH'] == "7"
         assert "repoze.what.clear_request" in req2.environ
         clear_request2 = req2.environ['repoze.what.clear_request']
         assert clear_request2.script_name == "/trac"
@@ -120,6 +121,7 @@ class TestSettingUpRequest(unittest.TestCase):
             'wsgi.input': StringIO("var=val"),
             }
         req3 = setup_request(environ3, None, None, None)
+        assert environ3['CONTENT_LENGTH'] == "7"
         assert "repoze.what.clear_request" in req3.environ
         clear_request3 = req3.environ['repoze.what.clear_request']
         assert clear_request3.script_name == "/trac"
