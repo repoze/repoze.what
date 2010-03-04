@@ -30,7 +30,6 @@ from repoze.who.interfaces import IAuthenticator, IMetadataProvider
 from repoze.who.plugins.form import RedirectingFormPlugin
 from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
 from repoze.who.plugins.basicauth import BasicAuthPlugin
-from repoze.who.tests import Base as BasePluginTester, DummyApp
 from repoze.who.plugins.testutil import AuthenticationForgerPlugin, \
                                         AuthenticationForgerMiddleware
 
@@ -248,7 +247,7 @@ class TestAuthorizationMetadata(unittest.TestCase):
                                            expected_permissions)
 
 
-class TestSetupAuth(BasePluginTester):
+class TestSetupAuth(unittest.TestCase):
     """Tests for the setup_auth() function"""
     
     def setUp(self):
@@ -265,6 +264,14 @@ class TestSetupAuth(BasePluginTester):
                'Registry key "%s" is of type "%s" (not "%s")' % \
                (registry_key, app.name_registry[registry_key].__class__.__name__,
                 registry_type.__name__)
+    
+    def _makeEnviron(self, kw=None):
+        environ = {}
+        environ['wsgi.version'] = (1,0)
+        if kw is not None:
+            environ.update(kw)
+        return environ
+
     
     def _makeApp(self, groups, permissions, **who_args):
         cookie = AuthTktCookiePlugin('secret', 'authtkt')
@@ -313,7 +320,6 @@ class TestSetupAuth(BasePluginTester):
                           default_challenge_decider.__class__)
         assert isinstance(app.classifier,
                           default_request_classifier.__class__)
-        assert isinstance(app.logger, logging.Logger)
     
     def test_with_auth_log(self):
         os.environ['AUTH_LOG'] = '1'
@@ -342,6 +348,12 @@ class TestSetupAuth(BasePluginTester):
                           default_challenge_decider.__class__)
         assert isinstance(app.classifier,
                           default_request_classifier.__class__)
-        assert isinstance(app.logger, logging.Logger)
+
+class DummyApp:
+    environ = None
+    def __call__(self, environ, start_response):
+        self.environ = environ
+        return []
+
 
 #}
