@@ -4,8 +4,12 @@
 
 This document describes the releases of :mod:`repoze.what`.
 
-After :mod:`repoze.what` 1.0.8 (unreleased)
-===========================================
+.. _repoze.what-1.0.9:
+
+:mod:`repoze.what` 1.0.9 (2010-03-04)
+=====================================
+
+* Pin ``repoze.who`` to versions <= 1.99 (2.0a1 is incompatible).
 
 * Made tests compatible with released :mod:`repoze.who` 1.0.x.
 
