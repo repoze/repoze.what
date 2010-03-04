@@ -26,10 +26,9 @@ from zope.interface.verify import verifyClass
 from repoze.who.middleware import PluggableAuthenticationMiddleware
 from repoze.who.classifiers import default_challenge_decider, \
                                    default_request_classifier
-from repoze.who.interfaces import IAuthenticator, IMetadataProvider
+from repoze.who.interfaces import IMetadataProvider
 from repoze.who.plugins.form import RedirectingFormPlugin
 from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
-from repoze.who.plugins.basicauth import BasicAuthPlugin
 from repoze.who.plugins.testutil import AuthenticationForgerPlugin, \
                                         AuthenticationForgerMiddleware
 
@@ -256,14 +255,27 @@ class TestSetupAuth(unittest.TestCase):
     
     def tearDown(self):
         os.environ['AUTH_LOG'] = str(self.old_auth_log)
+
+
+    def _makeEnviron(self):
+        return {
+            'wsgi.version':(1,0),
+            }
     
     def _in_registry(self, app, registry_key, registry_type):
-        assert registry_key in app.name_registry, ('Key "%s" not in registry' %
-                                                   registry_key)
-        assert isinstance(app.name_registry[registry_key], registry_type), \
+        try:
+            reg = app.name_registry
+        except AttributeError:
+            env = self._makeEnviron()
+            # who 2.0
+            reg = app.api_factory(env).name_registry
+        assert registry_key in reg, (
+            'Key "%s" not in registry' % registry_key)
+        assert isinstance(reg[registry_key], registry_type),\
                'Registry key "%s" is of type "%s" (not "%s")' % \
-               (registry_key, app.name_registry[registry_key].__class__.__name__,
+               (registry_key, reg[registry_key].__class__.__name__,
                 registry_type.__name__)
+        
     
     def _makeEnviron(self, kw=None):
         environ = {}
@@ -316,9 +328,17 @@ class TestSetupAuth(unittest.TestCase):
         self._in_registry(app, 'cookie', AuthTktCookiePlugin)
         self._in_registry(app, 'fake_authenticator', FakeAuthenticator)
         self._in_registry(app, 'form', RedirectingFormPlugin)
-        assert isinstance(app.challenge_decider,
+        if hasattr(app, 'challenge_decider'):
+            challenge_decider = app.challenge_decider
+            classifier = app.classifier
+            logger = app.logger
+        else:
+            challenge_decider = app.api_factory.challenge_decider
+            classifier = app.api_factory.request_classifier
+            logger = app.api_factory.logger
+        assert isinstance(challenge_decider,
                           default_challenge_decider.__class__)
-        assert isinstance(app.classifier,
+        assert isinstance(classifier,
                           default_request_classifier.__class__)
     
     def test_with_auth_log(self):
@@ -333,7 +353,13 @@ class TestSetupAuth(unittest.TestCase):
         permissions = None
         app = self._makeApp(groups, permissions)
         self._in_registry(app, 'authorization_md', AuthorizationMetadata)
-        authorization_md = app.name_registry['authorization_md']
+        if not hasattr(app, 'name_registry'):
+            environ = self._makeEnviron()
+            api = app.api_factory(environ)
+            name_registry = api.name_registry
+        else:
+            name_registry = app.name_registry
+        authorization_md = name_registry['authorization_md']
         self.assertEqual(authorization_md.group_adapters, None)
         self.assertEqual(authorization_md.permission_adapters, None)
 
@@ -344,9 +370,17 @@ class TestSetupAuth(unittest.TestCase):
         assert isinstance(app, AuthenticationForgerMiddleware)
         self._in_registry(app, 'auth_forger', AuthenticationForgerPlugin)
         self._in_registry(app, 'cookie', AuthTktCookiePlugin)
-        assert isinstance(app.challenge_decider,
+        if hasattr(app, 'challenge_decider'):
+            challenge_decider = app.challenge_decider
+            classifier = app.classifier
+            logger = app.logger
+        else:
+            challenge_decider = app.api_factory.challenge_decider
+            classifier = app.api_factory.request_classifier
+            logger = app.api_factory.logger
+        assert isinstance(challenge_decider,
                           default_challenge_decider.__class__)
-        assert isinstance(app.classifier,
+        assert isinstance(classifier,
                           default_request_classifier.__class__)
 
 class DummyApp:

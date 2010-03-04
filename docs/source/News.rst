@@ -4,6 +4,12 @@
 
 This document describes the releases of :mod:`repoze.what`.
 
+Next release
+============
+
+* Make tests pass using :mod:`repoze.who` 2.0a1 release (don't know if
+  *software* works, but tests pass).
+
 .. _repoze.what-1.0.9:
 
 :mod:`repoze.what` 1.0.9 (2010-03-04)
