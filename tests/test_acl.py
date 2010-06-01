@@ -129,6 +129,12 @@ class TestACL(TestCase):
         ace = acl._aces[0][1]
         assert_false(ace.propagate)
     
+    def test_allow_with_inclusion_forced(self):
+        acl = ACL()
+        acl.allow("/blog", force_inclusion=True)
+        ace = acl._aces[0][1]
+        ok_(ace.force_inclusion)
+    
     def test_allow_with_multiple_acos(self):
         acl = ACL()
         acl.allow(("blog", "forum"))
@@ -574,11 +580,20 @@ class TestACL(TestCase):
     def test_authorization_with_inclusion_forced_but_no_predicate(self):
         """ACEs must be enforced when explicitly requested."""
         acl = ACL()
+        
+        # Denial enforced:
         acl.deny("/blog/", force_inclusion=True)
         acl.allow("/blog/posts")
-        environ = {'PATH_INFO': "/blog/posts",}
-        decision = acl.decide_authorization(environ)
-        assert_false(decision.allow, False)
+        environ1 = {'PATH_INFO': "/blog/posts",}
+        decision1 = acl.decide_authorization(environ1)
+        assert_false(decision1.allow)
+        
+        # Approval enforced:
+        acl.allow("/forum/", force_inclusion=True)
+        acl.deny("/forum/threads")
+        environ2 = {'PATH_INFO': "/forum/threads",}
+        decision2 = acl.decide_authorization(environ2)
+        ok_(decision2.allow)
     
     def test_authorization_with_predicate_and_inclusion_forced(self):
         """

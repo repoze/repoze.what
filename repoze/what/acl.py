@@ -48,7 +48,8 @@ class _BaseAuthorizationControl(object):
             self._default_final_decision = AuthorizationDecision(
                 allow_by_default,
                 None,
-                None)
+                None,
+                )
     
     def decide_authorization(self, environ, object_=None):
         """
@@ -108,7 +109,7 @@ class ACL(_BaseAuthorizationControl):
     #{ ACE management
     
     def allow(self, path_or_object, predicate=None, reason=None,
-              propagate=True):
+              propagate=True, force_inclusion=False):
         """
         Grant access on ``path_or_object`` if the ``predicate`` is met.
         
@@ -129,7 +130,7 @@ class ACL(_BaseAuthorizationControl):
         
         """
         self._add_ace(path_or_object, predicate, True, None, reason, propagate,
-                      None)
+                      force_inclusion)
     
     def deny(self, path_or_object, predicate=None, denial_handler=None,
              reason=None, propagate=True, force_inclusion=False):
