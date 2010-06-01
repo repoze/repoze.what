@@ -223,7 +223,8 @@ def setup_auth(app, group_adapters=None, permission_adapters=None, **who_args):
     if 'challenge_decider' not in who_args:
         who_args['challenge_decider'] = default_challenge_decider
     
-    if os.environ.get('AUTH_LOG'):
+    auth_log = os.environ.get('AUTH_LOG', '') == '1'
+    if auth_log:
         import sys
         who_args['log_stream'] = sys.stdout
     
