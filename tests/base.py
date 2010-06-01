@@ -19,12 +19,13 @@ Utilities for the test suite of :mod:`repoze.what`.
 """
 
 
-from repoze.what.middleware import setup_auth
 from repoze.what.adapters import BaseSourceAdapter
+from repoze.what.middleware import setup_auth
+from repoze.what.predicates import Predicate
 
 __all__ = ['FakeAuthenticator', 'FakeGroupSourceAdapter', 
            'FakePermissionSourceAdapter', 'FakeLogger', 
-           'encode_multipart_formdata']
+           'encode_multipart_formdata', 'MockPredicate']
 
 class FakeAuthenticator(object):
     """
@@ -183,3 +184,13 @@ def encode_multipart_formdata(fields):
     body = CRLF.join(L)
     content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
     return content_type, body
+
+
+class MockPredicate(Predicate):
+    
+    def __init__(self, result=True):
+        self.result = result
+        super(MockPredicate, self).__init__()
+    
+    def check(self, request, credentials):
+        return self.result
