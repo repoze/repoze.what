@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2009, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
+# Copyright (c) 2009, 2degrees Limited <gnarea@tech.2degreesnetwork.com>.
 # Copyright (c) 2009-2010, Gustavo Narea <me@gustavonarea.net>.
 # All Rights Reserved.
 #
