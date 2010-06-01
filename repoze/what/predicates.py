@@ -557,7 +557,6 @@ class Any(_CompoundPredicate):
         
         for predicate in self.predicates:
             evaluation_result = predicate.check(request, credentials)
-            print "%r: %s" % (predicate, evaluation_result)
             if evaluation_result == True:
                 one_met = True
                 break
