@@ -47,7 +47,7 @@ setup(name='repoze.what',
       namespace_packages = ['repoze', 'repoze.what', 'repoze.what.plugins'],
       url="http://static.repoze.org/whatdocs/",
       license="BSD-derived (http://www.repoze.org/LICENSE.txt)",
-      packages=find_packages(exclude=['tests', 'functional_tests']),
+      packages=find_packages(exclude=['tests']),
       package_data={
         '': ['VERSION.txt', 'README.txt'],
         'docs': ['Makefile', 'source/*']},
