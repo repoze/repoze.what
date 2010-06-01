@@ -60,10 +60,17 @@ def setup_request(environ, userid, group_adapters, permission_adapters,
         }
     # Injecting the global authorization control, so it can be used by plugins:
     request.environ['repoze.what.global_control'] = global_control
+    
     # Adding a clear request so it can be used to check whether authorization
     # would be granted for a given request, without buiding it from scratch:
     clear_request = request.copy_get()
     clear_request.environ['QUERY_STRING'] = ""
+    
+    # The routing_args are request-specific, so they should be removed from the
+    # clear request:
+    if "wsgiorg.routing_args" in clear_request.environ:
+        del clear_request.environ['wsgiorg.routing_args']
+    
     request.environ['repoze.what.clear_request'] = clear_request
     
     return request

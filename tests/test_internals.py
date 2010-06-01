@@ -74,6 +74,13 @@ class TestSettingUpRequest(unittest.TestCase):
         assert "repoze.what.global_control" in req.environ
         assert req.environ['repoze.what.global_control'] is None
     
+    def test_routing_args(self):
+        """The routing_args must be excluded from the copy of the request."""
+        req = setup_request({'wsgiorg.routing_args': object()}, None, None,
+                            None, None)
+        clear_request = req.environ['repoze.what.clear_request']
+        assert "wsgiorg.routing_args" not in clear_request.environ
+    
     def test_request_copy(self):
         """
         A clear copy of the environ must be set in the environment, so it won't
@@ -94,6 +101,7 @@ class TestSettingUpRequest(unittest.TestCase):
         assert clear_request1.path_info == "/wiki"
         assert clear_request1.method == "GET"
         assert len(clear_request1.GET) == 0
+        
         # Checking with a POST request:
         environ2 = {
             'SCRIPT_NAME': "/trac",
@@ -111,6 +119,7 @@ class TestSettingUpRequest(unittest.TestCase):
         assert clear_request2.method == "GET"
         assert len(clear_request2.GET) == 0
         assert len(clear_request2.POST) == 0
+        
         # Checking with a POST request and a query string:
         environ3 = {
             'SCRIPT_NAME': "/trac",
