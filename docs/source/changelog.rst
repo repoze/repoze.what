@@ -109,11 +109,13 @@ or v2 releases:
   :class:`~repoze.what.predicates.PredicateError` and
   :class:`~repoze.what.predicates.NotAuthorizedError`.
 
+* :exc:`~repoze.what.exc.NotAuthorizedError` should be imported from the new
+  :mod:`repoze.what.exc` module, not :mod:`repoze.what.predicates`.
 
 Backwards incompatible changes
 ------------------------------
 
-Support has been dropped for the following long deprecated things:
+Support has been dropped for the following **long deprecated** things:
 
 * The :meth:`repoze.what.predicates.Predicate._eval_with_environ` method. Make
   sure none of your predicates define this method; if they do, upgrade them to
@@ -125,4 +127,5 @@ Support has been dropped for the following long deprecated things:
 * The :mod:`repoze.what.authorize` module. If you call
   :func:`repoze.what.authorize.check_authorization` somewhere, again, replace it
   by calling the predicate checker object.
+* The :exc:`repoze.what.predicates.PredicateError` exception.
 

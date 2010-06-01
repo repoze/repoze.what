@@ -24,6 +24,8 @@ from warnings import warn, filterwarnings
 from webob import Request
 from paste.request import parse_formvars, parse_dict_querystring
 
+from repoze.what.exc import NotAuthorizedError
+
 __all__ = ("Predicate", "CompoundPredicate", "All", "Any", "HasAllPermissions",
     "HasAnyPermission", "HasPermission", "InAllGroups", "InAnyGroup", "InGroup",
     "IsUser", "IsAnonymous", "NotAnonymous", "has_all_permissions",
@@ -784,48 +786,6 @@ class HasAnyPermission(Any):
         self.permission_list = ", ".join(permissions)
         permission_predicates = [HasPermission(p) for p in permissions]
         super(HasAnyPermission,self).__init__(*permission_predicates, **kwargs)
-
-
-#{ Exceptions
-
-
-class PredicateError(Exception):
-    """
-    Former exception raised by a :class:`Predicate` if it's not met.
-    
-    .. deprecated:: 1.0.4
-        Deprecated in favor of :class:`NotAuthorizedError`.
-    
-    """
-    
-    # Ugly workaround for Python < 2.6:
-    if not hasattr(Exception, '__unicode__'): #pragma: no cover
-        def __unicode__(self):
-            return unicode(self.args and self.args[0] or '')
-
-
-class NotAuthorizedError(PredicateError):
-    """
-    Exception raised by :meth:`Predicate.check_authorization` if the subject 
-    is not allowed to access the requested source.
-    
-    This exception deprecates :class:`PredicateError` as of v1.0.4, but
-    extends it to avoid breaking backwards compatibility.
-    
-    .. versionchanged:: 1.0.4
-        This exception was defined at :mod:`repoze.what.authorize` until
-        version 1.0.3, but is still imported into that module to keep backwards
-        compatibility with v1.X releases -- but it won't work in
-        :mod:`repoze.what` v2.
-    
-    .. deprecated:: 1.1.0
-        Exceptions should have never been used as the result of a predicate
-        evaluation just to transport the reason why authorization was denied.
-        But the reason why this is deprecated is because predicate checkers
-        should no longer have a message associated.
-    
-    """
-    pass
 
 
 #{ Aliases for nullary predicates
