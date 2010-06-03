@@ -18,9 +18,8 @@ Basic Access Control Lists implementation.
 
 """
 
-from re import compile as compile_regex
-
 from repoze.what.predicates import Not, NotAuthorizedError
+from repoze.what._utils import normalize_path
 
 __all__ = ("ACL", "ACLCollection", "AuthorizationDecision")
 
@@ -97,7 +96,7 @@ class ACL(_BaseAuthorizationControl):
         denial handler.
         
         """
-        self._base_path = _normalize_path(base_path)
+        self._base_path = normalize_path(base_path)
         # The ACEs can't be a dictionary because order matters. It will be a
         # list made of quadruples where the first element is the protected
         # object/path, the second one is its set of ACEs, the third one is
@@ -174,7 +173,7 @@ class ACL(_BaseAuthorizationControl):
         is_path = isinstance(path_or_object, basestring)
         if is_path:
             # We're protecting a path, so we must preppend the base path:
-            path_or_object = _normalize_path(self._base_path + path_or_object)
+            path_or_object = normalize_path(self._base_path + path_or_object)
         # Adding this ACE:
         ace = _ACE(predicate, allow, reason, propagate, force_inclusion)
         self._aces.append((path_or_object, ace, is_path, denial_handler))
@@ -199,7 +198,7 @@ class ACL(_BaseAuthorizationControl):
         
         """
         final_decision = self._default_final_decision
-        path_info = _normalize_path(environ['PATH_INFO'])
+        path_info = normalize_path(environ['PATH_INFO'])
         
         # Let's keep track of the longest path match so far, so we can ignore
         # shorter matches:
@@ -315,7 +314,7 @@ class ACLCollection(_BaseAuthorizationControl):
         
         """
         final_decision = self._default_final_decision
-        path_info = _normalize_path(environ['PATH_INFO'])
+        path_info = normalize_path(environ['PATH_INFO'])
         
         # Let's keep track of the longest path match so far, so we can ignore
         # shorter matches:
@@ -469,31 +468,6 @@ class _MatchTracker(object):
     def set_longest_path(self, protected_path):
         """Set the longest protected path so far to ``protected_path``."""
         self.longest_path_match = len(protected_path)
-
-
-_MULTIPLE_PATHS = compile_regex(r"/{2,}")
-
-
-def _normalize_path(path):
-    """
-    Normalize ``path``.
-    
-    It returns ``path`` with leading and trailing slashes, and no multiple
-    continuous slashes.
-    
-    """
-    if path:
-        if path[0] != "/":
-            path = "/" + path
-        
-        if path[-1] != "/":
-            path = path + "/"
-        
-        path = _MULTIPLE_PATHS.sub("/", path)
-    else:
-        path = "/"
-    
-    return path
 
 
 #}
