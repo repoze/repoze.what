@@ -18,14 +18,17 @@ Utilities for the test suite of :mod:`repoze.what`.
 
 """
 
+from StringIO import StringIO
+
+from webob import Request
 
 from repoze.what.adapters import BaseSourceAdapter
-from repoze.what.middleware import setup_auth
 from repoze.what.predicates import Predicate
 
 __all__ = ['FakeAuthenticator', 'FakeGroupSourceAdapter', 
            'FakePermissionSourceAdapter', 'FakeLogger', 
-           'encode_multipart_formdata', 'MockPredicate']
+           'encode_multipart_formdata', 'MockPredicate', 'make_environ',
+           'make_request']
 
 class FakeAuthenticator(object):
     """
@@ -194,3 +197,25 @@ class MockPredicate(Predicate):
     
     def check(self, request, credentials):
         return self.result
+
+
+def make_environ(user=None, helpers=[], logger=None, **kwargs):
+    """Make a WSGI enviroment with repoze.what-specific items"""
+    
+    environ = {
+        'repoze.what.userid': user,
+        'repoze.what.helpers': helpers,
+        'repoze.what.logger': logger,
+        'wsgi.url_scheme': 'http',
+        'SERVER_NAME': 'localhost',
+        'SERVER_PORT': 80,
+        'wsgi.input': StringIO()
+    }
+    environ.update(kwargs)
+    return environ
+
+
+def make_request(**environ_vars):
+    """Make a WebOb request in a repoze.what environment"""
+    environ = make_environ(**environ_vars)
+    return Request(environ)
