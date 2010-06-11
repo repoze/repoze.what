@@ -18,7 +18,7 @@ Basic Access Control Lists implementation.
 
 """
 
-from repoze.what.predicates import Not, NotAuthorizedError
+from repoze.what.predicates import Not
 from repoze.what._utils import normalize_path
 
 __all__ = ("ACL", "ACLCollection", "AuthorizationDecision")

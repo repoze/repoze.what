@@ -22,9 +22,11 @@ from unittest import TestCase
 
 from nose.tools import eq_, ok_, assert_false, assert_raises
 
-from repoze.what.predicates import Predicate, is_user
+from repoze.what.predicates import Predicate
 from repoze.what.acl import (ACL, ACLCollection, AuthorizationDecision,
                              _BaseAuthorizationControl, _ACE, _MatchTracker)
+
+from tests.base import MockPredicate
 
 
 #{ Tests for external stuff
@@ -942,8 +944,8 @@ class TestAces(TestCase):
     
     """
     
-    def test_constructor(self):
-        predicate = is_user("foo")
+    def test_default_values(self):
+        predicate = MockPredicate()
         # Allow ACE:
         ace1 = _ACE(predicate, True)
         eq_(ace1.predicate, predicate)
@@ -958,7 +960,7 @@ class TestAces(TestCase):
         eq_(ace2.force_inclusion, False)
     
     def test_representation(self):
-        predicate = is_user("foo")
+        predicate = MockPredicate()
         ace1 = _ACE(predicate, True, "No reason")
         ace2 = _ACE(predicate, False, "No reason")
         eq_("<ACE allow=True predicate=%r reason='No reason'>" % predicate,
