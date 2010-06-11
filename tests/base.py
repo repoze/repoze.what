@@ -25,39 +25,9 @@ from webob import Request
 from repoze.what.adapters import BaseSourceAdapter
 from repoze.what.predicates import Predicate
 
-__all__ = ['FakeAuthenticator', 'FakeGroupSourceAdapter', 
+__all__ = ['FakeGroupSourceAdapter', 
            'FakePermissionSourceAdapter', 'FakeLogger', 
-           'encode_multipart_formdata', 'MockPredicate', 'make_environ',
-           'make_request']
-
-class FakeAuthenticator(object):
-    """
-    Fake :mod:`repoze.who` authenticator plugin.
-    
-    It will authenticate if you use one of the following credentials (username
-    and password):
-    
-    * ``rms``: ``freedom``
-    * ``linus``: ``linux``
-    * ``sballmer``: ``developers``
-    * ``guido``: ``pythonic``
-    * ``rasmus``: ``php``
-    
-    """
-    
-    credentials = {
-        u'rms': u'freedom',
-        u'linus': u'linux',
-        u'sballmer': u'developers',
-        u'guido': u'pythonic',
-        u'rasmus': u'php'
-        }
-
-    def authenticate(self, environ, identity):
-        login = identity['login']
-        pass_ = identity['password']
-        if login in self.credentials and pass_ == self.credentials[login]:
-            return login
+           'MockPredicate', 'make_environ', 'make_request']
 
 
 class FakeGroupSourceAdapter(BaseSourceAdapter):
@@ -172,27 +142,12 @@ class FakeLogger(object):
         self.messages['debug'].append(msg)
 
 
-# This function was stolen from repoze.who.tests:
-def encode_multipart_formdata(fields):
-    BOUNDARY = '----------ThIs_Is_tHe_bouNdaRY_$'
-    CRLF = '\r\n'
-    L = []
-    for (key, value) in fields:
-        L.append('--' + BOUNDARY)
-        L.append('Content-Disposition: form-data; name="%s"' % key)
-        L.append('')
-        L.append(value)
-    L.append('--' + BOUNDARY + '--')
-    L.append('')
-    body = CRLF.join(L)
-    content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
-    return content_type, body
-
-
 class MockPredicate(Predicate):
+    """Base class for mock predicates."""
     
     def __init__(self, result=True):
         self.result = result
+        self.evaluated = False
         super(MockPredicate, self).__init__()
     
     def check(self, request, credentials):
