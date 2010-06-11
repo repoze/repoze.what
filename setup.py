@@ -59,13 +59,11 @@ setup(name='repoze.what',
       include_package_data=True,
       zip_safe=False,
       tests_require = [
-        'Paste',
         'WebOb >= 0.9.7',
         'coverage',
         'nose',
         ],
       install_requires=[
-        'Paste > 1.7',
         'WebOb >= 0.9.7',
         'setuptools',
         ],
