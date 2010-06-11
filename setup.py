@@ -66,6 +66,7 @@ setup(name='repoze.what',
       install_requires=[
         'WebOb >= 0.9.7',
         'setuptools',
+        "grupos",
         ],
       test_suite="nose.collector",
       entry_points = """\
