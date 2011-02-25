@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2009, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
+# Copyright (c) 2009, 2011, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
 # Copyright (c) 2009-2010, Gustavo Narea <me@gustavonarea.net>.
 # All Rights Reserved.
 #
@@ -395,7 +395,8 @@ class _ACE(object):
         if not allow and predicate is not None:
             # Let's negate the predicate so we can get the denial message when
             # it IS met:
-            predicate = Not(predicate, msg=predicate.message)
+            predicate_msg = getattr(predicate, "message", message)
+            predicate = Not(predicate, msg=predicate_msg)
         self.predicate = predicate
         self.allow = allow
         self.named_args = frozenset(named_args)

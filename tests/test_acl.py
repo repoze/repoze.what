@@ -1165,10 +1165,18 @@ class TestAces(TestCase):
     def test_denial_ace(self):
         predicate = is_user("foo")
         ace = _ACE(predicate, False)
-        #eq_(ace.predicate, predicate)
         eq_(ace.allow, False)
         eq_(ace.named_args, set())
         eq_(ace.positional_args, 0)
+    
+    def test_denial_ace_without_predicate_message(self):
+        """
+        If the predicate doesn't have a message, it'll default to the ACE's.
+        
+        """
+        predicate = Predicate()
+        ace = _ACE(predicate, False, message="Foo bar")
+        eq_(ace.predicate.message, "Foo bar")
     
     def test_denial_ace_without_predicate(self):
         ace = _ACE(None, False)
