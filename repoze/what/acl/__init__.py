@@ -108,7 +108,8 @@ class ACL(_BaseAuthorizationControl):
     #{ ACE management
     
     def allow(self, path_or_object, predicate=None, named_args=(),
-              positional_args=0, msg=None, propagate=True):
+              positional_args=0, msg=None, propagate=True,
+              force_inclusion=False):
         """
         Grant access on ``path_or_object`` if the ``predicate`` is met, all the
         named arguments in ``named_args`` are set and there are at least
@@ -130,13 +131,18 @@ class ACL(_BaseAuthorizationControl):
         :param propagate: Whether this ACE should be propagated to any path
             which begins with this one (as long as this ACE covers a path).
         :type propagate: :class:`bool`
+        :param force_inclusion: Whether this ACE has the final decision as to
+            whether the authorization is granted (if so, no other ACE will be
+            considered).
         
         If no ``predicate`` is set, then the ACE will always be taken into
         account.
         
+        ``force_inclusion`` is only considered if ``path_or_object`` is a path.
+        
         """
         self._add_ace(path_or_object, predicate, True, named_args,
-                      positional_args, None, msg, propagate, None)
+                      positional_args, None, msg, propagate, force_inclusion)
     
     def deny(self, path_or_object, predicate=None, named_args=(),
              positional_args=0, denial_handler=None, msg=None, propagate=True,
@@ -164,12 +170,15 @@ class ACL(_BaseAuthorizationControl):
         :param propagate: Whether this ACE should be propagated to any path
             which begins with this one (as long as this ACE covers a path).
         :type propagate: :class:`bool`
-        :param propagate: Whether this ACE should be enforced to any path
-            which begins with this one (as long as its predicate is met).
-        :type propagate: :class:`bool`
+        :param force_inclusion: Whether this ACE has the final decision as to
+            whether the authorization is granted (if so, no other ACE will be
+            considered).
+        :type force_inclusion: :class:`bool`
         
         If no ``predicate`` is set, then the ACE will always be taken into
         account.
+        
+        ``force_inclusion`` is only considered if ``path_or_object`` is a path.
         
         """
         self._add_ace(path_or_object, predicate, False, named_args,

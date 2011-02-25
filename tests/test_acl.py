@@ -170,6 +170,12 @@ class TestACL(TestCase):
         ace = acl._aces[0][1]
         assert_false(ace.propagate)
     
+    def test_allow_with_inclusion_forced(self):
+        acl = ACL()
+        acl.allow("/blog", force_inclusion=True)
+        ace = acl._aces[0][1]
+        ok_(ace.force_inclusion)
+    
     def test_allow_with_multiple_acos(self):
         acl = ACL()
         acl.allow(("blog", "forum"))
