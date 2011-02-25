@@ -231,6 +231,19 @@ class TestForgingRequests(unittest.TestCase):
         assert forged_req.query_string == "var1=val1&var2=val2"
         assert forged_req.urlargs == ("argA", )
         assert forged_req.urlvars == dict(name="val")
+    
+    def test_routing_args(self):
+        """The routing args are set to the mock request's."""
+        self.original_environ['wsgiorg.routing_args'] = ((), {'foo': "bar"})
+        forged_req = forge_request(
+            self.original_environ,
+            "/path",
+            ("argA", ),
+            {'name': "val"},
+            )
+        print forged_req.environ['repoze.what.positional_args']
+        assert forged_req.environ['repoze.what.positional_args'] == 1
+        assert forged_req.environ['repoze.what.named_args'] == frozenset(["name"])
 
 
 class TestCredentials(unittest.TestCase):

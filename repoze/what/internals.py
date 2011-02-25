@@ -98,6 +98,8 @@ def forge_request(environ, path, positional_args, named_args):
     
     """
     new_request = environ['repoze.what.clear_request'].copy()
+    new_request.environ['repoze.what.positional_args'] = len(positional_args)
+    new_request.environ['repoze.what.named_args'] = frozenset(named_args)
     new_request.urlargs = positional_args
     new_request.urlvars = named_args
     
