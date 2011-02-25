@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2009, Gustavo Narea <me@gustavonarea.net>.
+# Copyright (c) 2008-2010, Gustavo Narea <me@gustavonarea.net>
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -14,6 +14,7 @@
 ##############################################################################
 
 """
-Tests for the test utilities for :mod:`repoze.what` extensions.
+Functional tests for :mod:`repoze.what`.
 
 """
+

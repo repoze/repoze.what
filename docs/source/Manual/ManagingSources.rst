@@ -2,7 +2,9 @@
 How to manage groups and permission sources
 *******************************************
 
-:Status: Official
+.. module:: repoze.what.adapters
+    :synopsis: repoze.what source adapters
+.. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
 
 .. topic:: Overview
 
@@ -200,6 +202,24 @@ And to check whether the permission source above is writable::
     >>> permissions.is_writable
     False
 
+Possible problems
+=================
+
+While dealing with an adapter, the following exceptions may be raised if an
+error occurs:
+
+.. autoexception:: AdapterError
+
+.. autoexception:: SourceError
+
+.. autoexception:: ExistingSectionError
+
+.. autoexception:: NonExistingSectionError
+
+.. autoexception:: ItemPresentError
+
+.. autoexception:: ItemNotPresentError
+
 
 Writing your own source adapters
 ================================
@@ -212,7 +232,12 @@ Writing your own source adapters
 
 Both :term:`group <group adapter>` and :term:`permission <permission adapter>` 
 :term:`adapters <source adapter>` must extend the abstract class 
-:class:`repoze.what.adapters.BaseSourceAdapter`.
+:class:`BaseSourceAdapter`:
+
+.. autoclass:: BaseSourceAdapter
+    :members: __init__, _get_all_sections, _get_section_items, 
+        _find_sections, _include_items, _exclude_items, _item_is_included,
+        _create_section, _edit_section, _delete_section, _section_exists
 
 
 Sample :term:`source adapters <source adapter>`
@@ -345,3 +370,187 @@ method:
     :mod:`repoze.what.adapters.testutil` is not a full replacement for a test 
     suite, so you are still highly encouraged to write the relevant/missing 
     tests to lead the code coverage of your adapters to 100%.
+
+
+.. _benchmarking:
+
+Benchmarking source adapters
+============================
+
+.. module:: repoze.what.adapters.benchmark
+    :synopsis: Benchmark utilities for source adapters
+.. versionadded:: 1.0.9
+
+Which :term:`source adapter` is faster for your system? Can the performance of
+your current adapters be improved? :mod:`repoze.what` ships with easy-to-use
+benchmarking tools to help you find the answers to these questions.
+
+Source adapters are used in all the requests where the user is authenticated,
+so whether they could perform better or not is something many people care about.
+Your software and hardware play a key role here, so optimizing the adapters
+involves finding what's the best (read: faster) setup for your environment.
+
+Whether you're open to switch to another adapter or keep the current ones but
+try to optimize them, in the :mod:`repoze.what.adapters.benchmark` module you'll
+find what you need to get the much needed numbers.
+
+The first thing you have to do is wrap your adapter around an
+:class:`AdapterBenchmark`::
+
+    >>> # Reusing the ``groups`` adapter defined above:
+    >>> benchmark = AdapterBenchmark(groups)
+
+And for the second and last step, you should call the ``.run()`` method of the
+``benchmark`` specifying what action should be performed in the adapter and
+how many times said action must be run. It's that simple.
+
+The action is just a callable which receives the adapter as its only argument;
+possibly the most common action will be groups retrieval in a
+:term:`group adapter` and permissions retrieval in a :term:`permission adapter`,
+and therefore :mod:`repoze.what` ships with such callables:
+:class:`GroupsRetrievalAction` and :class:`PermissionsRetrievalAction`,
+respectively.
+
+This is, if we wanted to check how much time our ``groups`` adapter above spends
+retrieving four times all the groups for a user whose id is ``"gustavo"``,
+you'd use this::
+
+    >>> get_gustavo_groups = GroupsRetrievalAction(u"gustavo")
+    >>> benchmark.run(get_gustavo_groups,  4)
+    0.003644922256
+
+The result is the time (in seconds) the ``groups`` adapter took to retrive all
+the groups for ``"gustavo"`` four times. So, the average would be
+0.003644922256 / 4 = 0.000911230564 seconds.
+
+Comparing two or more adapters
+------------------------------
+
+But, what if you want to *compare* two or more adapters performing *the same
+operation*? You could certainly wrap each adapter around a
+:class:`AdapterBenchmark` and run them individually sharing the same ``action``
+callable, but it'd be so frequently used that there's a function just for that:
+:func:`compare_benchmarks`.
+
+Its job is to make sure that all the adapters are compared on equal terms,
+isolating those routines that are not part of the actual ``action`` to be
+performed on the benchmarked adapters.
+
+To use it, you just need to pass the adapters whose benchmarks should be
+compared, the amount of iterations and the actions you want to perform on such
+benchmarks. For example, if you wanted to compare tree adapters on which
+two actions are performed 1000 times, you'd use something like this::
+
+    >>> # Setting up the adapters to be benchmarked:
+    >>> permissions1 = JustAPermissionAdapter()
+    >>> permissions2 = AnotherPermissionAdapter()
+    >>> permissions3 = YetAnotherPermissionAdapter()
+    >>> # Setting up how they will be compared:
+    >>> action1 = PermissionsRetrievalAction(u"admins")
+    >>> action2 = lambda adapter: adapter.add_section(u"delete-post")
+    >>> source = {u'edit-site': [u"admins", u"devels"], u'add-post': [u"admins"]}
+    >>> iterations = 1000
+    >>> # Let's compare them!
+    >>> compare_benchmarks(iterations, source, action1, action2, perm1=permissions1, perm2=permissions2, perm3=permissions3)
+    [{'perm1': 0.911230564123, 'perm2': 0.971230027823, 'perm3': 0.959230592623}, {'perm1': 1.100230837513, 'perm2': 0.997230017423, 'perm3': 1.032230592656}]
+
+The avid reader would have realized that there's a new variable called ``source``
+which had not been mentioned before. It's one of the most important things to
+make a fair comparison: The contents of the :term:`sources <source>` 
+represented by the benchmarked adapters will be **overridden** with the 
+sections and items described by the ``source`` dictionary, right before each
+iteration.
+
+This ``source`` can also be passed directly to :meth:`AdapterBenchmark.run` and
+the behavior would be the same. To avoid this in either callable, it's enough
+to set the ``source`` to ``None``.
+
+Regarding the result of :func:`compare_benchmarks`, it's a list whose elements
+are the results of each action; in the example above, we used two actions, so
+we got two elements. Then the result of the action is a dictionary that
+represents the time spent by the adapters to perform the action in question.
+
+The code above shows that the ``permissions1`` adapter is the fastest when
+it comes to retrieving all the permissions for a given group, while
+``permission2`` is the slowest, at least when the underlying :term:`source` has
+the contents described by the ``source`` variable.
+
+When you write benchmarks, it's always good to make the ``source`` variable
+describe an scenario similar to the real one, in order for you to get more
+accurate results -- Sometimes this will affect the performance of the adapters.
+
+
+Customizing the source resets
+-----------------------------
+
+Some source adapters will require an special way to handle the source resets
+applied in the benchmarks on each iteration. In such situations, all you have
+to do is write a custom :class:`AdapterBenchmark` where the
+:meth:`AdapterBenchmark.reset_source` method is overridden and wrap your adapter
+around it, and then you'll be able to use the benchmark normally; if you want
+to use :func:`compare_benchmarks`, you can pass the adapter wrapped around this
+benchmark.
+
+For example, if your group source is a RDBMS and you're using referential
+constraints between your user and group tables, you can define the following
+benchmark for its adapter::
+
+    class DatabaseAdapterBenchmark(AdapterBenchmark):
+        
+        def reset_source(self, source):
+            """
+            Remove all the users and (re-)create those used in ``source``.
+            
+            This way, there won't be problems with the referential constraints
+            between the user and group tables.
+            
+            """
+            # Let's empty the users table out:
+            self.adapter.db.empty_users_table()
+            # Let's add the users that ``source`` expects to exist:
+            users = set()
+            for (group, members) in source.items():
+                users |= set(members)
+            for user in users:
+                self.adapter.db.add_user(user)
+            # Now it's safe to reset the source, because all the users required
+            # by the ``source`` will exist:
+            super(DatabaseAdapterBenchmark, self).reset_source(source)
+
+Note that no matter how complex/expensive the reset is, it won't affect the
+benchmark results.
+
+Finally, as mentioned above, the only thing that changes when you want to use
+:func:`compare_benchmarks` with this kind of adapters is that you have to pass
+the adapter wrapped around the custom benchmark::
+
+    >>> # Setting up the adapters to be benchmarked:
+    >>> groups1 = DaGroupAdapter()
+    >>> groups2 = GroupAdapterWithReferentialIntegrity()  # <-- Needs custom benchmark
+    >>> groups2_benchmark = DatabaseAdapterBenchmark(groups2)
+    >>> # Setting up how they will be compared:
+    >>> action = GroupsRetrievalAction(u"gustavo")
+    >>> source = {u'admins': [u"gustavo", u"you"], u'devels': [u"gustavo", u"foo"]}
+    >>> iterations = 1000
+    >>> # Let's compare them!
+    >>> compare_benchmarks(iterations, source, action, groups1=groups1, groups2=groups2_benchmark)
+    [{'group1': 0.971230027823, 'group2': 0.911250564127}]
+
+Then, before each iteration on the ``groups2`` adapter, the benchmark will
+make sure that the users table only contains there rows ("gustavo", "you" and
+"foo").
+
+
+Utilities available
+-------------------
+
+.. autofunction:: compare_benchmarks
+
+.. autoclass:: AdapterBenchmark
+    :members: __init__, run, reset_source
+
+.. autoclass:: GroupsRetrievalAction
+    :members: __init__
+
+.. autoclass:: PermissionsRetrievalAction
+    :members: __init__

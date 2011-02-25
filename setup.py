@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2007, Agendaless Consulting and Contributors.
 # Copyright (c) 2008, Florent Aide <florent.aide@gmail.com>.
-# Copyright (c) 2008-2009, Gustavo Narea <me@gustavonarea.net>.
+# Copyright (c) 2008-2010, Gustavo Narea <me@gustavonarea.net>.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -17,12 +17,10 @@
 
 import os
 
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    from ez_setup import use_setuptools
-    use_setuptools()
-    from setuptools import setup, find_packages
+from ez_setup import use_setuptools
+use_setuptools()
+
+from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.txt')).read()
@@ -33,7 +31,7 @@ setup(name='repoze.what',
       description=('Authorization framework for WSGI applications'),
       long_description=README,
       classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",
         "Intended Audience :: Developers",
         "Operating System :: OS Independent",
@@ -46,25 +44,32 @@ setup(name='repoze.what',
       keywords='authorization web application server wsgi repoze',
       author="Gustavo Narea",
       author_email="repoze-dev@lists.repoze.org",
-      namespace_packages = [
-        'repoze',
-        'repoze.what',
-        'repoze.what.mappers',
-        'repoze.what.plugins',
-        ],
+      namespace_packages = ['repoze', 'repoze.what', 'repoze.what.plugins'],
       url="http://static.repoze.org/whatdocs/",
       license="BSD-derived (http://www.repoze.org/LICENSE.txt)",
-      packages=find_packages(exclude=['tests']),
+      packages=find_packages(exclude=['tests', 'functional_tests']),
       package_data={
         '': ['VERSION.txt', 'README.txt'],
         'docs': ['Makefile', 'source/*']},
       exclude_package_data={'': ['README.txt', 'docs']},
       include_package_data=True,
       zip_safe=False,
-      tests_require = ['coverage', 'nose'],
-      install_requires=['WebOb >= 0.9.6', 'PyACL >= 1.0dev'],
+      tests_require = [
+        'repoze.who >= 1.0',
+        'repoze.who-testutil >= 1.0b2',
+        'Paste',
+        'WebOb >= 0.9.7',
+        'coverage',
+        'nose',
+        ],
+      install_requires=[
+        'repoze.who >= 1.0',
+        'repoze.who-testutil >= 1.0b2', 
+        'Paste > 1.7',
+        'WebOb >= 0.9.7',
+        'setuptools',
+        ],
       test_suite="nose.collector",
       entry_points = """\
       """
       )
-

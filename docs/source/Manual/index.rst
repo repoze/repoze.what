@@ -1,6 +1,6 @@
-************************************
-The :mod:`repoze.what` Users' Manual
-************************************
+*****************************
+The :mod:`repoze.what` Manual
+*****************************
 
 :Author: Gustavo Narea.
 :Version: |version|
@@ -8,11 +8,10 @@ The :mod:`repoze.what` Users' Manual
 Below are the contents for the :mod:`repoze.what` manual:
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
 
-    Intro
     GettingStarted
-    Predicates
+    Predicates/index
     ManagingSources
-    Plugins
+    Plugins/index
     InnerWorkings

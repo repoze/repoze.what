@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2008-2009, Gustavo Narea <me@gustavonarea.net>
+# Copyright (c) 2008-2010, Gustavo Narea <me@gustavonarea.net>
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -14,8 +14,8 @@
 ##############################################################################
 
 # See http://peak.telecommunity.com/DevCenter/setuptools#namespace-packages
-try:
+try: #pragma: no cover
     __import__('pkg_resources').declare_namespace(__name__)
-except ImportError:
+except ImportError: #pragma: no cover
     from pkgutil import extend_path
     __path__ = extend_path(__path__, __name__)

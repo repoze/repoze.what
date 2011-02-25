@@ -2,8 +2,6 @@
 :mod:`repoze.what.plugins` -- Available plugins for :mod:`repoze.what`
 **********************************************************************
 
-:Status: Official
-
 .. module:: repoze.what.plugins
     :synopsis: repoze.what plugins
 .. moduleauthor:: Gustavo Narea <me@gustavonarea.net>
@@ -58,19 +56,14 @@ it provides the :mod:`quickstart <repoze.what.plugins.quickstart>` plugin.
 Available :term:`adapters plugins <adapters plugin>`
 ====================================================
 
-============================== ================ =============== ================ ====================
-      Plugin name                 Source type    Write support   Groups adapter   Permissions adapter
-============================== ================ =============== ================ ====================
-repoze.what.plugins.ini [#f1]_  ``.ini`` files        No               Yes                Yes
-:mod:`repoze.what.plugins.sql`       SQL             Yes               Yes                Yes
-:mod:`repoze.what.plugins.xml`     XML files         Yes               Yes                Yes
-============================== ================ =============== ================ ====================
-
-
-Available :term:`predicates plugins <predicates plugin>`
-========================================================
-
-None, yet.
+======================================= ================ =============== ================ ====================
+      Plugin name                          Source type    Write support   Groups adapter   Permissions adapter
+======================================= ================ =============== ================ ====================
+repoze.what.plugins.ini [#f1]_           ``.ini`` files        No               Yes                Yes
+:mod:`repoze.what.plugins.sql`                SQL             Yes               Yes                Yes
+:mod:`repoze.what.plugins.xml`              XML files         Yes               Yes                Yes
+:mod:`repoze.what.plugins.redis` [#f2]_   Redis [#f3]_        Yes               Yes                Yes
+======================================= ================ =============== ================ ====================
 
 
 Available :term:`extras plugins <extras plugin>`
@@ -80,7 +73,19 @@ Available :term:`extras plugins <extras plugin>`
              Plugin name                  Description
 ====================================== ===========================================================================================================
 :mod:`repoze.what.plugins.quickstart`   Pre-configured authentication system to get started with :mod:`repoze.who` and :mod:`repoze.what` quickly
-repoze.what.plugins.config [#f2]_       Configure :mod:`repoze.what` from an ``Ini`` file with Paste Deploy.
+:mod:`repoze.what.plugins.pylonshq`    :mod:`repoze.what` utilities for Pylons/TG2 applications
+:mod:`repoze.what.plugins.dj`          :mod:`repoze.what` integration in Django applications
+repoze.what.plugins.config [#f4]_       Configure :mod:`repoze.what` from an ``Ini`` file with Paste Deploy.
+====================================== ===========================================================================================================
+
+
+Available :term:`predicates plugins <predicates plugin>`
+========================================================
+
+====================================== ===========================================================================================================
+             Plugin name                  Description
+====================================== ===========================================================================================================
+:mod:`repoze.what.plugins.dj`          The Django plugin contains some Django-specific predicate checkers.
 ====================================== ===========================================================================================================
 
 
@@ -90,7 +95,13 @@ repoze.what.plugins.config [#f2]_       Configure :mod:`repoze.what` from an ``I
     <http://github.com/jdinuncio/repoze.what.plugins.ini/wikis>`_, written by 
     José Dinuncio.
 
-.. [#f2] `repoze.what Config plugin 
+.. [#f2] `repoze.what Redis plugin 
+    <http://bitbucket.org/ares/repozewhatpluginsredis/>`_, written by 
+    Jonás Melián.
+
+.. [#f3] `Redis <http://code.google.com/p/redis/>`_.
+
+.. [#f4] `repoze.what Config plugin 
     <http://github.com/jdinuncio/repoze.what.plugins.config/tree/master>`_, 
     written by José Dinuncio.
     
