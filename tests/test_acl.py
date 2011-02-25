@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2009, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
+# Copyright (c) 2009, 2011, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
 # Copyright (c) 2009-2010, Gustavo Narea <me@gustavonarea.net>.
 # All Rights Reserved.
 #
@@ -48,7 +48,7 @@ class TestACL(TestCase):
     #{ Testing allows
     
     def test_allow_path_in_global_acl_without_arguments(self):
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         acl = ACL()
         acl.allow("/blog", predicate)
         # Checking the new ACE:
@@ -65,7 +65,7 @@ class TestACL(TestCase):
         eq_(ace.propagate, True)
     
     def test_allow_object_in_global_acl_without_arguments(self):
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         protected_object = object()
         acl = ACL()
         acl.allow(protected_object, predicate)
@@ -82,7 +82,7 @@ class TestACL(TestCase):
         eq_(ace.positional_args, 0)
     
     def test_allow_path_in_global_acl_with_arguments(self):
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         acl = ACL()
         acl.allow("/blog", predicate, ("post_id", "comment_id"), 2)
         # Checking the new ACE:
@@ -98,7 +98,7 @@ class TestACL(TestCase):
         eq_(ace.positional_args, 2)
     
     def test_allow_path_in_non_global_acl_without_arguments(self):
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         acl = ACL("/blog")
         acl.allow("/post_new", predicate)
         # Checking the new ACE:
@@ -114,7 +114,7 @@ class TestACL(TestCase):
         eq_(ace.positional_args, 0)
     
     def test_allow_object_in_non_global_acl_without_arguments(self):
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         protected_object = object()
         acl = ACL("/blog")
         acl.allow(protected_object, predicate)
@@ -131,7 +131,7 @@ class TestACL(TestCase):
         eq_(ace.positional_args, 0)
     
     def test_allow_path_in_non_global_acl_with_arguments(self):
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         acl = ACL("/blog")
         acl.allow("/view_comment", predicate, ("post_id", "comment_id"), 2)
         # Checking the new ACE:
@@ -184,7 +184,7 @@ class TestACL(TestCase):
     #{ Testing denials
     
     def test_deny_path_in_global_acl_without_arguments(self):
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         acl = ACL()
         acl.deny("/blog", predicate)
         # Checking the new ACE:
@@ -201,7 +201,7 @@ class TestACL(TestCase):
         eq_(ace.propagate, True)
     
     def test_deny_object_in_global_acl_without_arguments(self):
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         protected_object = object()
         acl = ACL()
         acl.deny(protected_object, predicate)
@@ -218,7 +218,7 @@ class TestACL(TestCase):
         eq_(ace.positional_args, 0)
     
     def test_deny_path_in_global_acl_with_arguments(self):
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         acl = ACL()
         acl.deny("/blog", predicate, ("post_id", "comment_id"), 2)
         # Checking the new ACE:
@@ -234,7 +234,7 @@ class TestACL(TestCase):
         eq_(ace.positional_args, 2)
     
     def test_deny_path_in_non_global_acl_without_arguments(self):
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         acl = ACL("/blog")
         acl.deny("/post_new", predicate)
         # Checking the new ACE:
@@ -250,7 +250,7 @@ class TestACL(TestCase):
         eq_(ace.positional_args, 0)
     
     def test_deny_object_in_non_global_acl_without_arguments(self):
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         protected_object = object()
         acl = ACL("/blog")
         acl.deny(protected_object, predicate)
@@ -267,7 +267,7 @@ class TestACL(TestCase):
         eq_(ace.positional_args, 0)
     
     def test_deny_path_in_non_global_acl_with_arguments(self):
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         acl = ACL("/blog")
         acl.deny("/view_comment", predicate, ("post_id", "comment_id"), 2)
         # Checking the new ACE:
@@ -284,7 +284,7 @@ class TestACL(TestCase):
     
     def test_deny_path_in_global_acl_with_denial_handler(self):
         custom_denial_handler = object()
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         acl = ACL()
         acl.deny("/blog", predicate, denial_handler=custom_denial_handler)
         # Checking the new ACE:
@@ -346,7 +346,7 @@ class TestACL(TestCase):
         no default decision.
         
         """
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         acl = ACL()
         acl.deny("/blog", predicate)
         acl.allow(object(), predicate)
@@ -365,7 +365,7 @@ class TestACL(TestCase):
         minimum arguments are not present.
         
         """
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         acl = ACL()
         acl.deny("/blog", predicate, named_args=("arg1", ), positional_args=3)
         acl.allow(object(), predicate, named_args=("arg1", ), positional_args=3)
@@ -412,8 +412,8 @@ class TestACL(TestCase):
         minimum arguments are present, but the predicate is not met.
         
         """
-        predicate1 = TitletalePredicate(False)
-        predicate2 = TitletalePredicate(False)
+        predicate1 = TelltalePredicate(False)
+        predicate2 = TelltalePredicate(False)
         protected_object = object()
         acl = ACL()
         acl.deny("/blog", predicate1)
@@ -456,8 +456,8 @@ class TestACL(TestCase):
     
     def test_authorization_with_one_matching_ace(self):
         """If there's one matching ACE, it must be used."""
-        predicate1 = TitletalePredicate()
-        predicate2 = TitletalePredicate()
+        predicate1 = TelltalePredicate()
+        predicate2 = TelltalePredicate()
         protected_object = object()
         acl = ACL()
         acl.allow("/blog", predicate1)
@@ -482,7 +482,7 @@ class TestACL(TestCase):
             }
         decision2 = acl.decide_authorization(environ2, protected_object)
         assert_false(decision2.allow)
-        eq_(decision2.message, "Titletale predicate")
+        eq_(decision2.message, "Telltale predicate")
         eq_(decision2.denial_handler, None)
         eq_(decision2.match_tracker.longest_path_match, 0)
         ok_(decision2.match_tracker.object_ace_found)
@@ -492,8 +492,8 @@ class TestACL(TestCase):
         If many ACEs match the request, the most specific one must be picked.
         
         """
-        predicate1 = TitletalePredicate()
-        predicate2 = TitletalePredicate()
+        predicate1 = TelltalePredicate()
+        predicate2 = TelltalePredicate()
         protected_object1 = object()
         protected_object2 = object()
         acl = ACL(allow_by_default=False)
@@ -537,7 +537,7 @@ class TestACL(TestCase):
             }
         decision3 = acl.decide_authorization(environ3)
         assert_false(decision3.allow)
-        eq_(decision3.message, "Titletale predicate")
+        eq_(decision3.message, "Telltale predicate")
         eq_(decision3.denial_handler, None)
         eq_(decision3.match_tracker.longest_path_match, 19)
         assert_false(decision3.match_tracker.object_ace_found)
@@ -587,7 +587,7 @@ class TestACL(TestCase):
             }
         decision7 = acl.decide_authorization(environ7, protected_object2)
         assert_false(decision7.allow)
-        eq_(decision7.message, "Titletale predicate")
+        eq_(decision7.message, "Telltale predicate")
         eq_(decision7.denial_handler, None)
         eq_(decision7.match_tracker.longest_path_match, 0)
         ok_(decision7.match_tracker.object_ace_found)
@@ -612,7 +612,7 @@ class TestACL(TestCase):
         denial is set.
         
         """
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         denial_handler = object()
         acl = ACL(default_denial_handler=denial_handler)
         acl.deny("/", predicate)
@@ -633,7 +633,7 @@ class TestACL(TestCase):
     
     def test_authorization_denied_with_custom_handler(self):
         """Custom denial handlers must be used when available."""
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         denial_handler = object()
         acl = ACL()
         acl.deny("/", predicate, denial_handler=denial_handler)
@@ -650,7 +650,7 @@ class TestACL(TestCase):
         """ACEs which don't have predicates must always be taken into account"""
         acl = ACL()
         acl.allow("/blog")
-        acl.deny("/blog/post-new", TitletalePredicate())
+        acl.deny("/blog/post-new", TelltalePredicate())
         acl.deny("/blog/repository")
         acl.allow("/blog/repository/download")
         # ----- Checking just one ACE without predicate:
@@ -686,14 +686,14 @@ class TestACL(TestCase):
             }
         decision4 = acl.decide_authorization(environ4)
         assert_false(decision4.allow)
-        eq_(decision4.message, "Titletale predicate")
+        eq_(decision4.message, "Telltale predicate")
     
     def test_authorization_with_custom_messages(self):
         acl = ACL("/blog", allow_by_default=True)
         acl.deny("/add-user", msg="Noone can add users")
         acl.allow("/add-user/tomorrow", msg="Everybody can add users tomorrow")
-        acl.deny("/add-post", TitletalePredicate(), msg="Noone can add posts")
-        acl.allow("/add-post/tomorrow", TitletalePredicate(),
+        acl.deny("/add-post", TelltalePredicate(), msg="Noone can add posts")
+        acl.allow("/add-post/tomorrow", TelltalePredicate(),
                   msg="Everybody can add posts tomorrow")
         # Checking the message the authz is denied without a predicate:
         environ1 = {
@@ -751,7 +751,7 @@ class TestACL(TestCase):
         
         """
         acl = ACL()
-        predicate = TitletalePredicate(True)
+        predicate = TelltalePredicate(True)
         acl.allow("/blog/", predicate=predicate, propagate=False)
         environ = {
             'PATH_INFO': "/blog/posts",
@@ -782,9 +782,9 @@ class TestACL(TestCase):
         
         """
         acl = ACL()
-        acl.deny("/blog/", TitletalePredicate(True), force_inclusion=True)
+        acl.deny("/blog/", TelltalePredicate(True), force_inclusion=True)
         acl.allow("/blog/posts/")
-        acl.deny("/forum/", TitletalePredicate(False), force_inclusion=True)
+        acl.deny("/forum/", TelltalePredicate(False), force_inclusion=True)
         acl.allow("/forum/posts/")
         
         # Authorization must be denied if the predicate of a forced ACE is met:
@@ -942,7 +942,7 @@ class TestACLCollections(TestCase):
         acl1 = ACL("/trac")
         acl2 = ACL("/blog")
         acl3 = ACL("/whatever")
-        acl3.allow("", TitletalePredicate(False))
+        acl3.allow("", TelltalePredicate(False))
         collection = ACLCollection()
         collection.add_acl(acl1)
         collection.add_acl(acl2)
@@ -964,7 +964,7 @@ class TestACLCollections(TestCase):
         
         """
         acl1 = ACL("/trac")
-        acl1.deny("/wiki", TitletalePredicate())
+        acl1.deny("/wiki", TelltalePredicate())
         acl2 = ACL("/blog")
         acl3 = ACL("/foo", allow_by_default=False)
         collection = ACLCollection()
@@ -979,7 +979,7 @@ class TestACLCollections(TestCase):
             }
         decision1 = collection.decide_authorization(environ1)
         assert_false(decision1.allow)
-        eq_(decision1.message, "Titletale predicate")
+        eq_(decision1.message, "Telltale predicate")
         eq_(decision1.match_tracker.longest_path_match, 11)
         # ----- If there's a default decision, use it:
         environ2 = {
@@ -996,9 +996,9 @@ class TestACLCollections(TestCase):
         """If many ACLs are participating, pick the latest one."""
         acl1 = ACL("/admin", allow_by_default=False)
         acl2 = ACL("/admin/blog")
-        acl2.allow("/post", TitletalePredicate())
+        acl2.allow("/post", TelltalePredicate())
         acl3 = ACL("/admin/blog/post")
-        acl3.deny("", TitletalePredicate(msg="This is something custom"))
+        acl3.deny("", TelltalePredicate(msg="This is something custom"))
         collection = ACLCollection()
         collection.add_acl(acl1)
         collection.add_acl(acl2)
@@ -1199,7 +1199,7 @@ class TestAces(TestCase):
         
         """
         # Ready:
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         environ = {
             'repoze.what.named_args': set(["arg1"]),
             'repoze.what.positional_args': 1,
@@ -1219,7 +1219,7 @@ class TestAces(TestCase):
         
         """
         # Ready:
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         environ = {
             'repoze.what.named_args': set(["foo"]),
             'repoze.what.positional_args': 1,
@@ -1239,7 +1239,7 @@ class TestAces(TestCase):
         
         """
         # Ready:
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         environ = {
             'repoze.what.named_args': set(["arg1"]),
             'repoze.what.positional_args': 2,
@@ -1259,7 +1259,7 @@ class TestAces(TestCase):
         
         """
         # Ready:
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         environ = {
             'repoze.what.named_args': set(["arg1", "arg2"]),
             'repoze.what.positional_args': 2,
@@ -1279,7 +1279,7 @@ class TestAces(TestCase):
         
         """
         # Ready:
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         environ = {
             'repoze.what.named_args': set(["arg1", "arg2", "arg3"]),
             'repoze.what.positional_args': 4,
@@ -1298,7 +1298,7 @@ class TestAces(TestCase):
         
         """
         # Ready:
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         environ = {
             'repoze.what.named_args': set(),
             'repoze.what.positional_args': 0,
@@ -1308,7 +1308,7 @@ class TestAces(TestCase):
         # Go!:
         (participation, message) = ace.can_participate(environ)
         eq_(participation, True)
-        eq_(message, "Titletale predicate")
+        eq_(message, "Telltale predicate")
         ok_(predicate.evaluated)
     
     def test_predicate_met_and_authz_granted(self):
@@ -1317,7 +1317,7 @@ class TestAces(TestCase):
         
         """
         # Ready:
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         environ = {
             'repoze.what.named_args': set(),
             'repoze.what.positional_args': 0,
@@ -1337,7 +1337,7 @@ class TestAces(TestCase):
         
         """
         # Ready:
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         environ = {
             'repoze.what.named_args': set(),
             'repoze.what.positional_args': 0,
@@ -1357,7 +1357,7 @@ class TestAces(TestCase):
         
         """
         # Ready:
-        predicate = TitletalePredicate()
+        predicate = TelltalePredicate()
         environ = {
             'repoze.what.named_args': set(),
             'repoze.what.positional_args': 0,
@@ -1377,7 +1377,7 @@ class TestAces(TestCase):
         
         """
         # Ready:
-        predicate = TitletalePredicate(False)
+        predicate = TelltalePredicate(False)
         environ = {
             'repoze.what.named_args': set(),
             'repoze.what.positional_args': 0,
@@ -1397,7 +1397,7 @@ class TestAces(TestCase):
         
         """
         # Ready:
-        predicate = TitletalePredicate(False)
+        predicate = TelltalePredicate(False)
         environ = {
             'repoze.what.named_args': set(),
             'repoze.what.positional_args': 0,
@@ -1407,7 +1407,7 @@ class TestAces(TestCase):
         # Go!:
         (participation, message) = ace.can_participate(environ)
         eq_(participation, False)
-        eq_(message, "Titletale predicate")
+        eq_(message, "Telltale predicate")
         ok_(predicate.evaluated)
 
 
@@ -1573,15 +1573,15 @@ class TestNormalizingPath(object):
 #{ Mock objects
 
 
-class TitletalePredicate(Predicate):
+class TelltalePredicate(Predicate):
     """Mock predicate to check when a predicate is evaluated."""
     
-    message = "Titletale predicate"
+    message = "Telltale predicate"
     
     def __init__(self, evaluation_result=True, *args, **kwargs):
         self.evaluation_result = evaluation_result
         self.evaluated = False
-        super(TitletalePredicate, self).__init__(*args, **kwargs)
+        super(TelltalePredicate, self).__init__(*args, **kwargs)
     
     def evaluate(self, environ, credentials):
         self.evaluated = True
