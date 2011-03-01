@@ -488,7 +488,7 @@ class TestACL(TestCase):
             }
         decision2 = acl.decide_authorization(environ2, protected_object)
         assert_false(decision2.allow)
-        eq_(decision2.message, "Telltale predicate")
+        eq_(decision2.message, "The predicate is not met")
         eq_(decision2.denial_handler, None)
         eq_(decision2.match_tracker.longest_path_match, 0)
         ok_(decision2.match_tracker.object_ace_found)
@@ -543,7 +543,7 @@ class TestACL(TestCase):
             }
         decision3 = acl.decide_authorization(environ3)
         assert_false(decision3.allow)
-        eq_(decision3.message, "Telltale predicate")
+        eq_(decision3.message, "The predicate is not met")
         eq_(decision3.denial_handler, None)
         eq_(decision3.match_tracker.longest_path_match, 19)
         assert_false(decision3.match_tracker.object_ace_found)
@@ -593,7 +593,7 @@ class TestACL(TestCase):
             }
         decision7 = acl.decide_authorization(environ7, protected_object2)
         assert_false(decision7.allow)
-        eq_(decision7.message, "Telltale predicate")
+        eq_(decision7.message, "The predicate is not met")
         eq_(decision7.denial_handler, None)
         eq_(decision7.match_tracker.longest_path_match, 0)
         ok_(decision7.match_tracker.object_ace_found)
@@ -692,7 +692,7 @@ class TestACL(TestCase):
             }
         decision4 = acl.decide_authorization(environ4)
         assert_false(decision4.allow)
-        eq_(decision4.message, "Telltale predicate")
+        eq_(decision4.message, "The predicate is not met")
     
     def test_authorization_with_custom_messages(self):
         acl = ACL("/blog", allow_by_default=True)
@@ -985,7 +985,7 @@ class TestACLCollections(TestCase):
             }
         decision1 = collection.decide_authorization(environ1)
         assert_false(decision1.allow)
-        eq_(decision1.message, "Telltale predicate")
+        eq_(decision1.message, "The predicate is not met")
         eq_(decision1.match_tracker.longest_path_match, 11)
         # ----- If there's a default decision, use it:
         environ2 = {
@@ -1016,7 +1016,7 @@ class TestACLCollections(TestCase):
             }
         decision = collection.decide_authorization(environ)
         assert_false(decision.allow)
-        eq_(decision.message, "This is something custom")
+        eq_(decision.message, "The predicate is not met")
         eq_(decision.match_tracker.longest_path_match, 17)
     
     def test_authorization_with_acl_with_trailing_slash(self):
@@ -1175,9 +1175,20 @@ class TestAces(TestCase):
         eq_(ace.named_args, set())
         eq_(ace.positional_args, 0)
     
-    def test_denial_ace_without_predicate_message(self):
+    def test_denial_ace_without_predicate_message_or_ace_message(self):
         """
-        If the predicate doesn't have a message, it'll default to the ACE's.
+        If the predicate doesn't have a message, a fixed fall-back message will
+        be used if the ACE doesn't have a fixed message.
+        
+        """
+        predicate = Predicate()
+        ace = _ACE(predicate, False)
+        eq_(ace.predicate.message, "The predicate is not met")
+    
+    def test_denial_ace_without_predicate_message_with_ace_message(self):
+        """
+        If the predicate doesn't have a message, the ACE' message would be
+        taken.
         
         """
         predicate = Predicate()
@@ -1322,7 +1333,7 @@ class TestAces(TestCase):
         # Go!:
         (participation, message) = ace.can_participate(environ)
         eq_(participation, True)
-        eq_(message, "Telltale predicate")
+        eq_(message, "The predicate is not met")
         ok_(predicate.evaluated)
     
     def test_predicate_met_and_authz_granted(self):

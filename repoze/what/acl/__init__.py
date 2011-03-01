@@ -404,7 +404,7 @@ class _ACE(object):
         if not allow and predicate is not None:
             # Let's negate the predicate so we can get the denial message when
             # it IS met:
-            predicate_msg = getattr(predicate, "message", message)
+            predicate_msg = message or "The predicate is not met"
             predicate = Not(predicate, msg=predicate_msg)
         self.predicate = predicate
         self.allow = allow
