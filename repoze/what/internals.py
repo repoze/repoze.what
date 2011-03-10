@@ -26,7 +26,7 @@ __all__ = ("setup_request", "forge_request")
 
 
 def setup_request(environ, userid, group_adapters, permission_adapters,
-                  global_control=None):
+                  global_control=None, request_class=Request):
     """
     Update the WSGI ``environ`` with the :mod:`repoze.what`-required items.
     
@@ -41,6 +41,8 @@ def setup_request(environ, userid, group_adapters, permission_adapters,
     :param global_control: The global authorization control (e.g., an ACL
         collection).
     :type global_control: :class:`repoze.what.acl._BaseAuthorizationControl`
+    :param request_class: The subclass of :class:`webob.Request` to be
+        instantiated.
     
     .. attention::
         This function should only be used in :mod:`repoze.what` itself or
@@ -48,7 +50,7 @@ def setup_request(environ, userid, group_adapters, permission_adapters,
     
     """
     original_content_length = environ.get("CONTENT_LENGTH", "-1")
-    request = Request(environ)
+    request = request_class(environ)
     
     request.environ['repoze.what.credentials'] = _Credentials(
         userid,

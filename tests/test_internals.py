@@ -2,7 +2,7 @@
 ##############################################################################
 #
 # Copyright (c) 2009-2010, Gustavo Narea <me@gustavonarea.net>.
-# Copyright (c) 2009-2010, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
+# Copyright (c) 2009-2011, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -193,6 +193,44 @@ class TestSettingUpRequest(unittest.TestCase):
         assert clear_request3.method == "GET"
         assert len(clear_request3.GET) == 0
         assert len(clear_request3.POST) == 0
+    
+    def test_no_request_class_customization(self):
+        """By default, the request is an instance of WebOb's request class."""
+        environ = {
+            'SCRIPT_NAME': "/trac",
+            'PATH_INFO': "/wiki",
+            'REQUEST_METHOD': "GET",
+            'QUERY_STRING': "var=val",
+            }
+        
+        request = setup_request(environ, None, None, None)
+        
+        assert isinstance(request, Request)
+        assert isinstance(request.environ['repoze.what.clear_request'], Request)
+    
+    def test_request_class_customization(self):
+        """It's possible to override the class of the request to be created."""
+        environ = {
+            'SCRIPT_NAME': "/trac",
+            'PATH_INFO': "/wiki",
+            'REQUEST_METHOD': "GET",
+            'QUERY_STRING': "var=val",
+            }
+        
+        class MockRequest(Request):
+            pass
+        
+        request = setup_request(
+            environ,
+            None,
+            None,
+            None,
+            request_class=MockRequest,
+            )
+        
+        assert isinstance(request, MockRequest)
+        assert isinstance(request.environ['repoze.what.clear_request'],
+                          MockRequest)
 
 
 class TestForgingRequests(unittest.TestCase):
