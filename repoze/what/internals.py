@@ -119,6 +119,9 @@ def forge_request(environ, path, positional_args, named_args):
     else:
         new_request.path_info = path
     
+    # The request must be forged recursively:
+    new_request.environ['repoze.what.clear_request'] = new_request.copy()
+    
     return new_request
 
 

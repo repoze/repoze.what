@@ -282,6 +282,28 @@ class TestForgingRequests(unittest.TestCase):
         print forged_req.environ['repoze.what.positional_args']
         assert forged_req.environ['repoze.what.positional_args'] == 1
         assert forged_req.environ['repoze.what.named_args'] == frozenset(["name"])
+    
+    def test_recursive_forge(self):
+        """The forged request also contains a forged request."""
+        forged_req = forge_request(
+            self.original_environ,
+            "/path?var1=val1",
+            (),
+            {},
+            )
+        
+        child_forged_request = forged_req.environ['repoze.what.clear_request']
+        
+        assert forged_req.path == child_forged_request.path
+        assert forged_req.urlargs == child_forged_request.urlargs
+        assert forged_req.urlvars == child_forged_request.urlvars
+        
+        assert child_forged_request.environ['repoze.what.credentials'] == \
+            self.original_environ['repoze.what.credentials']
+        assert child_forged_request.environ['repoze.what.positional_args'] == \
+            forged_req.environ['repoze.what.positional_args']
+        assert child_forged_request.environ['repoze.what.named_args'] == \
+            forged_req.environ['repoze.what.named_args']
 
 
 class TestCredentials(unittest.TestCase):
