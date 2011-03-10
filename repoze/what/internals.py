@@ -19,6 +19,7 @@ Utilities for :mod:`repoze.what` itself or its plugins.
 **They must not be used in the web applications.**
 
 """
+from StringIO import StringIO
 
 from webob import Request
 
@@ -66,11 +67,18 @@ def setup_request(environ, userid, group_adapters, permission_adapters,
     request.environ['repoze.what.named_args'] = frozenset(request.urlvars.keys())
     # Injecting the global authorization control, so it can be used by plugins:
     request.environ['repoze.what.global_control'] = global_control
+    
     # Adding a clear request so it can be used to check whether authorization
-    # would be granted for a given request, without buiding it from scratch:
-    clear_request = request.copy_get()
-    clear_request.environ['QUERY_STRING'] = ""
-    request.environ['repoze.what.clear_request'] = clear_request
+    # would be granted for a given request, without buiding it from scratch.
+    # It must be ensured that it is a GET request (even if the original request
+    # is POST) and WebOb.Request.copy() cannot be used because it'd try to
+    # call the request class constructor with arguments which subclasses may not
+    # support.
+    clear_environ = request.environ.copy()
+    clear_environ['REQUEST_METHOD'] = "GET"
+    clear_environ['QUERY_STRING'] = ""
+    clear_environ['wsgi.input'] = StringIO("")
+    request.environ['repoze.what.clear_request'] = request_class(clear_environ)
     
     # Before moving on, let's restore the CONTENT_LENGTH reset by WebOb:
     request.environ['CONTENT_LENGTH'] = original_content_length
