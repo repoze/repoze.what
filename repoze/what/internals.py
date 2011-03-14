@@ -2,7 +2,7 @@
 ##############################################################################
 #
 # Copyright (c) 2009-2010, Gustavo Narea <me@gustavonarea.net>.
-# Copyright (c) 2009-2010, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
+# Copyright (c) 2009-2011, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -62,14 +62,11 @@ def setup_request(environ, userid, group_adapters, permission_adapters,
         'groups': group_adapters,
         'permissions': permission_adapters,
         }
-    # Setting the arguments:
-    request.environ['repoze.what.positional_args'] = len(request.urlargs)
-    request.environ['repoze.what.named_args'] = frozenset(request.urlvars.keys())
     # Injecting the global authorization control, so it can be used by plugins:
     request.environ['repoze.what.global_control'] = global_control
     
     # Adding a clear request so it can be used to check whether authorization
-    # would be granted for a given request, without buiding it from scratch.
+    # would be granted for a given request, without building it from scratch.
     # It must be ensured that it is a GET request (even if the original request
     # is POST) and WebOb.Request.copy() cannot be used because it'd try to
     # call the request class constructor with arguments which subclasses may not
@@ -108,8 +105,6 @@ def forge_request(environ, path, positional_args, named_args):
     
     """
     new_request = environ['repoze.what.clear_request'].copy()
-    new_request.environ['repoze.what.positional_args'] = len(positional_args)
-    new_request.environ['repoze.what.named_args'] = frozenset(named_args)
     new_request.urlargs = positional_args
     new_request.urlvars = named_args
     

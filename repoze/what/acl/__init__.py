@@ -433,11 +433,12 @@ class _ACE(object):
         
         # Let's extract the request arguments. We shouldn't evaluate the
         # predicate until we know the minimum arguments are present:
-        named_args = environ['repoze.what.named_args']
-        positional_args = environ['repoze.what.positional_args']
+        routing_args = environ.get("wsgiorg.routing_args", ((), {}))
+        positional_args = len(routing_args[0])
+        named_args = set(routing_args[1].keys())
         
         # If the minimum arguments are not present, there's no point in
-        # evaluating the predicate and thus this ACE must be ignored:
+        # evaluating the predicate and therefore this ACE must be ignored:
         if not (named_args.issuperset(self.named_args) and
                 positional_args >= self.positional_args):
             return (False, None)

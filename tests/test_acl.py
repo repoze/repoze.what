@@ -380,8 +380,7 @@ class TestACL(TestCase):
         environ1 = {
             'PATH_INFO': "/blog",
             # The positional args are OK, but the named ones are not:
-            'repoze.what.named_args': set(["arg2"]),
-            'repoze.what.positional_args': 4,
+            'wsgiorg.routing_args': (("a", "b", "c", "d"), {'arg2': "foo"}),
             }
         # Checking with just the path:
         eq_(acl.decide_authorization(environ1), None)
@@ -391,8 +390,7 @@ class TestACL(TestCase):
         environ2 = {
             'PATH_INFO': "/blog",
             # The named args are OK, but the positional ones are not:
-            'repoze.what.named_args': set(["arg1"]),
-            'repoze.what.positional_args': 0,
+            'wsgiorg.routing_args': ((), {'arg1': "foo"}),
             }
         # Checking with just the path:
         eq_(acl.decide_authorization(environ2), None)
@@ -402,8 +400,7 @@ class TestACL(TestCase):
         environ3 = {
             'PATH_INFO': "/blog",
             # Neither named or positional args are OK
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
+            'wsgiorg.routing_args': ((), {}),
             }
         # Checking with just the path:
         eq_(acl.decide_authorization(environ3), None)
@@ -424,11 +421,7 @@ class TestACL(TestCase):
         acl = ACL()
         acl.deny("/blog", predicate1)
         acl.deny(protected_object, predicate2)
-        environ = {
-            'PATH_INFO': "/blog",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ = {'PATH_INFO': "/blog"}
         # Checking with just the path:
         eq_(acl.decide_authorization(environ), None)
         ok_(predicate1.evaluated)
@@ -442,8 +435,7 @@ class TestACL(TestCase):
         acl2 = ACL(allow_by_default=False)
         environ = {
             'PATH_INFO': "/blog",
-            'repoze.what.named_args': set(["arg2"]),
-            'repoze.what.positional_args': 0,
+            'wsgiorg.routing_args': ((), {'arg2': "foo"}),
             }
         # Checking the first ACL:
         decision1 = acl1.decide_authorization(environ)
@@ -469,11 +461,7 @@ class TestACL(TestCase):
         acl.allow("/blog", predicate1)
         acl.deny(protected_object, predicate2)
         # Checking with a path:
-        environ1 = {
-            'PATH_INFO': "/blog",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ1 = {'PATH_INFO': "/blog"}
         decision1 = acl.decide_authorization(environ1)
         ok_(decision1.allow)
         eq_(decision1.message, None)
@@ -481,11 +469,7 @@ class TestACL(TestCase):
         eq_(decision1.match_tracker.longest_path_match, 6)
         assert_false(decision1.match_tracker.object_ace_found)
         # Checking with an object:
-        environ2 = {
-            'PATH_INFO': "/trac",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ2 = {'PATH_INFO': "/trac"}
         decision2 = acl.decide_authorization(environ2, protected_object)
         assert_false(decision2.allow)
         eq_(decision2.message, "The predicate is not met")
@@ -512,11 +496,7 @@ class TestACL(TestCase):
         acl.deny(protected_object2, predicate1)
         acl.deny("/dev", predicate2)
         # ----- No specific ACE, using the default decision:
-        environ1 = {
-            'PATH_INFO': "/yet-another/path",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ1 = {'PATH_INFO': "/yet-another/path"}
         decision1 = acl.decide_authorization(environ1)
         assert_false(decision1.allow)
         eq_(decision1.message, None)
@@ -524,11 +504,7 @@ class TestACL(TestCase):
         eq_(decision1.match_tracker.longest_path_match, 0)
         assert_false(decision1.match_tracker.object_ace_found)
         # ----- One ACE covers the current path:
-        environ2 = {
-            'PATH_INFO': "/blog",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ2 = {'PATH_INFO': "/blog"}
         decision2 = acl.decide_authorization(environ2)
         ok_(decision2.allow)
         eq_(decision2.message, None)
@@ -536,11 +512,7 @@ class TestACL(TestCase):
         eq_(decision2.match_tracker.longest_path_match, 6)
         assert_false(decision2.match_tracker.object_ace_found)
         # ----- Two ACEs cover the current path; pick the most specific one:
-        environ3 = {
-            'PATH_INFO': "/blog/post_article",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ3 = {'PATH_INFO': "/blog/post_article"}
         decision3 = acl.decide_authorization(environ3)
         assert_false(decision3.allow)
         eq_(decision3.message, "The predicate is not met")
@@ -549,11 +521,7 @@ class TestACL(TestCase):
         assert_false(decision3.match_tracker.object_ace_found)
         # ----- Three ACEs cover the current path and two of them cover the
         # ----- exact same path; pick the latest one:
-        environ4 = {
-            'PATH_INFO': "/blog/view_comment",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ4 = {'PATH_INFO': "/blog/view_comment"}
         decision4 = acl.decide_authorization(environ4)
         ok_(decision4.allow)
         eq_(decision4.message, None)
@@ -561,11 +529,7 @@ class TestACL(TestCase):
         eq_(decision4.match_tracker.longest_path_match, 19)
         assert_false(decision4.match_tracker.object_ace_found)
         # ----- One ACE covers the object itself:
-        environ5 = {
-            'PATH_INFO': "/",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ5 = {'PATH_INFO': "/"}
         decision5 = acl.decide_authorization(environ5, protected_object1)
         ok_(decision5.allow)
         eq_(decision5.message, None)
@@ -574,11 +538,7 @@ class TestACL(TestCase):
         ok_(decision5.match_tracker.object_ace_found)
         # ----- Two ACEs cover the request, but one of them cover covers the
         # ----- object so it must picked:
-        environ6 = {
-            'PATH_INFO': "/blog/post_article",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ6 = {'PATH_INFO': "/blog/post_article"}
         decision6 = acl.decide_authorization(environ6, protected_object1)
         ok_(decision6.allow)
         eq_(decision6.message, None)
@@ -586,11 +546,7 @@ class TestACL(TestCase):
         eq_(decision6.match_tracker.longest_path_match, 19)
         ok_(decision6.match_tracker.object_ace_found)
         # ----- Two ACEs cover the object itself; pick the latest one:
-        environ7 = {
-            'PATH_INFO': "/",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ7 = {'PATH_INFO': "/"}
         decision7 = acl.decide_authorization(environ7, protected_object2)
         assert_false(decision7.allow)
         eq_(decision7.message, "The predicate is not met")
@@ -599,11 +555,7 @@ class TestACL(TestCase):
         ok_(decision7.match_tracker.object_ace_found)
         # ----- ACE covering paths must be ignored if there's already a match
         # ----- for the object itself:
-        environ8 = {
-            'PATH_INFO': "/",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ8 = {'PATH_INFO': "/"}
         decision8 = acl.decide_authorization(environ8, protected_object1)
         ok_(decision8.allow)
         eq_(decision8.message, None)
@@ -622,11 +574,7 @@ class TestACL(TestCase):
         denial_handler = object()
         acl = ACL(default_denial_handler=denial_handler)
         acl.deny("/", predicate)
-        environ = {
-            'PATH_INFO': "/",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ = {'PATH_INFO': "/"}
         decision = acl.decide_authorization(environ)
         assert_false(decision.allow)
         eq_(decision.denial_handler, denial_handler)
@@ -643,11 +591,7 @@ class TestACL(TestCase):
         denial_handler = object()
         acl = ACL()
         acl.deny("/", predicate, denial_handler=denial_handler)
-        environ = {
-            'PATH_INFO': "/",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ = {'PATH_INFO': "/"}
         decision = acl.decide_authorization(environ)
         assert_false(decision.allow)
         eq_(decision.denial_handler, denial_handler)
@@ -660,36 +604,20 @@ class TestACL(TestCase):
         acl.deny("/blog/repository")
         acl.allow("/blog/repository/download")
         # ----- Checking just one ACE without predicate:
-        environ1 = {
-            'PATH_INFO': "/blog/",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ1 = {'PATH_INFO': "/blog/"}
         decision1 = acl.decide_authorization(environ1)
         ok_(decision1.allow)
         # ----- Checking two ACEs without predicates:
-        environ2 = {
-            'PATH_INFO': "/blog/repository",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ2 = {'PATH_INFO': "/blog/repository"}
         decision2 = acl.decide_authorization(environ2)
         assert_false(decision2.allow)
         # ----- Checking three ACEs without predicates:
-        environ3 = {
-            'PATH_INFO': "/blog/repository/download",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ3 = {'PATH_INFO': "/blog/repository/download"}
         decision3 = acl.decide_authorization(environ3)
         ok_(decision3.allow)
         # ----- Checking an ACE without predicate, overridden with one which
         # ----- does have a predicate:
-        environ4 = {
-            'PATH_INFO': "/blog/post-new",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ4 = {'PATH_INFO': "/blog/post-new"}
         decision4 = acl.decide_authorization(environ4)
         assert_false(decision4.allow)
         eq_(decision4.message, "The predicate is not met")
@@ -702,38 +630,22 @@ class TestACL(TestCase):
         acl.allow("/add-post/tomorrow", TelltalePredicate(),
                   msg="Everybody can add posts tomorrow")
         # Checking the message the authz is denied without a predicate:
-        environ1 = {
-            'PATH_INFO': "/blog/add-user",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ1 = {'PATH_INFO': "/blog/add-user"}
         decision1 = acl.decide_authorization(environ1)
         assert_false(decision1.allow)
         eq_(decision1.message, "Noone can add users")
         # Checking the message the authz is denied with a predicate:
-        environ2 = {
-            'PATH_INFO': "/blog/add-post",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ2 = {'PATH_INFO': "/blog/add-post"}
         decision2 = acl.decide_authorization(environ2)
         assert_false(decision2.allow)
         eq_(decision2.message, "Noone can add posts")
         # Checking the message the authz is granted without a predicate:
-        environ3 = {
-            'PATH_INFO': "/blog/add-user/tomorrow",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ3 = {'PATH_INFO': "/blog/add-user/tomorrow"}
         decision3 = acl.decide_authorization(environ3)
         ok_(decision3.allow)
         eq_(decision3.message, "Everybody can add users tomorrow")
         # Checking the message the authz is granted with a predicate:
-        environ4 = {
-            'PATH_INFO': "/blog/add-post/tomorrow",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ4 = {'PATH_INFO': "/blog/add-post/tomorrow"}
         decision4 = acl.decide_authorization(environ4)
         ok_(decision4.allow)
         eq_(decision4.message, "Everybody can add posts tomorrow")
@@ -742,11 +654,7 @@ class TestACL(TestCase):
         """ACEs must not be propagated when explicitly requested."""
         acl = ACL()
         acl.allow("/blog/", propagate=False)
-        environ = {
-            'PATH_INFO': "/blog/posts",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ = {'PATH_INFO': "/blog/posts"}
         decision = acl.decide_authorization(environ)
         eq_(decision, None)
     
@@ -759,11 +667,7 @@ class TestACL(TestCase):
         acl = ACL()
         predicate = TelltalePredicate(True)
         acl.allow("/blog/", predicate=predicate, propagate=False)
-        environ = {
-            'PATH_INFO': "/blog/posts",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ = {'PATH_INFO': "/blog/posts"}
         decision = acl.decide_authorization(environ)
         eq_(decision, None)
         assert_false(predicate.evaluated)
@@ -773,11 +677,7 @@ class TestACL(TestCase):
         acl = ACL()
         acl.deny("/blog/", force_inclusion=True)
         acl.allow("/blog/posts")
-        environ = {
-            'PATH_INFO': "/blog/posts",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ = {'PATH_INFO': "/blog/posts"}
         decision = acl.decide_authorization(environ)
         assert_false(decision.allow, False)
     
@@ -794,21 +694,13 @@ class TestACL(TestCase):
         acl.allow("/forum/posts/")
         
         # Authorization must be denied if the predicate of a forced ACE is met:
-        environ1 = {
-            'PATH_INFO': "/blog/posts/",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ1 = {'PATH_INFO': "/blog/posts/"}
         decision1 = acl.decide_authorization(environ1)
         eq_(decision1.allow, False)
         
         # Authorization must be granted if the predicate of a forced ACE is not
         # met:
-        environ2 = {
-            'PATH_INFO': "/forum/posts/",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ2 = {'PATH_INFO': "/forum/posts/"}
         decision2 = acl.decide_authorization(environ2)
         eq_(decision2.allow, True)
     
@@ -816,11 +708,7 @@ class TestACL(TestCase):
         """ACEs with a trailing slash should match requests without it."""
         acl = ACL()
         acl.allow("/path/", propagate=False)
-        environ = {
-            'PATH_INFO': "/path",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ = {'PATH_INFO': "/path"}
         decision = acl.decide_authorization(environ)
         ok_(decision.allow)
     
@@ -828,11 +716,7 @@ class TestACL(TestCase):
         """ACEs without a trailing slash should match requests with it."""
         acl = ACL()
         acl.allow("/path", propagate=False)
-        environ = {
-            'PATH_INFO': "/path/",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ = {'PATH_INFO': "/path/"}
         decision = acl.decide_authorization(environ)
         ok_(decision.allow)
     
@@ -845,11 +729,7 @@ class TestACL(TestCase):
         """
         acl = ACL()
         acl.allow("/path", propagate=True)
-        environ = {
-            'PATH_INFO': "/path-brother",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ = {'PATH_INFO': "/path-brother"}
         decision = acl.decide_authorization(environ)
         eq_(decision, None)
     
@@ -858,21 +738,13 @@ class TestACL(TestCase):
         acl = ACL()
         # ACEs without leading slashes must match right paths:
         acl.allow("foo/")
-        environ_with_right_path = {
-            'PATH_INFO': "/foo",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ_with_right_path = {'PATH_INFO': "/foo"}
         decision1 = acl.decide_authorization(environ_with_right_path)
         ok_(decision1.allow)
         # Right ACEs must match paths without leading slashes, although this
         # doesn't seem to make sense:
         acl.allow("/bar/")
-        environ_with_wrong_path = {
-            'PATH_INFO': "bar/",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ_with_wrong_path = {'PATH_INFO': "bar/"}
         decision2 = acl.decide_authorization(environ_with_wrong_path)
         ok_(decision2.allow)
     
@@ -881,20 +753,12 @@ class TestACL(TestCase):
         acl = ACL()
         # Checking an ACE with multiple continuous slashes:
         acl.allow("/foo/////bar/")
-        environ_with_right_path = {
-            'PATH_INFO': "/foo/bar/",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ_with_right_path = {'PATH_INFO': "/foo/bar/"}
         decision1 = acl.decide_authorization(environ_with_right_path)
         ok_(decision1.allow)
         # Checking an PATH_INFO with multiple continuous slashes:
         acl.allow("/bar/foo/")
-        environ_with_wrong_path = {
-            'PATH_INFO': "/bar/////foo/",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ_with_wrong_path = {'PATH_INFO': "/bar/////foo/"}
         decision2 = acl.decide_authorization(environ_with_wrong_path)
         ok_(decision2.allow)
         
@@ -953,11 +817,7 @@ class TestACLCollections(TestCase):
         collection.add_acl(acl1)
         collection.add_acl(acl2)
         collection.add_acl(acl3)
-        environ = {
-            'PATH_INFO': "/whatever",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ = {'PATH_INFO': "/whatever"}
         protected_object = object()
         # Checking with just the path:
         eq_(collection.decide_authorization(environ), None)
@@ -978,21 +838,13 @@ class TestACLCollections(TestCase):
         collection.add_acl(acl2)
         collection.add_acl(acl3)
         # ----- If there's an ACE, it must be used:
-        environ1 = {
-            'PATH_INFO': "/trac/wiki/StartPage",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ1 = {'PATH_INFO': "/trac/wiki/StartPage"}
         decision1 = collection.decide_authorization(environ1)
         assert_false(decision1.allow)
         eq_(decision1.message, "The predicate is not met")
         eq_(decision1.match_tracker.longest_path_match, 11)
         # ----- If there's a default decision, use it:
-        environ2 = {
-            'PATH_INFO': "/foo/bar",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ2 = {'PATH_INFO': "/foo/bar"}
         decision2 = collection.decide_authorization(environ2)
         assert_false(decision2.allow)
         eq_(decision2.message, None)
@@ -1009,11 +861,7 @@ class TestACLCollections(TestCase):
         collection.add_acl(acl1)
         collection.add_acl(acl2)
         collection.add_acl(acl3)
-        environ = {
-            'PATH_INFO': "/admin/blog/post",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ = {'PATH_INFO': "/admin/blog/post"}
         decision = collection.decide_authorization(environ)
         assert_false(decision.allow)
         eq_(decision.message, "The predicate is not met")
@@ -1028,11 +876,7 @@ class TestACLCollections(TestCase):
         acl = ACL("/path/", allow_by_default=True)
         collection = ACLCollection()
         collection.add_acl(acl)
-        environ = {
-            'PATH_INFO': "/path",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ = {'PATH_INFO': "/path"}
         decision = collection.decide_authorization(environ)
         ok_(decision.allow)
     
@@ -1045,11 +889,7 @@ class TestACLCollections(TestCase):
         acl = ACL("/path", allow_by_default=True)
         collection = ACLCollection()
         collection.add_acl(acl)
-        environ = {
-            'PATH_INFO': "/path/",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ = {'PATH_INFO': "/path/"}
         decision = collection.decide_authorization(environ)
         ok_(decision.allow)
     
@@ -1066,11 +906,7 @@ class TestACLCollections(TestCase):
         collection.add_acl(first_acl)
         collection.add_acl(second_acl)
         
-        environ = {
-            'PATH_INFO': "/blog/posts",
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
+        environ = {'PATH_INFO': "/blog/posts"}
         decision = collection.decide_authorization(environ)
         assert_false(decision.allow)
     
@@ -1198,22 +1034,14 @@ class TestAces(TestCase):
     def test_denial_ace_without_predicate(self):
         ace = _ACE(None, False)
         eq_(ace.predicate, None)
-        environ = {
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
-        (participation, message) = ace.can_participate(environ)
+        (participation, message) = ace.can_participate({})
         ok_(participation)
         eq_(message, None)
     
     def test_denial_ace_without_predicate_and_custom_message(self):
         ace = _ACE(None, False, message="Foo Bar")
         eq_(ace.predicate, None)
-        environ = {
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
-        (participation, message) = ace.can_participate(environ)
+        (participation, message) = ace.can_participate({})
         ok_(participation)
         eq_(message, "Foo Bar")
     
@@ -1226,8 +1054,7 @@ class TestAces(TestCase):
         # Ready:
         predicate = TelltalePredicate()
         environ = {
-            'repoze.what.named_args': set(["arg1"]),
-            'repoze.what.positional_args': 1,
+            'wsgiorg.routing_args': (("foo",), {'arg1': "val1"}),
             }
         # Set:
         ace = _ACE(predicate, True, ["arg1", "arg2"], 3)
@@ -1246,8 +1073,7 @@ class TestAces(TestCase):
         # Ready:
         predicate = TelltalePredicate()
         environ = {
-            'repoze.what.named_args': set(["foo"]),
-            'repoze.what.positional_args': 1,
+            'wsgiorg.routing_args': (("baz",), {'foo': "bar"}),
             }
         # Set:
         ace = _ACE(predicate, True, ["arg1", "arg2"])
@@ -1266,8 +1092,7 @@ class TestAces(TestCase):
         # Ready:
         predicate = TelltalePredicate()
         environ = {
-            'repoze.what.named_args': set(["arg1"]),
-            'repoze.what.positional_args': 2,
+            'wsgiorg.routing_args': (("baz", "abc"), {'arg1': "bar"}),
             }
         # Set:
         ace = _ACE(predicate, True, ["arg1"], 3)
@@ -1286,8 +1111,7 @@ class TestAces(TestCase):
         # Ready:
         predicate = TelltalePredicate()
         environ = {
-            'repoze.what.named_args': set(["arg1", "arg2"]),
-            'repoze.what.positional_args': 2,
+            'wsgiorg.routing_args': (("a", "b"), {'arg1': "bar", 'arg2': "foo"}),
             }
         # Set:
         ace = _ACE(predicate, True, ["arg1", "arg2"], 2)
@@ -1306,8 +1130,10 @@ class TestAces(TestCase):
         # Ready:
         predicate = TelltalePredicate()
         environ = {
-            'repoze.what.named_args': set(["arg1", "arg2", "arg3"]),
-            'repoze.what.positional_args': 4,
+            'wsgiorg.routing_args': (
+                ("a", "b", "c", "d"),
+                {'arg1': "bar", 'arg2': "baz", 'arg3': "foo"},
+                ),
             }
         # Set:
         ace = _ACE(predicate, True, ["arg1", "arg2"], 2)
@@ -1324,14 +1150,10 @@ class TestAces(TestCase):
         """
         # Ready:
         predicate = TelltalePredicate()
-        environ = {
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
         # Set:
         ace = _ACE(predicate, False)
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        (participation, message) = ace.can_participate({})
         eq_(participation, True)
         eq_(message, "The predicate is not met")
         ok_(predicate.evaluated)
@@ -1343,14 +1165,10 @@ class TestAces(TestCase):
         """
         # Ready:
         predicate = TelltalePredicate()
-        environ = {
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
         # Set:
         ace = _ACE(predicate, True)
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        (participation, message) = ace.can_participate({})
         eq_(participation, True)
         eq_(message, None)
         ok_(predicate.evaluated)
@@ -1363,14 +1181,10 @@ class TestAces(TestCase):
         """
         # Ready:
         predicate = TelltalePredicate()
-        environ = {
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
         # Set:
         ace = _ACE(predicate, False, message="ABC XYZ")
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        (participation, message) = ace.can_participate({})
         eq_(participation, True)
         eq_(message, "ABC XYZ")
         ok_(predicate.evaluated)
@@ -1383,14 +1197,10 @@ class TestAces(TestCase):
         """
         # Ready:
         predicate = TelltalePredicate()
-        environ = {
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
         # Set:
         ace = _ACE(predicate, True, message="ABC XYZ")
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        (participation, message) = ace.can_participate({})
         eq_(participation, True)
         eq_(message, "ABC XYZ")
         ok_(predicate.evaluated)
@@ -1403,14 +1213,10 @@ class TestAces(TestCase):
         """
         # Ready:
         predicate = TelltalePredicate(False)
-        environ = {
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
         # Set:
         ace = _ACE(predicate, False)
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        (participation, message) = ace.can_participate({})
         eq_(participation, False)
         eq_(message, None)
         ok_(predicate.evaluated)
@@ -1423,14 +1229,10 @@ class TestAces(TestCase):
         """
         # Ready:
         predicate = TelltalePredicate(False)
-        environ = {
-            'repoze.what.named_args': set(),
-            'repoze.what.positional_args': 0,
-            }
         # Set:
         ace = _ACE(predicate, True)
         # Go!:
-        (participation, message) = ace.can_participate(environ)
+        (participation, message) = ace.can_participate({})
         eq_(participation, False)
         eq_(message, "Telltale predicate")
         ok_(predicate.evaluated)
