@@ -25,8 +25,6 @@ from webob import Request
 
 from repoze.what.internals import _Credentials, setup_request, forge_request
 
-from tests.base import FakeGroupSourceAdapter, FakePermissionSourceAdapter
-
 
 class TestSettingUpRequest(unittest.TestCase):
     """Tests for the setup_request() function."""
@@ -45,23 +43,12 @@ class TestSettingUpRequest(unittest.TestCase):
         assert req.environ['repoze.what.adapters']['groups'] is None
         assert req.environ['repoze.what.adapters']['permissions'] is None
     
-    def test_with_userid_and_adapters(self):
-        group_adapters = {'my_group': FakeGroupSourceAdapter()}
-        permission_adapters = {'my_perm': FakePermissionSourceAdapter()}
+    def test_with_userid(self):
         environ = {}
-        req = setup_request(environ, "rms", group_adapters, permission_adapters)
-        assert len(req.environ) >= 4
-        # Checking the credentials:
-        assert len(req.environ['repoze.what.credentials']) == 3
+        req = setup_request(environ, "rms", None, None)
+        assert len(req.environ['repoze.what.credentials']) == 1
         assert (req.environ['repoze.what.credentials']['repoze.what.userid'] ==
                 "rms")
-        assert len(req.environ['repoze.what.credentials']['groups']) == 2
-        assert len(req.environ['repoze.what.credentials']['permissions']) == 2
-        # Checking the adapters:
-        assert len(req.environ['repoze.what.adapters']) == 2
-        assert req.environ['repoze.what.adapters']['groups'] is group_adapters
-        assert (req.environ['repoze.what.adapters']['permissions'] is
-                permission_adapters)
     
     def test_with_global_authz_control(self):
         global_authz_control = object()
@@ -204,15 +191,6 @@ class TestCredentials(unittest.TestCase):
         permissions = ("p1", "p2")
         credentials['groups'] = groups
         credentials['permissions'] = permissions
-        assert credentials._groups_loaded
-        assert credentials._permissions_loaded
-    
-    def test_getting_groups_and_permissions(self):
-        group_adapters = {'my_group': FakeGroupSourceAdapter()}
-        permission_adapters = {'my_perm': FakePermissionSourceAdapter()}
-        credentials = _Credentials("rms", group_adapters, permission_adapters)
-        assert credentials['groups'] == set(["admins", "developers"])
-        assert credentials['permissions'] == set(["edit-site", "commit"])
         assert credentials._groups_loaded
         assert credentials._permissions_loaded
     

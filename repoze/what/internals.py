@@ -54,10 +54,6 @@ def setup_request(environ, userid, group_adapters, permission_adapters,
         group_adapters,
         permission_adapters,
         )
-    request.environ['repoze.what.adapters'] = {
-        'groups': group_adapters,
-        'permissions': permission_adapters,
-        }
     # Injecting the global authorization control, so it can be used by plugins:
     request.environ['repoze.what.global_control'] = global_control
     
