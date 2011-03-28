@@ -71,11 +71,8 @@ def setup_request(environ, userid, group_adapters, permission_adapters,
     # is POST) and WebOb.Request.copy() cannot be used because it'd try to
     # call the request class constructor with arguments which subclasses may not
     # support.
-    clear_environ = request.environ.copy()
-    clear_environ['REQUEST_METHOD'] = "GET"
-    clear_environ['QUERY_STRING'] = ""
-    clear_environ['wsgi.input'] = StringIO("")
-    request.environ['repoze.what.clear_request'] = request_class(clear_environ)
+    request.environ['repoze.what.clear_request'] = request.copy_get()
+    request.environ['repoze.what.clear_request'].query_string = ""
     
     # Before moving on, let's restore the CONTENT_LENGTH reset by WebOb:
     request.environ['CONTENT_LENGTH'] = original_content_length
@@ -104,7 +101,7 @@ def forge_request(environ, path, positional_args, named_args):
     routing software (e.g., Routes, Selector) for ``path``.
     
     """
-    new_request = environ['repoze.what.clear_request'].copy()
+    new_request = environ['repoze.what.clear_request'].copy_get()
     new_request.urlargs = positional_args
     new_request.urlvars = named_args
     
@@ -115,7 +112,7 @@ def forge_request(environ, path, positional_args, named_args):
         new_request.path_info = path
     
     # The request must be forged recursively:
-    new_request.environ['repoze.what.clear_request'] = new_request.copy()
+    new_request.environ['repoze.what.clear_request'] = new_request.copy_get()
     
     return new_request
 
