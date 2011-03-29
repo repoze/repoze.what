@@ -19,7 +19,7 @@ Test suite for request-to-target mappers.
 
 from nose.tools import assert_raises, eq_
 
-from repoze.what.acl.mappers import Mapper, PathInfoMapper, RoutingArgsMapper
+from repoze.what.mappers import Mapper, PathInfoMapper, RoutingArgsMapper
 
 from tests.base import make_request
 
