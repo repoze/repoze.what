@@ -20,7 +20,7 @@ Tests for the built-in Access Request Objects.
 from nose.tools import assert_false, ok_
 from webob import Request
 
-from repoze.what.acl.aros import *
+from repoze.what.aros import *
 
 
 class TestAnonymous(object):
