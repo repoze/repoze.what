@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2008-2010, Gustavo Narea <me@gustavonarea.net>
+# Copyright (c) 2008-2011, Gustavo Narea <me@gustavonarea.net>
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -12,7 +12,6 @@
 # FITNESS FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-
 """
 Utilities for the test suite of :mod:`repoze.what`.
 
@@ -22,13 +21,29 @@ from StringIO import StringIO
 
 from webob import Request
 
+from repoze.what.groups import BaseGroupAdapter
 from repoze.what.predicates import Predicate
 
 
-__all__ = ["FakeLogger", "MockPredicate", "make_request"]
+__all__ = ["make_request", "MockLogger", "MockPredicate", "MockGroupAdapter"]
 
 
-class FakeLogger(object):
+def make_request(user=None, helpers=[], logger=None, **environ_vars):
+    """Make a WebOb request in a repoze.what environment"""
+    environ = {
+        'repoze.what.userid': user,
+        'repoze.what.helpers': helpers,
+        'repoze.what.logger': logger,
+        'wsgi.url_scheme': 'http',
+        'SERVER_NAME': 'localhost',
+        'SERVER_PORT': 80,
+        'wsgi.input': StringIO()
+    }
+    environ.update(environ_vars)
+    return Request(environ)
+
+
+class MockLogger(object):
     """A mock Python logger."""
     
     def __init__(self):
@@ -68,16 +83,28 @@ class MockPredicate(Predicate):
         return self.result
 
 
-def make_request(user=None, helpers=[], logger=None, **environ_vars):
-    """Make a WebOb request in a repoze.what environment"""
-    environ = {
-        'repoze.what.userid': user,
-        'repoze.what.helpers': helpers,
-        'repoze.what.logger': logger,
-        'wsgi.url_scheme': 'http',
-        'SERVER_NAME': 'localhost',
-        'SERVER_PORT': 80,
-        'wsgi.input': StringIO()
-    }
-    environ.update(environ_vars)
-    return Request(environ)
+class MockGroupAdapter(BaseGroupAdapter):
+    """
+    Mock group adapter to be used in the tests.
+    
+    """
+    
+    def __init__(self, *groups):
+        self.groups = set(groups)
+        self.queried_groups = []
+    
+    def _requester_in_any_group(self, request, groups):
+        self.queried_groups.append(("any", groups))
+        
+        is_present = False
+        for group in groups:
+            if group in self.groups:
+                is_present = True
+                break
+        
+        return is_present
+    
+    def _requester_in_all_groups(self, request, groups):
+        self.queried_groups.append(("all", groups))
+        
+        return groups and groups.issubset(self.groups)

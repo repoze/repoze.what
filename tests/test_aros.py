@@ -71,3 +71,13 @@ class TestUserId(object):
         aro = UserId("carla")
         request = Request.blank("/", {'REMOTE_USER': "carla"})
         ok_(aro(request))
+
+
+class TestGroupId(object):
+    """Tests for the :class:`GroupId` ARO."""
+    
+    def test_membership(self):
+        pass
+    
+    def test_no_membership(self):
+        pass

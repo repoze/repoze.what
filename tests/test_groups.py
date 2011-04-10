@@ -20,37 +20,7 @@ Tests for :mod:`repoze.what.groups`.
 from nose.tools import assert_false, eq_, ok_
 from webob import Request
 
-from repoze.what.groups import BaseGroupAdapter
-
-
-#{ Test utilities
-
-
-class MockGroupAdapter(BaseGroupAdapter):
-    """
-    Mock group adapter to be used in the tests.
-    
-    """
-    
-    def __init__(self, *groups):
-        self.groups = set(groups)
-        self.queried_groups = []
-    
-    def _requester_in_any_group(self, request, groups):
-        self.queried_groups.append(("any", groups))
-        
-        is_present = False
-        for group in groups:
-            if group in self.groups:
-                is_present = True
-                break
-        
-        return is_present
-    
-    def _requester_in_all_groups(self, request, groups):
-        self.queried_groups.append(("all", groups))
-        
-        return groups and groups.issubset(self.groups)
+from tests.base import MockGroupAdapter
 
 
 class BaseGroupAdapterTestCase(object):
@@ -68,9 +38,6 @@ class BaseGroupAdapterTestCase(object):
             set(membership_groups))
         eq_(self.request.environ['repoze.what.groups']['no_membership'],
             set(no_membership_groups))
-
-
-#{ Tests
 
 
 class TestAnyGroup(BaseGroupAdapterTestCase):
@@ -314,6 +281,3 @@ class TestAllGroups(BaseGroupAdapterTestCase):
         self.assert_cache(["admins", "users"], [])
     
     #}
-
-
-#}
