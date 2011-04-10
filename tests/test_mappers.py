@@ -18,10 +18,9 @@ Test suite for request-to-target mappers.
 """
 
 from nose.tools import assert_raises, eq_
+from webob import Request
 
 from repoze.what.mappers import Mapper, PathInfoMapper, RoutingArgsMapper
-
-from tests.base import make_request
 
 
 #{ Tests for generic stuff
@@ -57,20 +56,23 @@ class TestPathInfoMapper(object):
     def test_no_path_info(self):
         """The ACO is an slash if the PATH_INFO is empty."""
         mapper = PathInfoMapper()
+        request = Request.blank("")
         
-        eq_("/", mapper.get_aco(make_request(PATH_INFO="")))
+        eq_("/", mapper.get_aco(request))
     
     def test_root(self):
         """The ACO is an slash if the PATH_INFO is an slash too."""
         mapper = PathInfoMapper()
+        request = Request.blank("/")
         
-        eq_("/", mapper.get_aco(make_request(PATH_INFO="/")))
+        eq_("/", mapper.get_aco(request))
     
     def test_no_trailing_slash(self):
         """Returned ACOs always have a trailing slash."""
         mapper = PathInfoMapper()
+        request = Request.blank("/foo")
         
-        eq_("/foo/", mapper.get_aco(make_request(PATH_INFO="/foo")))
+        eq_("/foo/", mapper.get_aco(request))
 
 
 class TestRoutingArgsMapper(object):
@@ -80,7 +82,7 @@ class TestRoutingArgsMapper(object):
     """
     
     def make_request_with_routing_args(self, positional=(), named=None):
-        request = make_request()
+        request = Request.blank("/")
         request.environ['wsgiorg.routing_args'] = (positional, named or {})
         return request
     
