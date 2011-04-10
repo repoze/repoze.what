@@ -24,7 +24,7 @@ from webob import Request
 from repoze.what.exc import NotAuthorizedError
 from repoze.what.utils import enforce
 
-from tests.base import MockPredicate
+from tests import MockPredicate
 
 
 class TestEnforcer(object):

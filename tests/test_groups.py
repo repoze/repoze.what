@@ -20,7 +20,7 @@ Tests for :mod:`repoze.what.groups`.
 from nose.tools import assert_false, eq_, ok_
 from webob import Request
 
-from tests.base import MockGroupAdapter
+from tests import MockGroupAdapter
 
 
 class BaseGroupAdapterTestCase(object):

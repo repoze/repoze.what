@@ -3,8 +3,8 @@
 #
 # Copyright (c) 2007, Agendaless Consulting and Contributors.
 # Copyright (c) 2008, Florent Aide <florent.aide@gmail.com>.
-# Copyright (c) 2008-2010, Gustavo Narea <me@gustavonarea.net>.
 # Copyright (c) 2009, 2degrees Limited <gnarea@tech.2degreesnetwork.com>.
+# Copyright (c) 2008-2011, Gustavo Narea <me@gustavonarea.net>.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -25,7 +25,7 @@ from webob import Request
 
 from repoze.what import predicates
 
-from tests.base import MockPredicate
+from tests import MockPredicate
 
 
 #{ The test suite itself

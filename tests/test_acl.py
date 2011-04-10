@@ -2,7 +2,7 @@
 ##############################################################################
 #
 # Copyright (c) 2009, 2degrees Limited <gnarea@tech.2degreesnetwork.com>.
-# Copyright (c) 2009-2010, Gustavo Narea <me@gustavonarea.net>.
+# Copyright (c) 2009-2011, Gustavo Narea <me@gustavonarea.net>.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -26,7 +26,7 @@ from repoze.what.predicates import Predicate
 from repoze.what.acl import (ACL, ACLCollection, AuthorizationDecision,
                              _BaseAuthorizationControl, _ACE, _MatchTracker)
 
-from tests.base import MockPredicate
+from tests import MockPredicate
 
 
 #{ Tests for external stuff
