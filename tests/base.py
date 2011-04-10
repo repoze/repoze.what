@@ -25,7 +25,7 @@ from webob import Request
 from repoze.what.predicates import Predicate
 
 
-__all__ = ["FakeLogger", "MockPredicate", "make_environ", "make_request"]
+__all__ = ["FakeLogger", "MockPredicate", "make_request"]
 
 
 class FakeLogger(object):
@@ -68,9 +68,8 @@ class MockPredicate(Predicate):
         return self.result
 
 
-def make_environ(user=None, helpers=[], logger=None, **kwargs):
-    """Make a WSGI enviroment with repoze.what-specific items"""
-    
+def make_request(user=None, helpers=[], logger=None, **environ_vars):
+    """Make a WebOb request in a repoze.what environment"""
     environ = {
         'repoze.what.userid': user,
         'repoze.what.helpers': helpers,
@@ -80,11 +79,5 @@ def make_environ(user=None, helpers=[], logger=None, **kwargs):
         'SERVER_PORT': 80,
         'wsgi.input': StringIO()
     }
-    environ.update(kwargs)
-    return environ
-
-
-def make_request(**environ_vars):
-    """Make a WebOb request in a repoze.what environment"""
-    environ = make_environ(**environ_vars)
+    environ.update(environ_vars)
     return Request(environ)
