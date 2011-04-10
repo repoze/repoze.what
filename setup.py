@@ -49,7 +49,7 @@ setup(name='repoze.what',
       author="Gustavo Narea",
       author_email="repoze-dev@lists.repoze.org",
       namespace_packages = ['repoze', 'repoze.what', 'repoze.what.plugins'],
-      url="http://static.repoze.org/whatdocs/",
+      url="http://what.repoze.org/",
       license="BSD-derived (http://www.repoze.org/LICENSE.txt)",
       packages=find_packages(exclude=['tests']),
       package_data={
