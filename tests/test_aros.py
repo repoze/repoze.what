@@ -51,23 +51,23 @@ class TestAuthenticated(object):
         ok_(AUTHENTICATED(request))
 
 
-class TestUser(object):
-    """Tests for the :class:`User` ARO."""
+class TestUserId(object):
+    """Tests for the :class:`UserId` ARO."""
     
     def test_anonymous(self):
         """There's no match in anonymous requests."""
-        aro = User("carla")
+        aro = UserId("carla")
         request = Request.blank("/")
         assert_false(aro(request))
     
     def test_authenticated_but_not_right_user(self):
         """There's no match in authenticated requests from a different user."""
-        aro = User("carla")
+        aro = UserId("carla")
         request = Request.blank("/", {'REMOTE_USER': "andreina"})
         assert_false(aro(request))
     
     def test_authenticated_and_right_user(self):
         """There's a match if and only if the expected user made the request."""
-        aro = User("carla")
+        aro = UserId("carla")
         request = Request.blank("/", {'REMOTE_USER': "carla"})
         ok_(aro(request))

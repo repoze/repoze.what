@@ -23,7 +23,7 @@ TODO: Implement ARO for groups once group adapters have been implemented
 """
 
 
-__all__ = ["ANONYMOUS", "AUTHENTICATED", "User"]
+__all__ = ["ANONYMOUS", "AUTHENTICATED", "UserId"]
 
 
 AUTHENTICATED = lambda request: bool(request.remote_user)
@@ -34,8 +34,8 @@ ANONYMOUS = lambda request: not AUTHENTICATED(request)
 """ARO that matches anonymous users."""
 
 
-class User(object):
-    """Access Request Object that matches a specific user."""
+class UserId(object):
+    """Access Request Object that matches a specific user Id."""
     
     def __init__(self, user_id):
         """
