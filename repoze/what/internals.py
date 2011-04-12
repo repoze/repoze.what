@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-# Copyright (c) 2009-2010, Gustavo Narea <me@gustavonarea.net>.
 # Copyright (c) 2009-2010, 2degrees Limited <gnarea@tech.2degreesnetwork.com>.
+# Copyright (c) 2009-2011, Gustavo Narea <me@gustavonarea.net>.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -16,49 +16,34 @@
 """
 Utilities for :mod:`repoze.what` itself or its plugins.
 
-**They must not be used in the web applications.**
-
 """
 
-from webob import Request
 
-__all__ = ("setup_request", "forge_request")
+__all__ = ["setup_request", "forge_request"]
 
 
-def setup_request(environ, userid, group_adapters, permission_adapters,
-                  global_control=None):
+def setup_request(request, global_control, group_adapter):
     """
-    Update the WSGI ``environ`` with the :mod:`repoze.what`-required items.
+    Update the ``request`` with the :mod:`repoze.what`-required items.
     
-    :param environ: The WSGI environ.
-    :type environ: :class:`dict`
-    :param userid: The user's identificator (if authenticated).
-    :type userid: :class:`basestring` or ``None``
-    :param group_adapters: The group adapters, if any.
-    :type group_adapters: :class:`dict` or ``None``
-    :param permission_adapters: The permissions adapters, if any.
-    :type permission_adapters: :class:`dict` or ``None``
+    :param request: The WSGI request object.
+    :type request: :class:`webob.Request`
     :param global_control: The global authorization control (e.g., an ACL
         collection).
-    :type global_control: :class:`repoze.what.acl._BaseAuthorizationControl`
-    
-    .. attention::
-        This function should only be used in :mod:`repoze.what` itself or
-        official/third-party plugins.
+    :type global_control: :class:`repoze.what.acl._BaseAuthorizationControl` or
+        ``None``
+    :param group_adapters: The group adapter, if any.
+    :type group_adapters: :class:`repoze.what.grooups.BaseGroupAdapter` or
+        ``None``
     
     """
-    request = Request(environ)
-    
-    request.environ['repoze.what.credentials'] = _Credentials(
-        userid,
-        group_adapters,
-        permission_adapters,
-        )
-    # Injecting the global authorization control, so it can be used by plugins:
+    # Injecting the global authorization control and the group adapter, so that
+    # they can be used by plugins:
     request.environ['repoze.what.global_control'] = global_control
+    request.environ['repoze.what.group_adapter'] = group_adapter
     
     # Adding a clear request so it can be used to check whether authorization
-    # would be granted for a given request, without buiding it from scratch:
+    # would be granted for a given request, without building it from scratch:
     clear_request = request.copy_get()
     clear_request.environ['QUERY_STRING'] = ""
     
@@ -68,16 +53,14 @@ def setup_request(environ, userid, group_adapters, permission_adapters,
         del clear_request.environ['wsgiorg.routing_args']
     
     request.environ['repoze.what.clear_request'] = clear_request
-    
-    return request
 
 
-def forge_request(environ, path, positional_args, named_args):
+def forge_request(request, path, positional_args, named_args):
     """
     Return a mock request to ``path`` based on ``environ``.
     
-    :param environ: The WSGI environment to be used as an starting point.
-    :type environ: :class:`dict`
+    :param request: The request object to be used as an starting point.
+    :type request: :class:`webob.Request`
     :param path: The path where the request is supposed to be made; it may
         include the query string.
     :type path: :class:`basestring`
@@ -94,7 +77,7 @@ def forge_request(environ, path, positional_args, named_args):
     routing software (e.g., Routes, Selector) for ``path``.
     
     """
-    new_request = environ['repoze.what.clear_request'].copy()
+    new_request = request.environ['repoze.what.clear_request'].copy()
     new_request.urlargs = positional_args
     new_request.urlvars = named_args
     
@@ -105,57 +88,3 @@ def forge_request(environ, path, positional_args, named_args):
         new_request.path_info = path
     
     return new_request
-
-
-class _Credentials(dict):
-    """
-    The :mod:`repoze.what` credentials dict.
-    
-    With this kind of objects we'll load the groups and/or permissions only
-    when they are necessary, not on every request.
-    
-    **This must not be used directly outside :mod:`repoze.what` itself.**
-    
-    """
-    
-    def __init__(self, userid, group_adapters, permission_adapters):
-        self._group_adapters = group_adapters
-        self._permission_adapters = permission_adapters
-        initial_credentials = {
-            'repoze.what.userid': userid,
-            'groups': set(),
-            'permissions': set(),
-            }
-        super(_Credentials, self).__init__(**initial_credentials)
-        # Keeping track of what has been loaded:
-        self._groups_loaded = False
-        self._permissions_loaded = False
-    
-    def __getitem__(self, key):
-        if key == "groups" and not self._groups_loaded:
-            self._load_groups()
-        elif key == "permissions" and not self._permissions_loaded:
-            self._load_permissions()
-        return super(_Credentials, self).__getitem__(key)
-    
-    def __setitem__(self, key, value):
-        super(_Credentials, self).__setitem__(key, value)
-        if key == "groups":
-            self._groups_loaded = True
-        elif key == "permissions":
-            self._permissions_loaded = True
-    
-    def _load_groups(self):
-        groups = set()
-        if self._group_adapters:
-            for grp_fetcher in self._group_adapters.values():
-                groups |= set(grp_fetcher.find_sections(self))
-        self['groups'] = groups
-    
-    def _load_permissions(self):
-        permissions = set()
-        if self._permission_adapters:
-            for group in self['groups']:
-                for perm_fetcher in self._permission_adapters.values():
-                    permissions |= set(perm_fetcher.find_sections(group))
-        self['permissions'] = permissions
