@@ -167,7 +167,7 @@ class Not(Predicate):
     
     def check(self, request, credentials):
         is_met = self.predicate.check(request, credentials)
-        # If the predicate evaluation was undeterminate, leave it as is:
+        # If the predicate evaluation was indeterminate, leave it as is:
         if is_met is not None:
             is_met = not is_met
         return is_met
