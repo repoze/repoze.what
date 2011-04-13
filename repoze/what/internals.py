@@ -38,21 +38,16 @@ def setup_request(request, global_control, group_adapter):
     
     """
     # Injecting the global authorization control and the group adapter, so that
-    # they can be used by plugins:
-    request.environ['repoze.what.global_control'] = global_control
-    request.environ['repoze.what.group_adapter'] = group_adapter
-    
-    # Adding a clear request so it can be used to check whether authorization
-    # would be granted for a given request, without building it from scratch:
-    clear_request = request.copy_get()
-    clear_request.environ['QUERY_STRING'] = ""
-    
-    # The routing_args are request-specific, so they should be removed from the
-    # clear request:
-    if "wsgiorg.routing_args" in clear_request.environ:
-        del clear_request.environ['wsgiorg.routing_args']
-    
-    request.environ['repoze.what.clear_request'] = clear_request
+    # they can be used by plugins. Also initialize the cache for the groups
+    # the current requester is known to belong or not:
+    request.environ['repoze.what'] = {
+        'global_control': global_control,
+        'group_adapter': group_adapter,
+        'cached_groups': {
+            'membership': set(),
+            'no_membership': set(),
+            },
+        }
 
 
 def forge_request(request, path, positional_args, named_args):
@@ -77,6 +72,23 @@ def forge_request(request, path, positional_args, named_args):
     routing software (e.g., Routes, Selector) for ``path``.
     
     """
+    # To make subsequent forges more efficient, a simpler version of "request"
+    # is cached in its WSGI environ the first time it's forged:
+    if "repoze.what.clear_request" not in request.environ:
+        # The new copy is always a GET request. So file uploads or any other
+        # data in "wsgi.input" is discarded:
+        clear_request = request.copy_get()
+        clear_request.query_string = ""
+        
+        # The routing_args are request-specific, so they should be removed from
+        # the clear request:
+        if "wsgiorg.routing_args" in clear_request.environ:
+            del clear_request.environ['wsgiorg.routing_args']
+        
+        # This is not added to the "repoze.what" environment variable to avoid
+        # recursion problems:
+        request.environ['repoze.what.clear_request'] = clear_request
+    
     new_request = request.environ['repoze.what.clear_request'].copy()
     new_request.urlargs = positional_args
     new_request.urlvars = named_args
