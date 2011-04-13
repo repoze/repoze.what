@@ -20,6 +20,8 @@ Tests for :mod:`repoze.what.groups`.
 from nose.tools import assert_false, eq_, ok_
 from webob import Request
 
+from repoze.what.internals import setup_request
+
 from tests import MockGroupAdapter
 
 
@@ -28,16 +30,13 @@ class BaseGroupAdapterTestCase(object):
     
     def setup(self):
         self.request = Request.blank("/")
-        self.request.environ['repoze.what.groups'] = {
-            'membership': set(),
-            'no_membership': set(),
-            }
+        setup_request(self.request, None, None)
     
     def assert_cache(self, membership_groups, no_membership_groups):
-        eq_(self.request.environ['repoze.what.groups']['membership'],
-            set(membership_groups))
-        eq_(self.request.environ['repoze.what.groups']['no_membership'],
-            set(no_membership_groups))
+        cached_groups = self.request.environ['repoze.what']['cached_groups']
+        
+        eq_(cached_groups['membership'], set(membership_groups))
+        eq_(cached_groups['no_membership'], set(no_membership_groups))
 
 
 class TestAnyGroup(BaseGroupAdapterTestCase):
@@ -118,8 +117,8 @@ class TestAnyGroup(BaseGroupAdapterTestCase):
         adapter = MockGroupAdapter("admins", "developers")
         groups = set(["designers", "admins"])
         
-        self.request.environ['repoze.what.groups']['membership'].add("users")
-        self.request.environ['repoze.what.groups']['membership'].add("admins")
+        self.request.environ['repoze.what']['cached_groups']['membership'] |= \
+            set(["users", "admins"])
         
         ok_(adapter.requester_in_any_group(self.request, groups))
         eq_(len(adapter.queried_groups), 0)
@@ -135,7 +134,8 @@ class TestAnyGroup(BaseGroupAdapterTestCase):
         adapter = MockGroupAdapter()
         groups = set(["users", "admins"])
         
-        self.request.environ['repoze.what.groups']['no_membership'] |= groups
+        cached_groups = self.request.environ['repoze.what']['cached_groups']
+        cached_groups['no_membership'] |= groups
         
         assert_false(adapter.requester_in_any_group(self.request, groups))
         eq_(len(adapter.queried_groups), 0)
@@ -152,7 +152,8 @@ class TestAnyGroup(BaseGroupAdapterTestCase):
         adapter = MockGroupAdapter("admins", "developers")
         groups = set(["users", "admins"])
         
-        self.request.environ['repoze.what.groups']['no_membership'].add("users")
+        self.request.environ['repoze.what']['cached_groups']['no_membership'] \
+            .add("users")
         
         ok_(adapter.requester_in_any_group(self.request, groups))
         eq_(adapter.queried_groups, [("any", set(["admins"]))])
@@ -238,7 +239,8 @@ class TestAllGroups(BaseGroupAdapterTestCase):
         adapter = MockGroupAdapter("admins", "users", "developers")
         groups = set(["users", "admins"])
         
-        self.request.environ['repoze.what.groups']['membership'] |= groups
+        self.request.environ['repoze.what']['cached_groups']['membership'] |= \
+            groups
         
         ok_(adapter.requester_in_all_groups(self.request, groups))
         eq_(len(adapter.queried_groups), 0)
@@ -254,7 +256,8 @@ class TestAllGroups(BaseGroupAdapterTestCase):
         adapter = MockGroupAdapter()
         groups = set(["users", "admins"])
         
-        self.request.environ['repoze.what.groups']['no_membership'].add("users")
+        self.request.environ['repoze.what']['cached_groups']['no_membership'] \
+            .add("users")
         
         assert_false(adapter.requester_in_all_groups(self.request, groups))
         eq_(len(adapter.queried_groups), 0)
@@ -271,7 +274,8 @@ class TestAllGroups(BaseGroupAdapterTestCase):
         adapter = MockGroupAdapter("admins", "developers")
         groups = set(["users", "admins"])
         
-        self.request.environ['repoze.what.groups']['membership'].add("users")
+        self.request.environ['repoze.what']['cached_groups']['membership'] \
+            .add("users")
         
         ok_(adapter.requester_in_all_groups(self.request, groups))
         eq_(adapter.queried_groups, [("all", set(["admins"]))])

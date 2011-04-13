@@ -63,7 +63,7 @@ class BaseGroupAdapter(object):
         if not groups:
             return False
         
-        cached_groups = request.environ['repoze.what.groups']
+        cached_groups = request.environ['repoze.what']['cached_groups']
         
         # If the requester is already known to belong to at least one of the
         # "groups", it's not necessary to query the adapter:
@@ -113,7 +113,7 @@ class BaseGroupAdapter(object):
         if not groups:
             return False
         
-        cached_groups = request.environ['repoze.what.groups']
+        cached_groups = request.environ['repoze.what']['cached_groups']
         
         # If the requester is already known to belong to all of the "groups",
         # it's not necessary to query the adapter:
