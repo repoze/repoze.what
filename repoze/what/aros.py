@@ -18,12 +18,10 @@ Built-in Access Request Objects.
 A repoze.what ARO is a callable that takes the request object and returns
 a boolean to report whether the requester matches the one it represents.
 
-TODO: Implement ARO for groups once group adapters have been implemented
-
 """
 
 
-__all__ = ["ANONYMOUS", "AUTHENTICATED", "UserId"]
+__all__ = ["ANONYMOUS", "AUTHENTICATED", "GroupId", "UserId"]
 
 
 AUTHENTICATED = lambda request: bool(request.remote_user)
@@ -47,3 +45,16 @@ class UserId(object):
     
     def __call__(self, request):
         return request.remote_user == self.user_id
+
+
+class GroupId(object):
+    """Access Request Object that matches a specific group Id."""
+    
+    def __init__(self, group_id):
+        self.group_id = group_id
+    
+    def __call__(self, request):
+        adapter = request.environ['repoze.what']['group_adapter']
+        required_groups = set([self.group_id])
+        
+        return adapter.requester_in_all_groups(request, required_groups)

@@ -21,6 +21,9 @@ from nose.tools import assert_false, ok_
 from webob import Request
 
 from repoze.what.aros import *
+from repoze.what.internals import setup_request
+
+from tests import MockGroupAdapter
 
 
 class TestAnonymous(object):
@@ -76,8 +79,23 @@ class TestUserId(object):
 class TestGroupId(object):
     """Tests for the :class:`GroupId` ARO."""
     
+    def setup(self):
+        self.request = Request.blank("/", {'REMOTE_USER': "carla"})
+        adapter = MockGroupAdapter("admins", "developers")
+        
+        setup_request(self.request, None, adapter)
+    
     def test_membership(self):
-        pass
+        """There's a match if the requester belongs to the expected group."""
+        aro = GroupId("admins")
+        
+        ok_(aro(self.request))
     
     def test_no_membership(self):
-        pass
+        """
+        There's no match if the requester doesn't belong to the expected group.
+        
+        """
+        aro = GroupId("designers")
+        
+        assert_false(aro(self.request))
