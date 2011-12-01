@@ -4,6 +4,7 @@
 # Copyright (c) 2007, Agendaless Consulting and Contributors.
 # Copyright (c) 2008, Florent Aide <florent.aide@gmail.com>.
 # Copyright (c) 2008-2010, Gustavo Narea <me@gustavonarea.net>.
+# Copyright (c) 2011, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -63,7 +64,7 @@ setup(name='repoze.what',
         'nose',
         ],
       install_requires=[
-        'repoze.who >= 1.0',
+        'repoze.who >= 1.0, < 2.0dev',
         'repoze.who-testutil >= 1.0b2', 
         'Paste > 1.7',
         'WebOb >= 0.9.7',
