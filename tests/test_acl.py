@@ -460,6 +460,7 @@ class TestACL(TestCase):
         acl = ACL()
         acl.allow("/blog", predicate1)
         acl.deny(protected_object, predicate2)
+        
         # Checking with a path:
         environ1 = {'PATH_INFO': "/blog"}
         decision1 = acl.decide_authorization(environ1)
@@ -468,6 +469,7 @@ class TestACL(TestCase):
         eq_(decision1.denial_handler, None)
         eq_(decision1.match_tracker.longest_path_match, 6)
         assert_false(decision1.match_tracker.object_ace_found)
+        
         # Checking with an object:
         environ2 = {'PATH_INFO': "/trac"}
         decision2 = acl.decide_authorization(environ2, protected_object)
@@ -563,6 +565,19 @@ class TestACL(TestCase):
         eq_(decision8.match_tracker.longest_path_match, 0)
         ok_(decision8.match_tracker.object_ace_found)
         assert_false(predicate2.evaluated)
+    
+    def test_authorization_with_code(self):
+        """
+        The code of the matching ACE should be ported to the authorization
+        decision.
+        
+        """
+        acl = ACL()
+        acl.allow("/blog", code="the-code")
+        
+        environ = {'PATH_INFO': "/blog"}
+        decision = acl.decide_authorization(environ)
+        eq_(decision.ace_code, "the-code")
     
     def test_authorization_denied_with_default_handler(self):
         """
@@ -761,7 +776,14 @@ class TestACL(TestCase):
         environ_with_wrong_path = {'PATH_INFO': "/bar/////foo/"}
         decision2 = acl.decide_authorization(environ_with_wrong_path)
         ok_(decision2.allow)
-        
+    
+    #{ Decision-independent ACE functionality
+    
+    def test_ace_with_code(self):
+        acl = ACL()
+        acl.allow("/blog", code="the-code")
+        ace = acl._aces[0][1]
+        eq_(ace.code, "the-code")
     
     #}
 
@@ -921,30 +943,41 @@ class TestAuthorizationDecision(TestCase):
     
     def test_constructor(self):
         denial_handler = object()
-        decision = AuthorizationDecision(False, "FooBar", denial_handler)
+        ace_code = "foobar"
+        decision = AuthorizationDecision(
+            False,
+            "FooBar",
+            denial_handler,
+            ace_code,
+            )
+        
         eq_(decision.allow, False)
         eq_(decision.message, "FooBar")
         eq_(decision.denial_handler, denial_handler)
         eq_(decision.match_tracker, None)
+        eq_(decision.ace_code, ace_code)
     
     def test_setting_denial_handler_with_existing_one(self):
         """If there's already a denial handler, it must not be replaced."""
         denial_handler = object()
-        decision = AuthorizationDecision(False, "FooBar", denial_handler)
+        decision = AuthorizationDecision(False, "FooBar", denial_handler, None)
         decision.set_denial_handler("something new")
+        
         eq_(decision.denial_handler, denial_handler)
     
     def test_setting_denial_handler_with_no_existing_one(self):
         """If there's no previous a denial handler, it must set."""
         denial_handler = object()
-        decision = AuthorizationDecision(False, "FooBar", None)
+        decision = AuthorizationDecision(False, "FooBar", None, None)
         decision.set_denial_handler(denial_handler)
+        
         eq_(decision.denial_handler, denial_handler)
     
     def test_setting_match_tracker(self):
-        decision = AuthorizationDecision(False, "FooBar", None)
+        decision = AuthorizationDecision(False, "FooBar", None, None)
         match_tracker = object()
         decision.set_match_tracker(match_tracker)
+        
         eq_(decision.match_tracker, match_tracker)
 
 
@@ -955,13 +988,20 @@ class TestBaseAuthorizationControl(TestCase):
     """Tests for the base class _BaseAuthorizationControl."""
     
     def test_constructor_with_default_final_decision(self):
-        control = _BaseAuthorizationControl(True)
+        final_decision = True
+        control = _BaseAuthorizationControl(final_decision)
+        
         ok_(isinstance(control._default_final_decision, AuthorizationDecision))
-        eq_(control._default_final_decision.allow, True)
+        eq_(control._default_final_decision.allow, final_decision)
+        eq_(control._default_final_decision.message, None)
+        eq_(control._default_final_decision.denial_handler, None)
+        eq_(control._default_final_decision.ace_code, None)
     
     def test_constructor_with_default_denial_handler(self):
         denial_handler = object()
-        control = _BaseAuthorizationControl(default_denial_handler=denial_handler)
+        control = _BaseAuthorizationControl(
+            default_denial_handler=denial_handler,
+            )
         eq_(control._default_denial_handler, denial_handler)
     
     def test_constructor_with_default_denial_handler_and_final_decision(self):

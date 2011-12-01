@@ -3,6 +3,7 @@
 #
 # Copyright (c) 2009, 2011, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
 # Copyright (c) 2009-2010, Gustavo Narea <me@gustavonarea.net>.
+# Copyright (c) 2011, 2degrees Limited <gustavonarea@2degreesnetwork.com>.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the BSD-like license at
@@ -48,7 +49,9 @@ class _BaseAuthorizationControl(object):
             self._default_final_decision = AuthorizationDecision(
                 allow_by_default,
                 None,
-                None)
+                None,
+                None,
+                )
     
     def decide_authorization(self, environ, object_=None):
         """
@@ -109,7 +112,7 @@ class ACL(_BaseAuthorizationControl):
     
     def allow(self, path_or_object, predicate=None, named_args=(),
               positional_args=0, msg=None, propagate=True,
-              force_inclusion=False):
+              force_inclusion=False, code=None):
         """
         Grant access on ``path_or_object`` if the ``predicate`` is met, all the
         named arguments in ``named_args`` are set and there are at least
@@ -134,6 +137,7 @@ class ACL(_BaseAuthorizationControl):
         :param force_inclusion: Whether this ACE has the final decision as to
             whether the authorization is granted (if so, no other ACE will be
             considered).
+        :param code: The code that classifies this ACE for client code.
         
         If no ``predicate`` is set, then the ACE will always be taken into
         account.
@@ -142,11 +146,12 @@ class ACL(_BaseAuthorizationControl):
         
         """
         self._add_ace(path_or_object, predicate, True, named_args,
-                      positional_args, None, msg, propagate, force_inclusion)
+                      positional_args, None, msg, propagate, force_inclusion,
+                      code)
     
     def deny(self, path_or_object, predicate=None, named_args=(),
              positional_args=0, denial_handler=None, msg=None, propagate=True,
-             force_inclusion=False):
+             force_inclusion=False, code=None):
         """
         Deny access on ``path_or_object`` if the ``predicate`` is met, all the
         named arguments in ``named_args`` are set and there are at least
@@ -174,6 +179,7 @@ class ACL(_BaseAuthorizationControl):
             whether the authorization is granted (if so, no other ACE will be
             considered).
         :type force_inclusion: :class:`bool`
+        :param code: The code that classifies this ACE for client code.
         
         If no ``predicate`` is set, then the ACE will always be taken into
         account.
@@ -183,11 +189,11 @@ class ACL(_BaseAuthorizationControl):
         """
         self._add_ace(path_or_object, predicate, False, named_args,
                       positional_args, denial_handler, msg, propagate,
-                      force_inclusion)
+                      force_inclusion, code)
     
     def _add_ace(self, path_or_object, predicate, allow, named_args,
                  positional_args, denial_handler, msg, propagate,
-                 force_inclusion):
+                 force_inclusion, code):
         
         # If we've been given multiple Access Control Objects at once, we have
         # to add them one by one:
@@ -195,7 +201,7 @@ class ACL(_BaseAuthorizationControl):
             for aco in path_or_object:
                 self._add_ace(aco, predicate, allow, named_args,
                               positional_args, denial_handler, msg, propagate,
-                              force_inclusion)
+                              force_inclusion, code)
             return
         
         is_path = isinstance(path_or_object, basestring)
@@ -204,7 +210,7 @@ class ACL(_BaseAuthorizationControl):
             path_or_object = _normalize_path(self._base_path + path_or_object)
         # Adding this ACE:
         ace = _ACE(predicate, allow, named_args, positional_args, msg,
-                   propagate, force_inclusion)
+                   propagate, force_inclusion, code)
         self._aces.append((path_or_object, ace, is_path, denial_handler))
     
     #}
@@ -258,7 +264,7 @@ class ACL(_BaseAuthorizationControl):
             
             # The current ACE *must* be taken into account:
             final_decision = AuthorizationDecision(ace.allow, message,
-                                                   denial_handler)
+                                                   denial_handler, ace.code)
             
             # Updating the tracker:
             if is_path:
@@ -374,11 +380,12 @@ class AuthorizationDecision(object):
     
     """
     
-    def __init__(self, allow, message, denial_handler):
+    def __init__(self, allow, message, denial_handler, ace_code):
         self.allow = allow
         self.message = message
         self.denial_handler = denial_handler
         self.match_tracker = None
+        self.ace_code = ace_code
     
     def set_denial_handler(self, new_denial_handler):
         """If there's no denial handler set yet, use ``new_denial_handler``."""
@@ -400,7 +407,8 @@ class _ACE(object):
     """
     
     def __init__(self, predicate, allow, named_args=(), positional_args=0,
-                 message=None, propagate=True, force_inclusion=False):
+                 message=None, propagate=True, force_inclusion=False,
+                 code=None):
         if not allow and predicate is not None:
             # Let's negate the predicate so we can get the denial message when
             # it IS met:
@@ -413,6 +421,7 @@ class _ACE(object):
         self.message = message
         self.propagate = propagate
         self.force_inclusion = force_inclusion
+        self.code = code
     
     def can_participate(self, environ):
         """
