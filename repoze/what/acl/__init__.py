@@ -436,21 +436,19 @@ class _ACE(object):
         :rtype: (:class:`bool`, :class:`basestring`)
         
         """
-        # If there's no predicate, then this ACE should always participate:
-        if self.predicate is None:
-            return (True, self.message)
-        
-        # Let's extract the request arguments. We shouldn't evaluate the
-        # predicate until we know the minimum arguments are present:
+        # Ensure the minimum arguments this ACE applies to are present. It might
+        # be that the ACE itself doesn't care about this, but the predicate
+        # relies on a particular argument, so it shouldn't be evaluated unless
+        # the required arguments are present.
         routing_args = environ.get("wsgiorg.routing_args", ((), {}))
         positional_args = len(routing_args[0])
         named_args = set(routing_args[1].keys())
-        
-        # If the minimum arguments are not present, there's no point in
-        # evaluating the predicate and therefore this ACE must be ignored:
         if not (named_args.issuperset(self.named_args) and
                 positional_args >= self.positional_args):
             return (False, None)
+        
+        if self.predicate is None:
+            return (True, self.message)
         
         # At this point, we have to evaluate the predicate because the minimum
         # arguments are present. But we don't know yet if this ACE is to be

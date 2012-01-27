@@ -1085,6 +1085,13 @@ class TestAces(TestCase):
         ok_(participation)
         eq_(message, "Foo Bar")
     
+    def test_can_participate_without_predicate_and_without_minimum_args(self):
+        ace = _ACE(None, True, ['arg1'], message="Foo Bar")
+        (participation, message) = ace.can_participate({})
+        
+        assert_false(participation)
+        eq_(message, None)
+    
     def test_can_participate_without_minimum_args(self):
         """
         The predicate must not be evaluated if the minimum arguments are not
